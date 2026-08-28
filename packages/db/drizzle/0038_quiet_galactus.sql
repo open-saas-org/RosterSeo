@@ -1,0 +1,1 @@
+ALTER TABLE "site_audit_pages" ADD COLUMN "h2_texts" jsonb;

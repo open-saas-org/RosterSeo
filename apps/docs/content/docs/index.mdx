@@ -1,0 +1,29 @@
+---
+title: Introduction
+description: What this project is and how the docs are organized
+---
+
+Open-source SEO + AI-search-visibility platform. Combines a Screaming
+Frog–style crawler/auditor, an [open-seo](https://github.com/every-app/open-seo)-style
+keyword/SERP/competitor research suite, and an [elmo](https://github.com/elmohq/elmo)-style
+AI-answer-engine (ChatGPT/Gemini/Perplexity) brand-visibility tracker, plus
+GSC/GA4 integration so recommendations are grounded in real site
+performance data, not just estimated SERP data.
+
+<Cards>
+  <Card title="Product Spec (PRD)" href="/docs/product-spec" description="Vision, ICP, features, roadmap, cost model" />
+  <Card title="Architecture" href="/docs/architecture" description="Stack choices and why, monorepo layout, runtime process model" />
+  <Card title="Self-Hosting" href="/docs/self-hosting" description="Run it locally, via Docker, or deploy to Railway" />
+</Cards>
+
+## Status
+
+Early scaffold. Auth, dashboard shell, and the shared job-queue/tenant-isolation
+foundation exist; most product features (page analyzer, keyword research,
+site audit, AI visibility, GSC/GA4 sync) are still being built. See the
+[roadmap](/docs/product-spec#9-phased-roadmap-reality-check-on-the-34-month-timeline)
+for sequencing.
+
+## License
+
+MIT.

@@ -1,0 +1,161 @@
+---
+title: Site Audit
+description: Real crawler-backed technical SEO audit — same-origin link discovery, per-page issue rules, health scoring, tracked over time
+---
+
+Full Site Crawler / Audit, per PRD Section 5.4. Crawls a project's domain
+for real (fetch + HTML parsing, not mock data), derives technical SEO
+issues rule-by-rule from what it actually finds, rolls them up into a
+0-100 health score, and persists the run so it can be tracked over time.
+
+## What it does
+
+1. Seeds the crawl frontier from the domain's homepage plus its
+   `sitemap.xml` (or a custom sitemap URL), falling back to the
+   `robots.txt` `Sitemap:` directive if the default 404s.
+2. Crawls breadth-first in concurrency-limited waves (`apps/worker/src/features/crawler.ts`):
+   fetches each page for real, parses the HTML with `cheerio`, and follows
+   every same-origin `<a href>` it discovers — not just the sitemap. A basic
+   `robots.txt` subset (`User-agent: *` / `Disallow`) is respected.
+3. Tracks two distinct, real counters as the crawl runs: **pages discovered**
+   (the frontier size — every same-origin URL seen so far) and **pages
+   crawled** (pages actually fetched). The crawl stops once `pagesCrawled`
+   hits the run's configured `maxPages`.
+4. Derives issues from each page's real HTML:
+
+   | Rule | Severity | Category |
+   |---|---|---|
+   | Fetch failed (DNS/timeout/network error) | Critical | Links |
+   | HTTP status &ge; 400 | Critical | Links |
+   | Page redirected | Info | Redirects |
+   | Missing `<meta name="description">` | Critical | Meta |
+   | No `<h1>` | Critical | Content |
+   | Multiple `<h1>` | Warning | Content |
+   | Images missing `alt` | Warning | Accessibility |
+   | Load time &gt; 2500ms | Warning | Performance |
+   | Body word count &lt; 300 | Info | Content |
+   | `<meta name="robots" content="noindex">` | Warning | Indexability |
+   | Poor CLS (via PageSpeed, sampled) | Warning | Core Web Vitals |
+   | Duplicate `<title>` across &ge; 2 crawled pages (cross-page check, runs once after the crawl finishes) | Warning | Content |
+
+5. Computes a health score: starts at 100, subtracts 15 per critical issue,
+   6 per warning, 2 per info, floored at 0.
+6. Surfaces the result as a health-score metric, pages-crawled / issue-count
+   summary tiles, and a sortable/filterable issues table plus a per-page
+   table (status code, title, H1 count, word count, image count, load time).
+
+## Configurable page limit, not a hardcoded cap
+
+`maxPages` is a real, user-facing input (Custom Config on the audit list
+page), not a hidden constant:
+
+- Default **200**, adjustable from **10** to **5,000**.
+- Persisted per-run on `site_audits.max_pages`, so a finished audit's
+  progress bar and history row both show real numbers against the ceiling
+  that run actually used.
+- A crawl with no ceiling at all is one crawler-trap site away from running
+  forever on a shared background worker — 5,000 is deliberately high
+  ("enterprise-scale," not "50 and stuck") while still being a real,
+  bounded stopping point. A per-page cap on stored discovered links (500)
+  and a hard frontier-size cap (`maxPages × 20`, minimum 2,000) protect
+  against pathological sites (e.g. infinite calendar/faceted-nav pages)
+  from exhausting worker memory before `maxPages` is even reached.
+
+## Core Web Vitals sampling
+
+Real Lighthouse audits (`fetchPageSpeedMetrics`, Google's PageSpeed
+Insights API) take several seconds per URL and are rate-limited without an
+API key. Running one on every crawled page would make a 200-page audit take
+hours. The worker samples the first 20 successfully-fetched pages instead —
+enough to catch template-level CWV issues (most sites have a handful of
+distinct page templates) without making the crawl impractically slow.
+
+## Database
+
+Three tables (migrated, all RLS-protected — see `packages/db/src/app-schema.ts`
+and migrations `0003`, `0007`, `0008`):
+
+- **`site_audits`** — one row per audit run: `projectId`, `status`
+  (`pending` | `running` | `complete` | `failed`), `pagesCrawled`,
+  `pagesDiscovered`, `maxPages`, `healthScore` (0-100), `startedAt`,
+  `completedAt`.
+- **`site_audit_issues`** — one row per derived issue: `auditId`,
+  `severity`, `category`, `url`, `description`.
+- **`site_audit_pages`** — one row per crawled page: `auditId`, `url`,
+  `statusCode` (the real HTTP status, not hardcoded), `title`, `h1Count`,
+  `wordCount`, `imageCount`, `loadTimeMs`, `redirectedTo`.
+
+## The RLS bug this replaced
+
+The previous worker implementation used the bare `db` export instead of
+`withUserContext(userId, ...)` for every read/write. Every tenant table's
+`tenant_isolation` policy checks `current_setting('app.current_user_id', true)`,
+which is `NULL` outside `withUserContext` — so every `UPDATE` to `site_audits`
+silently affected 0 rows (no error, RLS just filtered it out), and the first
+`INSERT` into `site_audit_issues` threw a real RLS violation once a page
+produced any issue. The audit row got stuck at `pending`/`running` forever
+with `pagesCrawled: 0` — this is why the UI appeared to hang at "0 / 50
+pages" indefinitely. Separately, `site_audit_pages` had no RLS policy at
+all (migration `0007` created the table without one).
+
+Fixed by: threading `userId` through the `site_audit_job` payload
+(`packages/jobs/src/site-audit-job.ts`), wrapping every DB call in the
+worker in `withUserContext(userId, ...)`
+(`apps/worker/src/features/audit-runner.ts`), and migration `0008` adding
+the missing `tenant_isolation` policy on `site_audit_pages`. This bug class
+(RLS silently no-oping outside `withUserContext`) has bitten this codebase
+before — see `ARCHITECTURE.md` — the worker just hadn't been brought in
+line with the route-handler convention until now.
+
+## API
+
+`apps/web/app/api/projects/[projectId]/site-audit/`, behind `withAuth` +
+`requireProjectAccess` + `withUserContext`:
+
+- **`POST /`** — creates a `pending` `site_audits` row and enqueues
+  `site_audit_job` (`packages/jobs`) for the worker to pick up. Accepts
+  `domain`, `customSitemapUrl`, and `maxPages` (clamped 10–5,000, default
+  200) in the body.
+- **`GET /`** — lists the project's past audits, most recent first.
+- **`GET /[auditId]`** — full audit detail: the audit row plus all its
+  issues and pages.
+- **`DELETE /[auditId]`** — deletes the audit (cascades to its pages/issues).
+  Also doubles as **cancel**: the worker checks between crawl batches
+  whether its own audit row still exists, and stops crawling as soon as
+  it's gone instead of continuing to write into nothing.
+- **`GET /[auditId]/progress`** — lightweight polling endpoint (status,
+  `pagesCrawled`, `pagesDiscovered`, `maxPages`, five most recent pages),
+  polled every 1.5s by the UI while an audit is `pending`/`running`.
+
+## Worker
+
+`apps/worker/src/features/crawler.ts` — the crawl engine (`crawlSite()`):
+concurrency-limited BFS, `robots.txt`-aware, same-origin-only, no DB
+knowledge (pure fetch + parse, driven by callbacks).
+
+`apps/worker/src/features/audit-runner.ts` — owns all DB access and
+business logic: calls `crawlSite()`, derives issues per page, persists
+pages/issues/progress after each crawled page, runs the cross-page
+duplicate-title check once the crawl finishes, and computes the health
+score.
+
+## UI
+
+`apps/web/app/(dashboard)/site-audit/page.tsx` routes between
+`SiteAuditView` (history + launch a new audit) and `SiteAuditDetail`
+(a single audit), both in `apps/web/components/site-audit/`:
+
+- **`SiteAuditView`** — audit history table (date, status, pages crawled /
+  max pages, health score, delete), and a launch form with a Custom Config
+  section (target domain, custom sitemap URL, max pages).
+- **`SiteAuditDetail`** — while running: a live progress card showing real
+  discovered/crawled counts against the run's `maxPages`, polled every
+  1.5s, with a Cancel button. Once complete: health-score and issue-count
+  KPI cards, and Issues/Pages tabs (`site-audit-columns.tsx` for the issues
+  table, filterable by severity).
+
+Shared types (`IssueSeverity`, `SiteAuditIssue`) live in
+`apps/web/components/site-audit/audit-engine.ts` — the crawl/issue-derivation
+logic itself lives entirely in the worker now, so there's one real
+implementation instead of a client-side mock copy and a server-side real
+copy that could drift apart.

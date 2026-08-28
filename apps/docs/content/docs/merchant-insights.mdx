@@ -1,0 +1,58 @@
+---
+title: Merchant Insights
+description: Real Google Merchant Center product performance — clicks, impressions, CTR, and conversions from Shopping
+---
+
+Route: `/merchant-insights`.
+
+## What it does
+
+Merchant Center's equivalent of [GSC Insights](/docs/gsc-insights): headline metric cards (clicks, impressions,
+average CTR, conversions), a traffic trend chart, and a sortable daily-performance table, filterable to the
+last 7, 28, or 90 days — aggregated across every product in the connected account.
+
+This is **not** the connect flow — connecting Google (including Merchant Center) and picking which account this
+project reports on both stay on [Integrations](/docs/integrations). Merchant Insights only reads that state and
+renders the real data view.
+
+## Built on the Merchant API, not the deprecated Content API
+
+Google is sunsetting the Content API for Shopping in favor of the new **Merchant API**
+(`merchantapi.googleapis.com`) — confirmed live mid-build (Google Cloud Console pointed a real project at the
+Merchant API's enablement page instead of the old Content API's). Same OAuth scope as before
+(`https://www.googleapis.com/auth/content`), so existing connections didn't need to reconnect.
+
+## What's real today
+
+- **`listMerchantAccounts()`** (`@seo-tool/google`, `packages/google/src/merchant-center.ts`) — real Merchant
+  API Accounts sub-API `accounts.list` call, powers the account picker (`PropertyPicker`, service `"merchant"`).
+- **`getMerchantProductPerformance(accessToken, accountResourceName, startDate, endDate)`** — real Merchant API
+  Reports sub-API `accounts.reports.search` call, a SQL-like query over the `product_performance_view` table
+  (`SELECT date, clicks, impressions, click_through_rate, conversions FROM product_performance_view WHERE date
+  BETWEEN ... `). The query is per-product (segmented by an implicit `offer_id`), so results are aggregated to
+  one row per day client-side before being charted/tabled.
+- Both calls' method names and shapes were inspected directly from the installed `googleapis` SDK's generated
+  TypeScript types (`accounts_v1.d.ts` / `reports_v1.d.ts`) — real, current API surface, not guessed from
+  memory — but **not yet live-tested end-to-end** against a real Merchant Center account. Worth a spot-check
+  once one is connected for real, same honesty-note convention as GBP's Performance metrics
+  (see [Local SEO](/docs/local-seo)).
+- Merchant Center's Reports API is near-real-time (no GSC-style reporting lag), so the date range uses the same
+  plain `getDateRange()` helper GA4/Bing Insights use — no adaptive trimming needed.
+
+## Files
+
+- `apps/web/app/(dashboard)/merchant-insights/page.tsx` — server component; resolves the current project, real
+  connection status, and (when an account is picked) the real product-performance call.
+- `apps/web/components/merchant-insights/merchant-insights-workspace.tsx` — client component; metric cards,
+  trend chart, daily table, date-range `Select`.
+- `apps/web/components/merchant-insights/merchant-insights-metrics.ts` — the same period-over-period
+  half-window aggregation GSC/GA/Bing Insights use.
+- `apps/web/app/api/projects/[projectId]/merchant-insights/route.ts` — `GET ?days=7|28|90`.
+- Account picking reuses `PropertyPicker` + `GET /api/projects/:projectId/integrations/properties?service=merchant`
+  and `PATCH /api/projects/:projectId/integrations` — see [Integrations](/docs/integrations)'s Property
+  selection section.
+
+## Notable follow-up work (not built in this pass)
+
+- No per-product breakdown yet — only the aggregated daily total across the whole account.
+- Shopping-feed diagnostics (product issues, disapprovals) aren't built — this page is performance stats only.

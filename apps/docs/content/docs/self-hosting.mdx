@@ -1,0 +1,72 @@
+---
+title: Self-Hosting
+description: Run it locally, via Docker, or deploy to Railway
+---
+
+## Local development (no Docker)
+
+Requires Node 20+, pnpm, and a Postgres instance (local install, or a free
+one from Railway/Neon/Supabase).
+
+```bash
+cp .env.example .env
+pnpm install
+```
+
+Postgres needs two roles before running migrations — see
+[Database roles](#database-roles) below, then:
+
+```bash
+pnpm db:migrate
+pnpm dev
+```
+
+`apps/web` runs on `http://localhost:3000`, `apps/docs` on `http://localhost:3001`.
+`apps/worker` (the job queue consumer) starts alongside them via the same
+`pnpm dev`.
+
+## Docker Compose
+
+```bash
+cp .env.example .env
+docker compose up --build
+docker compose run --rm web pnpm --filter @seo-tool/db migrate
+```
+
+`docker/postgres-init.sql` creates the restricted app role automatically on
+first container start.
+
+## Database roles
+
+This is the one setup step that's easy to get wrong and fails silently if
+you do: **the app's runtime `DATABASE_URL` must be a non-superuser role**,
+or Postgres row-level security (the tenant-isolation mechanism) is skipped
+entirely — no error, it just quietly returns every tenant's rows.
+
+```sql
+CREATE ROLE seo_tool_app WITH LOGIN PASSWORD '<pick one>' NOSUPERUSER NOBYPASSRLS;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO seo_tool_app;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO seo_tool_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO seo_tool_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO seo_tool_app;
+GRANT CREATE ON DATABASE seo_tool TO seo_tool_app;
+```
+
+Set `DATABASE_URL` to this restricted role, and `DATABASE_MIGRATE_URL` to
+an elevated (superuser/owner) role — migrations run DDL that a restricted
+role can't execute. Full detail: `packages/db/README.md` in the repo.
+
+## Deploy on Railway
+
+Not yet published as a one-click template. See `docker/RAILWAY.md` in the
+repo for the manual, one-time steps to publish the deploy button once
+there's enough built to be worth deploying.
+
+## Two modes
+
+- **`SELF_HOSTED=true`** — single-tenant, no billing, bring your own
+  DataForSEO/LLM API keys.
+- **`SELF_HOSTED=false`** — multi-tenant hosted SaaS, Stripe billing,
+  per-org credit metering.
+
+Same codebase, one env flag.

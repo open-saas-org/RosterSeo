@@ -1,0 +1,186 @@
+---
+title: Rank Tracking
+description: Industry-standard rank tracker - bulk keyword add, background Fetch Rankings runs, position-distribution trend, SERP features (PRD Section 5.2)
+---
+
+Route: `/rank-tracking`.
+
+## What it does
+
+A rebuilt, industry-standard rank tracker: add keywords (single or bulk
+paste) without touching DataForSEO at all, then explicitly click **Fetch
+Rankings** to check them - one real DataForSEO SERP lookup per keyword,
+run as a background job so adding hundreds of keywords doesn't block the
+page. The page shows a domain-wide config strip (location / device /
+schedule), a stacked position-distribution chart (Top 3 / 4-10 / 11-20 /
+Not ranking) trended across real Fetch Rankings runs, and a filterable,
+sortable, bulk-selectable keyword table with Position, URL, Volume, KD,
+CPC, and captured SERP features per row.
+
+This replaces the previous single-column "tracked keyword list with a live
+per-render metrics fetch" implementation. The rebuild was driven by two
+requirements: (1) adding a keyword must never itself trigger a DataForSEO
+call - only an explicit Fetch Rankings action does - and (2) both single
+and bulk keyword add need first-class UI, not just Keyword Research's
+per-row "Track" button.
+
+## Add vs. Fetch - the core design decision
+
+- **Adding a keyword** (`POST /api/projects/:projectId/keywords`, single or
+  bulk) only ever inserts rows into `tracked_keywords`. It never calls
+  DataForSEO, regardless of how many keywords are added at once.
+- **Fetching rankings** is the *only* thing that calls DataForSEO. Two
+  paths exist:
+  - **Bulk** (`POST /api/projects/:projectId/rank-tracking/fetch`) -
+    enqueues a background `rankCheckJob` (`packages/jobs`, run by
+    `apps/worker`) that checks every selected (or all) tracked keyword,
+    writes `keyword_rankings` rows tagged with a shared `runId`, and
+    refreshes cached volume/KD/CPC when stale. The page polls a progress
+    route (same `useQuery` + `refetchInterval` pattern as Site Audit's
+    crawl progress) and refreshes once the run completes.
+  - **Single, on-demand** ("check now" icon per row,
+    `POST .../keywords/:keywordId/rankings`) - synchronous, no job needed
+    for exactly one keyword. Writes a snapshot with `runId` left `null` so
+    a one-off re-check never skews the portfolio-wide trend chart.
+
+## Data model - run/snapshot history, not a mutable "current rank"
+
+Four tables now back this feature, all in `packages/db/src/app-schema.ts`,
+all RLS-protected:
+
+- **`trackedKeywords`** (`tracked_keywords`) - one row per tracked keyword:
+  `id`, `projectId`, `keyword`, plus cached metrics -
+  `searchVolume`/`keywordDifficulty`/`cpc`/`metricsFetchedAt` (nullable
+  until the first real fetch runs; refreshed only when missing or more
+  than 7 days stale, not on every page load). The old free-text `location`
+  column stays for legacy rows but new inserts leave it `null` - location
+  is now one project-wide setting, not per-keyword.
+- **`rankTrackingSettings`** (`rank_tracking_settings`) - one row per
+  project (PK = `projectId`): `locationCode`/`locationName` (a real
+  DataForSEO location, picked via the same Country -> State -> City
+  cascading selects Local SEO's Business Profile form uses),
+  `device` (`desktop`/`mobile`), `scheduleInterval` (`manual`/`weekly` -
+  **`weekly` is stored but inert**, see below). Lazily created with a
+  default resolved from the project's own `targetLocation` the first time
+  it's needed.
+- **`rankCheckRuns`** (`rank_check_runs`) - one row per Fetch Rankings
+  run: `id`, `projectId`, `status` (`pending`/`running`/`completed`/`failed`),
+  `keywordsTotal`, `keywordsChecked` (incremented per keyword so the
+  progress bar reflects real progress), `errorMessage`, `startedAt`,
+  `completedAt`.
+- **`keywordRankings`** (`keyword_rankings`) - one row per rank-check
+  snapshot: `id`, `trackedKeywordId`, `position` (nullable), `url`,
+  `device`, `serpFeatures` (`jsonb string[]`), `runId` (nullable FK ->
+  `rankCheckRuns`, `onDelete: "set null"`), `checkedAt`. The
+  position-distribution chart only aggregates rows with a non-null
+  `runId` - single "check now" snapshots are deliberately excluded so they
+  don't distort the trend.
+
+## SERP feature capture
+
+`checkKeywordRanking()` (`packages/dataforseo/src/client.ts`) is new and
+additive - it doesn't touch `getSerpResults`/`getSerpResultsReal`, which
+Page Analyzer still depends on unchanged. Unlike those, it does **not**
+filter the SERP response down to organic results only: it walks every
+item DataForSEO returns and maps recognized `type` values (`people_also_ask`,
+`featured_snippet`, `video`, `images`, `local_pack`/`map_pack`,
+`knowledge_graph`, `top_stories`, `shopping`, `ai_overview`) to display
+labels for the `serpFeatures` array, while still resolving
+position/URL by matching the project's own domain among `type === "organic"`
+items. The real DataForSEO item shape has no nested per-feature detail (no
+PAA question text, no featured-snippet owner) - `serpFeatures` is
+necessarily a flat label array, not richer structured data. Falls back to
+a seeded-random mock (same convention as every other function in this
+file) when DataForSEO isn't configured or the real call fails/returns
+empty.
+
+## What's real vs mock today
+
+- **Add (single/bulk), untrack, list**: real. No DataForSEO involved.
+- **Fetch Rankings (bulk, background job)**: real end-to-end - job
+  enqueue, worker processing, progress polling, run status. The
+  DataForSEO SERP + keyword-metrics calls inside it follow this
+  codebase's standard real/mock-fallback pattern; **not yet live-tested
+  against a funded DataForSEO account in this environment**, same honesty
+  note as Bing/Merchant Center/GBP Performance earlier in this project.
+- **Check rank now (single, synchronous)**: real, same fallback pattern.
+- **Weekly schedule**: the option is real UI, saved to a real column, but
+  **not automatic** - there is no recurring job reading `scheduleInterval`
+  yet. Only manual Fetch Rankings actually runs a check.
+- **Position-distribution chart**: real, aggregates real `rank_check_runs`
+  + `keyword_rankings` data. Shows an empty/partial state until 2+
+  completed runs exist.
+
+## API routes
+
+All routes require a session (`withAuth`) and verify the caller's
+organization owns the project (`requireProjectAccess`), then run the
+actual query through `withUserContext` so Postgres RLS enforces tenant
+isolation, not just the app-level check.
+
+### `GET /api/projects/:projectId/keywords`
+
+Lists tracked keywords, each annotated with `latestRanking` (most recent
+`keyword_rankings` row, or `null`).
+
+### `POST /api/projects/:projectId/keywords`
+
+Body is either `{ keyword: string }` (single, back-compat - still used by
+Keyword Research's per-row "Track" button) or `{ keywords: string[] }`
+(bulk, from the Add Keywords dialog's textarea/comma-separated input).
+Trims/lowercases/dedupes, caps at 1000 tracked keywords per project, never
+calls DataForSEO. Bulk returns `{ added, skipped }`.
+
+### `DELETE /api/projects/:projectId/keywords/:keywordId`
+
+Untracks a keyword; `keyword_rankings` rows cascade-delete via the FK.
+
+### `GET /api/projects/:projectId/keywords/:keywordId/rankings`
+
+Full position history for one tracked keyword, oldest to newest.
+
+### `POST /api/projects/:projectId/keywords/:keywordId/rankings`
+
+One-off "check this keyword now". With no `position` in the body, runs
+`checkKeywordRanking()` using the project's real `rank_tracking_settings`
+location/device, matches the project's domain in the organic results, and
+writes a snapshot with `device`/`serpFeatures` set and `runId` left `null`.
+An explicit `position`/`url` in the body is still accepted for manual
+entry/testing.
+
+### `GET|PATCH /api/projects/:projectId/rank-tracking/settings`
+
+`GET` returns the project's settings row, lazily creating a default one
+(resolved from `project.targetLocation`) if none exists. `PATCH` body:
+`{ locationCode, locationName, device, scheduleInterval }` - upserts.
+
+### `POST /api/projects/:projectId/rank-tracking/fetch`
+
+Body: `{ keywordIds?: string[] }` (omitted/empty = all tracked keywords).
+The only route that triggers a real bulk DataForSEO run: creates a
+`rank_check_runs` row and enqueues `rankCheckJob` for `apps/worker` to
+process. Returns `{ runId }` immediately - this route never calls
+DataForSEO itself. Rejects with `run_in_progress` (409) if a run is
+already pending/running for the project.
+
+### `GET /api/projects/:projectId/rank-tracking/runs/:runId/progress`
+
+What the UI polls while a Fetch Rankings run is in flight: `{ status,
+keywordsTotal, keywordsChecked, errorMessage }`.
+
+### `GET /api/projects/:projectId/rank-tracking/trend?days=30|90|all`
+
+Position-distribution buckets (`top3`/`top4to10`/`top11to20`/`notRanking`)
+grouped by completed run, filtered to `keyword_rankings` rows with a
+non-null `runId` - the data behind the stacked chart.
+
+## Notable follow-up work (not built in this pass)
+
+- Automatic weekly rank checks. `scheduleInterval` is saved but nothing
+  reads it yet - `packages/jobs`' `scheduleRecurring()` helper already
+  exists (used by Local SEO's grid scan) and would be the natural way to
+  wire this up.
+- Live end-to-end verification of `checkKeywordRanking()`'s real SERP
+  feature extraction against a funded DataForSEO account - built and
+  typechecked, but not yet confirmed against real API responses in this
+  environment.

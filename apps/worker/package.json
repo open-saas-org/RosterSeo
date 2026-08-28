@@ -1,0 +1,30 @@
+{
+  "name": "@seo-tool/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
+    "build": "tsc",
+    "start": "node --env-file-if-exists=../../.env dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sentry/node": "10.70.0",
+    "@seo-tool/ai-visibility": "workspace:*",
+    "@seo-tool/crawler": "workspace:*",
+    "@seo-tool/dataforseo": "workspace:*",
+    "@seo-tool/db": "workspace:*",
+    "@seo-tool/email": "workspace:*",
+    "@seo-tool/google": "workspace:*",
+    "@seo-tool/jobs": "workspace:*",
+    "@seo-tool/publishing": "workspace:*",
+    "@seo-tool/social": "workspace:*",
+    "drizzle-orm": "^0.38.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

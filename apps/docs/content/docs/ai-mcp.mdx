@@ -1,0 +1,59 @@
+---
+title: AI & MCP
+description: Connecting external AI tools to project data over the Model Context Protocol (PRD Section 5.8)
+---
+
+Route: `/ai-mcp`.
+
+## What it does
+
+A documentation-style page explaining how to connect an MCP client (Claude
+Desktop, or any other Model Context Protocol client) to `apps/mcp-server`,
+and what tools that server currently exposes. There's no interactivity or
+DB access from the page itself — it's static content describing a separate
+process.
+
+## Connecting
+
+`apps/mcp-server` is a standalone MCP server (`@seo-tool/mcp-server`) that
+speaks over stdio transport, the standard way MCP clients launch a local
+server subprocess. Run it with:
+
+```bash
+pnpm --filter @seo-tool/mcp-server dev
+```
+
+That's `tsx watch` over `apps/mcp-server/src/index.ts`, reading the same
+`DATABASE_URL` as the rest of the app. There's no separate API key or auth
+flow for the MCP server yet — it queries `@seo-tool/db` directly rather than
+going through a session.
+
+## What's real vs mock today
+
+- **`list_projects`**: real. The only tool currently registered in the
+  server's `ListToolsRequestSchema` handler. Takes no input
+  (`{ type: "object", properties: {}, additionalProperties: false }`) and
+  returns `{ content: [{ type: "text", text: JSON.stringify(rows) }] }`
+  where `rows` is every row in the `projects` table, each with `id`, `name`,
+  `domain`, `organizationId`. Note this reads the bare `db` export, not
+  `withUserContext` — there's no per-caller scoping yet, so it currently
+  returns every project across every organization, not just the caller's.
+- **Everything else**: not built. `apps/mcp-server/src/index.ts` has a
+  comment naming the rest of Section 5.8's planned tool set —
+  `get_rankings`, `get_keywords`, `get_site_audit`, `get_brand_visibility`,
+  `get_competitors` — as shipping alongside the dashboard features they
+  read from. None of them are registered in the tools list or handled in
+  `CallToolRequestSchema` yet; calling any tool name other than
+  `list_projects` throws `Unknown tool: <name>`.
+
+## Notable follow-up work (not built in this pass)
+
+- Scope `list_projects` (and every future tool) to the caller's
+  organization instead of returning all projects — likely via an API key ->
+  organization lookup, since MCP tool calls don't carry a browser session.
+- Register `get_rankings`, `get_keywords`, `get_site_audit`,
+  `get_brand_visibility`, `get_competitors` as each underlying feature's
+  data model stabilizes.
+- Some form of auth for the MCP server itself (API key issuance/rotation) —
+  right now anyone who can spawn the stdio process has full DB read access
+  via `list_projects`.

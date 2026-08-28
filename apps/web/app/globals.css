@@ -1,0 +1,267 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-6: var(--chart-6);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-ai-accent-foreground: var(--ai-accent-foreground);
+  --color-ai-accent: var(--ai-accent);
+  /* Reusable pop-of-color accents, distinct from the status colors above
+       (success/warning/info) which mean pass/caution/neutral-info, not
+       "this belongs to X." lavender is a free-standing accent for anywhere
+       a page wants a pastel highlight with no fixed meaning; seo/publish/
+       sky are the three "pillar" brand colors (SEO green, Publish purple,
+       Social sky blue - see app-sidebar's pillar switcher) but are equally
+       reusable anywhere a page's content is clearly about one pillar. */
+  --color-lavender-foreground: var(--lavender-foreground);
+  --color-lavender: var(--lavender);
+  --color-sky-foreground: var(--sky-foreground);
+  --color-sky: var(--sky);
+  --color-seo-foreground: var(--seo-foreground);
+  --color-seo: var(--seo);
+  --color-publish-foreground: var(--publish-foreground);
+  --color-publish: var(--publish);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  /* Fixed, capped scale (not multiplicative) - base 5px, hard ceiling
+       8px, so nothing in the app can round out past a small modern chip
+       radius. Badge's `rounded-4xl` (previously a 26px pill) becomes an 8px
+       soft-rectangle chip under this cap - intended, not a regression.
+       `rounded-full` (avatars/dots) is a hardcoded Tailwind literal and
+       unaffected by this scale. */
+  --radius-sm: 0.1875rem;
+  /* 3px */
+  --radius-md: 0.25rem;
+  /* 4px */
+  --radius-lg: var(--radius);
+  /* 5px */
+  --radius-xl: 0.375rem;
+  /* 6px */
+  --radius-2xl: 0.4375rem;
+  /* 7px */
+  --radius-3xl: 0.5rem;
+  /* 8px */
+  --radius-4xl: 0.5rem;
+  /* 8px, capped */
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.16 0.006 200);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.006 200);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.006 200);
+  /* Primary brand color, used everywhere by default (nav, buttons, links,
+       focus rings). Teal: reads as a trustworthy, analytical "research
+       tool" color, distinct from the generic blue/violet every other SaaS
+       dashboard reaches for, and holds up in both light (600 stop) and
+       dark (500 stop) without a jarring hue shift between modes. */
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.968 0.006 200);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.968 0.006 200);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.955 0.016 200);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  /* Status tints - single color each, used the same low-opacity way
+       destructive already is (bg-X/10 text-X), replacing ad-hoc
+       emerald/amber/sky classes scattered across status/severity badges. */
+  --success: #16a34a;
+  --warning: #d97706;
+  --info: #0284c7;
+  /* Complementary secondary accent (orange, teal's opposite on the wheel) -
+       one consistent color combination for the whole app, not a different
+       palette per module (SEO vs. AI). Used sparingly, anywhere, for a
+       secondary highlight or a generative action (e.g. "Regenerate"). */
+  --ai-accent: #ea580c;
+  --ai-accent-foreground: #ffffff;
+  /* Pastel pop accents (see @theme inline's comment above) - one shared
+       stepped-for-contrast pair each, same "darker/saturated stop in
+       light mode, lighter stop in dark mode" convention as success/
+       warning/info above, not a flat color reused unchanged in both modes. */
+  --lavender: #8b5cf6;
+  --lavender-foreground: #ffffff;
+  --sky: #0ea5e9;
+  --sky-foreground: #ffffff;
+  --seo: #059669;
+  --seo-foreground: #ffffff;
+  --publish: #9333ea;
+  --publish-foreground: #ffffff;
+  --border: oklch(0.914 0.006 200);
+  --input: oklch(0.914 0.006 200);
+  --ring: #0d9488;
+  /* Validated categorical palette (dataviz skill) - fixed hue order,
+       colorblind-safe adjacent pairs. Was flat grayscale before; every
+       multi-series chart in the app draws from these 6 slots. */
+  --chart-1: #2a78d6;
+  /* blue */
+  --chart-2: #eb6834;
+  /* orange */
+  --chart-3: #1baf7a;
+  /* aqua */
+  --chart-4: #eda100;
+  /* yellow */
+  --chart-5: #e87ba4;
+  /* magenta */
+  --chart-6: #008300;
+  /* green */
+  --radius: 0.3125rem;
+  --sidebar: oklch(0.99 0.004 200);
+  --sidebar-foreground: oklch(0.16 0.006 200);
+  --sidebar-primary: #0d9488;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: oklch(0.955 0.016 200);
+  --sidebar-accent-foreground: #0d9488;
+  --sidebar-border: oklch(0.914 0.006 200);
+  --sidebar-ring: #0d9488;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: #14b8a6;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --info: #38bdf8;
+  --ai-accent: #14b8a6;
+  --ai-accent-foreground: #ffffff;
+  --lavender: #c4b5fd;
+  --lavender-foreground: oklch(0.145 0 0);
+  --sky: #7dd3fc;
+  --sky-foreground: oklch(0.145 0 0);
+  --seo: #6ee7b7;
+  --seo-foreground: oklch(0.145 0 0);
+  --publish: #d8b4fe;
+  --publish-foreground: oklch(0.145 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: #14b8a6;
+  /* Same 6 hues, stepped for the dark surface (dataviz skill palette). */
+  --chart-1: #3987e5;
+  /* blue */
+  --chart-2: #d95926;
+  /* orange */
+  --chart-3: #199e70;
+  /* aqua */
+  --chart-4: #c98500;
+  /* yellow */
+  --chart-5: #d55181;
+  /* magenta */
+  --chart-6: #008300;
+  /* green */
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: #3b82f6;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  svg.lucide {
+    stroke-width: 1.5px;
+  }
+}
+
+/* ── Print styles for Page Analyzer PDF export ────────────────────────────
+   When the user clicks "Download PDF" we call window.print(). These rules
+   hide chrome (sidebar, topbar, export bar) so only the report content
+   goes to the printer/PDF.
+────────────────────────────────────────────────────────────────────────── */
+@media print {
+
+  /* Hide all navigation, sidebar, header, and the export bar itself */
+  [data-sidebar],
+  nav,
+  header,
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Full-width main content area */
+  main,
+  [data-slot="content"] {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 1rem !important;
+  }
+
+  /* Avoid page breaks inside cards */
+  .rounded-lg,
+  article,
+  section {
+    break-inside: avoid;
+  }
+
+  /* Reset background colors for readability */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

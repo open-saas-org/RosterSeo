@@ -1,0 +1,142 @@
+---
+title: Page Analyzer
+description: The flagship "fix-it plan" feature — real crawl, real SERP, real keyword data, real LLM ranking + AI-visibility guidance
+---
+
+The Page Analyzer is the flagship/wedge feature described in PRD Section
+5.1: paste a URL and a target keyword (optionally a location), and it
+crawls the page, pulls the live top-10 SERP for that keyword, compares the
+page against every currently-ranking competitor, produces a prioritized
+fix-it action list, and generates LLM guidance on how to outrank the
+competition and get surfaced in AI answer engines. No mock data anywhere
+in this pipeline.
+
+## The architecture gap this rebuild fixed
+
+Before this rebuild, the page you clicked "Analyze" on called a Server
+Action (`app/(dashboard)/page-analyzer/actions.ts`) that ran the pipeline
+directly - **no auth, no project scoping, no DB persistence**. The
+correctly-built `POST /api/projects/:projectId/page-analyzer` route existed
+the whole time but the page never called it. Every report was silently
+un-tenant-scoped and lost on refresh. The page now calls the real route
+(`PageAnalyzerWorkspace`, see below); the Server Action is deleted.
+
+## Real data sources
+
+| Signal | Source |
+|---|---|
+| On-page crawl (title, meta description, H1s, word count, images/alt text, internal/external links, canonical, noindex, real HTTP status/redirects) | `fetchAndParse()` in `@seo-tool/crawler` - real `fetch()` + `cheerio` parse, shared with [Site Audit](/docs/site-audit) so both features agree on what "missing alt text" etc. mean |
+| Core Web Vitals (LCP/CLS/INP) | Real Google PageSpeed Insights (`fetchPageSpeedMetrics`, `@seo-tool/google/pagespeed`) - target page only, not the 10 competitors, to keep report latency bounded (a real Lighthouse run takes 10-20s) |
+| Top-10 SERP competitors | Real DataForSEO `POST /v3/serp/google/organic/live/advanced` |
+| Keyword volume, difficulty, CPC, 12-month trend, search intent | Real DataForSEO `POST /v3/dataforseo_labs/google/keyword_overview/live` |
+| Ranking guidance + AI-visibility guidance | Real LLM call (first configured provider: OpenAI → Anthropic → Google AI → Perplexity) via `generatePageGuidance()` in `@seo-tool/ai-visibility` |
+
+Both DataForSEO functions (`getSerpResults`, `getKeywordMetrics`, in
+`@seo-tool/dataforseo`) fall back to deterministic mock data when
+`DATAFORSEO_LOGIN`/`DATAFORSEO_PASSWORD` aren't configured (check
+`isDataForSeoConfigured()`), same convention as every other DataForSEO-backed
+feature in this app - self-hosters without a DataForSEO account still get a
+working demo.
+
+`generatePageGuidance()` returns `null` when no LLM provider is configured
+(`isAiGuidanceConfigured()` / all of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+`GOOGLE_AI_API_KEY`, `PERPLEXITY_API_KEY` unset) - the UI shows an honest
+"connect a provider" empty state in that case rather than blocking or
+faking the rest of the (still fully real) report.
+
+### DataForSEO location handling
+
+The form's "Location" field is freeform text (e.g. "United States"), but
+DataForSEO's SERP endpoint needs a numeric `location_code`. A small static
+name→code map in `packages/dataforseo/src/client.ts` covers common
+countries, defaulting to the US (`2840`) for anything unrecognized or
+empty - avoids an extra locations-lookup API call per report.
+
+## Report contents
+
+- **Crawl findings**: HTTP status, title/meta description presence, H1
+  count, word count, internal/external link counts, image alt-text
+  coverage, load time, noindex/canonical status, and Core Web Vitals.
+- **Competitor comparison table**: the target page plus all pages
+  currently in the top-10 SERP for the keyword, compared on word count, H1
+  count, missing alt text, and load time.
+- **Fix-it plan**: findings derived directly from the real crawl output -
+  broken/failed fetch, noindex, canonical mismatches, redirects, missing
+  title/meta description, missing or duplicate H1s, thin content or a
+  content-depth gap vs. the competitor average, images missing alt text,
+  slow load time, Core Web Vitals over Google's "good" thresholds, and low
+  internal-link counts - each tagged with an impact (High/Medium/Low) and a
+  category (Technical/Content/Structure/Indexability), sorted by impact.
+- **AI guidance**: two LLM-generated sections built from the real crawl +
+  keyword + competitor data - concrete steps to outrank the current top 10
+  for this keyword, and concrete steps to get this page's content surfaced
+  in AI answer engines (ChatGPT, Perplexity, Google AI Overviews).
+
+Rule definitions and orchestration live in
+`apps/web/components/page-analyzer/analysis.ts`, shared by the page and the
+API route so the rule set can never drift between them.
+
+## Database
+
+`pageAnalyzerReports` (`packages/db/src/app-schema.ts`, table
+`page_analyzer_reports`), RLS-protected like every tenant table:
+
+| Column | Notes |
+|---|---|
+| `id` | UUID primary key |
+| `projectId` | FK to `projects`, cascade delete |
+| `url` | The page that was analyzed |
+| `targetKeyword` | The keyword the page is being analyzed against |
+| `targetLocation` | Optional |
+| `status` | `pending` \| `running` \| `complete` \| `failed` |
+| `result` | JSONB - the full `PageAnalyzerResult` (crawl, Core Web Vitals, SERP results, keyword metrics, comparison rows, findings, AI guidance), once complete |
+| `createdAt` | Timestamp |
+
+No migration was needed for the richer report shape - it's all inside the
+existing `result` JSONB column.
+
+## API
+
+`apps/web/app/api/projects/[projectId]/page-analyzer/route.ts`, both
+handlers wrapped in `withAuth` and scoped with `requireProjectAccess` +
+`withUserContext`.
+
+### `POST /api/projects/:projectId/page-analyzer`
+
+Body:
+
+```json
+{ "url": "https://example.com/page", "targetKeyword": "best running shoes", "targetLocation": "United States" }
+```
+
+`targetLocation` is optional. Inserts a `pageAnalyzerReports` row with
+`status: "running"` first, then runs the full real pipeline and updates the
+row to `complete` (with `result` populated) or `failed`.
+
+Returns `201` with `{ "report": <row> }`, or `400`/`404`/`401`/`500` with
+`{ "error": string }`.
+
+### `GET /api/projects/:projectId/page-analyzer`
+
+Returns `{ "reports": <row[]> }` for the project, most recent first -
+including each row's full `result`, so the page's history list can show a
+past report instantly without a second fetch.
+
+## UI
+
+`apps/web/app/(dashboard)/page-analyzer/page.tsx` is an async server
+component (`getCurrentProject()`, matching every other page's pattern)
+rendering `PageAnalyzerWorkspace`
+(`apps/web/components/page-analyzer/page-analyzer-workspace.tsx`):
+
+- The analyze form (`AnalyzerForm`).
+- The report itself, once run: `CrawlSummary`, `CompetitorTable`,
+  `FixItList`, and `GuidanceCard` (the two AI guidance sections, or the
+  "connect a provider" empty state).
+- `ReportExportBar` - "Copy as Markdown" / "Download PDF", including the AI
+  guidance sections in the export.
+- A **history section** below the form listing past reports for the
+  project (`GET` route), each with a "View report" action that loads its
+  saved `result` back into view - previously built server-side but never
+  surfaced in the UI.
+

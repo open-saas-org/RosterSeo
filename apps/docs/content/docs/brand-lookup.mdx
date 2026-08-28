@@ -1,0 +1,60 @@
+---
+title: Brand Lookup
+description: One-off, ad-hoc check of whether and how a brand is mentioned across LLM providers right now
+---
+
+Route: `/brand-lookup`.
+
+## What it does
+
+Enter a brand name or domain and, optionally, a specific question. The page
+runs a **single** sample of that prompt against every configured LLM
+provider (OpenAI, Anthropic, Google, Perplexity) and shows a simple
+pass/fail-style verdict per provider: mentioned (yes/no), its rough position
+in the answer, sentiment, and a response snippet, when mentioned.
+
+If no question is given, a generic default prompt is used —
+`"What do you know about {brand}? Would you recommend it, and why?"`.
+
+## How this differs from AI Visibility
+
+[AI Visibility](/docs/ai-visibility) does **ongoing, tracked-prompt
+monitoring**: a fixed list of prompts, sampled repeatedly over time (several
+samples per provider, per run) to build a mention *rate* and a trend chart
+for a project. Brand Lookup is the opposite shape of tool — a **one-off,
+ad-hoc check**: no tracked list, no persistence, no trend, just "what does
+each provider say about this brand right now." It draws exactly one sample
+per provider (`sampleIndex: 0`) rather than AI Visibility's multi-sample
+fan-out, since there's no "stability across draws" question being asked
+here.
+
+Use Brand Lookup to spot-check a brand or explore how a specific question
+gets answered before deciding it's worth adding as a tracked prompt in AI
+Visibility.
+
+## What's real vs mock today
+
+- **Sampling**: real, typed contract via `@seo-tool/ai-visibility`'s
+  `samplePrompt(promptText, brandDomain, provider, sampleIndex)` — currently
+  mock-backed (seeded-random, deterministic per prompt/provider/brand) until
+  `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GOOGLE_AI_API_KEY` /
+  `PERPLEXITY_API_KEY` are configured. `isAiVisibilityConfigured()` gates an
+  honest "not configured" `Alert` at the top of the page, matching the
+  pattern on [Integrations](/docs/integrations) and AI Visibility — the
+  lookup itself still runs against mock data either way, it's just labeled
+  accordingly.
+- **The lookup itself**: a Server Action
+  (`apps/web/app/(dashboard)/brand-lookup/actions.ts`) with no persistence —
+  nothing is saved to the database. Re-running the same brand/question
+  produces the same result (deterministic mock), but there's no history or
+  trend across runs the way AI Visibility has.
+
+## Notable follow-up work (not built in this pass)
+
+- No login/session flow exists yet, so there's no project to scope a lookup
+  to or a "save this as a tracked prompt" action — see AI Visibility's docs
+  for the same limitation on its Track-equivalent actions.
+- Once real provider sampling is wired up (see AI Visibility's docs for the
+  swap-to-real plan for `samplePrompt()`), this page gets real results for
+  free — no changes needed here since it already calls the real function
+  signature.

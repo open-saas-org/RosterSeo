@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: seo_tool
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Restricted role - see packages/db/README.md for why RLS depends on
+      # this NOT being the postgres superuser.
+      DATABASE_URL: postgres://seo_tool_app:seo_tool_dev@postgres:5432/seo_tool
+      # Elevated role, migrations only - the image's own entrypoint
+      # (docker/docker-entrypoint.sh) runs migrations automatically against
+      # this on every `docker compose up`/container start, before the web
+      # server starts. Nothing to run manually.
+      DATABASE_MIGRATE_URL: postgres://postgres:postgres@postgres:5432/seo_tool
+    ports:
+      - "3000:3000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://seo_tool_app:seo_tool_dev@postgres:5432/seo_tool
+    # Runs via tsx rather than a compiled dist/ build - the Dockerfile's
+    # `build` stage only builds apps/web today. Fine functionally, just not
+    # the leanest possible image; worth a dedicated worker build step later.
+    command: ["pnpm", "--filter", "@seo-tool/worker", "dev"]
+
+volumes:
+  postgres_data:

@@ -1,0 +1,1 @@
+ALTER TABLE "project_competitors" ADD COLUMN "name" text;

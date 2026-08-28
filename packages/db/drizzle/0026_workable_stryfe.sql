@@ -1,0 +1,1 @@
+ALTER TABLE "keyword_rankings" ADD COLUMN "is_mock" boolean DEFAULT false NOT NULL;

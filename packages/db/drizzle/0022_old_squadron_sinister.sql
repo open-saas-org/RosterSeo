@@ -1,0 +1,1 @@
+ALTER TABLE "ai_visibility_opportunity_reports" ADD COLUMN "model" text;

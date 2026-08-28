@@ -1,0 +1,75 @@
+---
+title: Bing Insights
+description: Real Bing Webmaster Tools performance — clicks, impressions, CTR, and average position from Bing search
+---
+
+Route: `/bing-insights`.
+
+## What it does
+
+The Bing equivalent of [GSC Insights](/docs/gsc-insights): headline metric
+cards (clicks, impressions, average CTR, average position), a traffic trend
+chart, and a sortable daily-performance table, filterable to the last 7, 28,
+or 90 days. Query/page-level breakdowns aren't built yet — v1 mirrors GSC
+Insights' original (pre-tabs) shape.
+
+This is **not** the connect flow — Bing auth lives entirely on
+[Integrations](/docs/integrations) as a single workspace API key, not
+per-project OAuth. Bing Insights only reads that key's configured state and
+lets each project pick which of the key's verified sites it reports on.
+
+## Auth model: one global API key, not OAuth
+
+Unlike GSC/GA4/GBP/Merchant Center, Bing Webmaster Tools has no per-project
+OAuth connection — `BING_WEBMASTER_API_KEY` is one key for the whole
+self-hosted deploy (get it from Bing Webmaster Tools → Settings → API
+access), same shape as `GOOGLE_PAGESPEED_API_KEY`. `isBingConfigured()`
+(`@seo-tool/bing`) gates every real call; the page shows an `EmptyState`
+plus a destructive `Alert` when it's unset.
+
+Once configured, each project independently picks **which verified Bing
+site** it reports on via `BingSitePicker`
+(`apps/web/components/bing-insights/bing-site-picker.tsx`), a real
+`GetUserSites` call — saved to `projects.bing_site_url`.
+
+## What's real today
+
+- **`listBingSites()`** and **`getBingRankAndTrafficStats(siteUrl, startDate, endDate)`**
+  (`@seo-tool/bing`, `packages/bing/src/client.ts`) — real calls against
+  `https://ssl.bing.com/webmaster/api.svc/json/{Method}`
+  (`GetUserSites` / `GetRankAndTrafficStats`). Bing's real method takes no
+  date-range params and returns its own available window server-side, so
+  the days filter (7/28/90) is applied **client-side** in
+  `getBingRankAndTrafficStats`, unlike GSC's adaptive `fetchGscExactWindow`
+  — GA4-style near-real-time data, no lag-trimming needed.
+- **Not yet live-tested**: no funded Bing Webmaster Tools account was
+  available while building this — field names (`Url`, `Date`, `Clicks`,
+  `Impressions`, `Ctr`, `AvgClickPosition`) are taken directly from Bing's
+  published API docs but haven't been confirmed against a real response.
+  Worth a spot-check once `BING_WEBMASTER_API_KEY` is set for real, same
+  honesty-note convention as GBP's Performance metrics
+  (see [Local SEO](/docs/local-seo)).
+
+## Files
+
+- `apps/web/app/(dashboard)/bing-insights/page.tsx` — server component;
+  resolves the current project, `isBingConfigured()`, and (when a site is
+  picked) the real `getBingRankAndTrafficStats` call.
+- `apps/web/components/bing-insights/bing-site-picker.tsx` — real
+  `GetUserSites` picker, saves to `projects.bing_site_url` via
+  `PATCH /api/projects/:projectId/bing-insights`.
+- `apps/web/components/bing-insights/bing-insights-workspace.tsx` — client
+  component; metric cards, trend chart, daily table, date-range `Select`.
+- `apps/web/components/bing-insights/bing-insights-metrics.ts` — the same
+  period-over-period half-window aggregation GSC/GA Insights use.
+- `apps/web/app/api/projects/[projectId]/bing-insights/sites/route.ts`,
+  `apps/web/app/api/projects/[projectId]/bing-insights/route.ts` — `GET`
+  (sites list / performance) and `PATCH` (save chosen site).
+
+## Notable follow-up work (not built in this pass)
+
+- No query/page-level breakdown yet — GSC Insights' Striking
+  distance/Queries/Pages tabs don't have a Bing equivalent.
+- Bing's real reporting lag/window behavior hasn't been observed live; if
+  it turns out to need GSC-style adaptive trimming, `fetchGscExactWindow`'s
+  approach (`apps/web/lib/gsc-fetch.ts`) is the template to reuse.

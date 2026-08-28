@@ -1,0 +1,38 @@
+# Keeps the Docker build context small AND (more importantly) makes sure a
+# local `docker build` from a working directory that has real secrets on
+# disk (.env, .env.local) never sends them into the image/build context in
+# the first place - separate from .gitignore, which only protects against
+# committing them to git.
+
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+dist/
+build/
+coverage/
+.vitest-cache/
+
+.env
+.env.*
+!.env.example
+
+.git/
+.github/
+.claude/
+.vscode/
+.idea/
+
+*.log
+.DS_Store
+Thumbs.db
+
+# Local reference clones / unrelated scratch folders - never part of the
+# build, same reasoning as .gitignore.
+elmo-reference/
+open-seo-reference/
+seo tool hubspot/
+
+# Docs/planning content the web image doesn't need at runtime.
+seo-saas-prd-v1.md
+ARCHITECTURE.md

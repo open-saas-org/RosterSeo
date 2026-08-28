@@ -1,0 +1,23 @@
+# Railway build config for the web service. Railway's own managed Postgres
+# plugin should be attached separately (Railway dashboard -> New -> Database
+# -> PostgreSQL); it sets DATABASE_URL automatically via a reference variable.
+# See docker/RAILWAY.md for the one-click-template publishing steps.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "node apps/web/server.js"
+# Runs once, before traffic is switched to the new deploy - real Drizzle
+# migrations against DATABASE_URL (or DATABASE_MIGRATE_URL when set), via
+# the bundled packages/db/dist/migrate.mjs the Dockerfile's build stage
+# produces (see packages/db/package.json's "build" script) - not a CLI/
+# dev-tool dependency, so this runs fine from the lean runner image. Real,
+# verified end-to-end locally (bundled build + run from the same relative
+# path this command uses) before being added here. Without this, a fresh
+# template deploy comes up against an empty, unmigrated database.
+releaseCommand = "node packages/db/dist/migrate.mjs"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

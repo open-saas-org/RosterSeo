@@ -1,0 +1,300 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1786381539105,
+      "tag": "0000_wise_mandarin",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786381545375,
+      "tag": "0001_rls_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786383158421,
+      "tag": "0002_safe_network",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786383163820,
+      "tag": "0003_rls_policies_v2",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786385532351,
+      "tag": "0004_org_signup_bootstrap_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786432481797,
+      "tag": "0005_charming_power_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786436335670,
+      "tag": "0006_google_connections_org_scoped",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786452392391,
+      "tag": "0007_plain_human_robot",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786567890000,
+      "tag": "0008_site_audit_pages_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1786654290000,
+      "tag": "0009_ai_visibility_expansion",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786742690000,
+      "tag": "0010_google_connections_reconnect_flag",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1786829090000,
+      "tag": "0011_local_seo_grid_and_gbp",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1786915490000,
+      "tag": "0012_drop_credit_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787001890000,
+      "tag": "0013_local_seo_v2",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1787088290000,
+      "tag": "0014_local_business_profiles_gbp_link",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1787174690000,
+      "tag": "0015_bing_indexnow_wordpress",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1787261090000,
+      "tag": "0016_merchant_account_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1787261090001,
+      "tag": "0017_vengeful_silver_sable",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1787261090002,
+      "tag": "0018_far_blazing_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787261090003,
+      "tag": "0019_conscious_snowbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787261090004,
+      "tag": "0020_many_sprite",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787261090005,
+      "tag": "0021_dry_ozymandias",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787261090006,
+      "tag": "0022_old_squadron_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1787261090007,
+      "tag": "0023_complete_forge",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1787245553053,
+      "tag": "0024_blue_wolverine",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1787247719465,
+      "tag": "0025_gifted_thing",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1787299558958,
+      "tag": "0026_workable_stryfe",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1787301877808,
+      "tag": "0027_kind_living_lightning",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1787302521703,
+      "tag": "0028_slow_eddie_brock",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1787319198428,
+      "tag": "0029_messy_havok",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1787320858865,
+      "tag": "0030_premium_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1787326227757,
+      "tag": "0031_late_gauntlet",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1787383184553,
+      "tag": "0032_slimy_odin",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1787395257513,
+      "tag": "0033_last_grey_gargoyle",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1787474766196,
+      "tag": "0034_wealthy_vivisector",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1787478675332,
+      "tag": "0035_steady_namor",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1787645315075,
+      "tag": "0036_thin_golden_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1787674229492,
+      "tag": "0037_thin_sabretooth",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1787674965261,
+      "tag": "0038_quiet_galactus",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1787766746082,
+      "tag": "0039_faulty_thunderbolts",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1787767946701,
+      "tag": "0040_careless_karma",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1787774362995,
+      "tag": "0041_unusual_gargoyle",
+      "breakpoints": true
+    }
+  ]
+}

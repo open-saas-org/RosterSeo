@@ -1,0 +1,198 @@
+---
+title: AI Visibility
+description: Track and improve how often your brand shows up in AI answer engines - real direct-API providers plus BrightData scraping and OpenRouter, real captured search queries, an LLM opportunities report, and automated onboarding research
+---
+
+## What it does
+
+Per PRD Section 5.7 ("AI-Search / LLM Brand Visibility"), this module lets a
+project define **tracked prompts** — things a prospective customer might
+ask an AI assistant, e.g. `"best SEO rank tracking tool for small agencies"`
+or `"SEO Tool vs Ahrefs"` — and periodically samples those prompts across
+multiple AI providers to see how often, where, and how positively the brand
+gets mentioned in the answer.
+
+This is a substantial rebuild (see `elmo-reference/` in the repo root, an
+MIT-licensed reference AEO tool this rebuild's architecture was modeled on —
+its provider abstraction and general approach were studied, no code was
+copied). The module has seven real, working views, plus five Settings pages:
+
+- **Overview** (`/ai-visibility` redirects here) — a real, at-a-glance summary: current Visibility % and Share of Voice % each with a real 30-day trend chart, plus real footer stats (prompts tracked, evaluations in the last 30 days, average time between runs, time since the last run). Every number is a genuine rollup over `aiVisibilityResults` - Share of Voice's daily % is brand mentions ÷ (brand + tracked-competitor mentions) that day, computed from the same rows Visibility's day-grouping uses, not a separate sampling pass.
+- **Visibility** — real run controls (AI selector, samples per AI), then a per-prompt dashboard: a filter toolbar (model, tags, day window, sort, search - all client-side over already-fetched real data, no re-fetch on change), a summary banner (current visibility %, a real sparkline, real prompt/run/citation counts), and one card per prompt with a real multi-entity (brand + tracked competitors) mention-rate line chart, a real data-table fallback view, and CSV export.
+- **Share of Voice** — a real leaderboard (mentions, share %, distinct prompts) plus a donut and a trend chart, filterable by model/tags/day-window - all real, client-side over real data fetched once server-side.
+- **Query Fan-Out** — the *real* web-search queries an AI engine issued while answering a tracked prompt, word-diffed against what you typed. Not LLM-guessed sub-prompts — see below.
+- **Citations** — real cited source URLs from every provider capable of returning them (no longer Perplexity-only), classified into 11 real categories (brand/competitor/editorial/reviews/ecommerce/social/developer/pr/reference/institutional/other) and page types, with 2 stacked-area trend charts, a 5-way Recent Changes diff, Content Gaps (competitor-cited-but-not-you prompts), Top Domains/URLs, and a Reddit breakdown.
+- **Opportunities** — a cached, LLM-generated report (Summary bullets, 8-12 prioritized creation/existing-content/outreach/social recommendations each with real linked prompts and citations, Reality Check caveats), built from a real digest of per-prompt brand-vs-competitor standing, "locked-in" difficulty, and citation-source mix.
+- **Report** — a live, printable one-page snapshot (`/reports/ai-visibility/:projectId`, linked from the Visibility page) - cover, competitive landscape, per-prompt mention rates, content gaps, top cited domains.
+- **Settings** — Prompts stays in the sidebar; **Brand**, **Competitors**, and **Providers** (which of the 6 registered providers/models this project samples from) are accent-highlighted icon shortcuts in the top nav bar instead, right before Integrations.
+
+Each visibility run:
+
+1. Samples every tracked prompt against every enabled target (a project's `aiVisibilityTargets` pick in Settings → Providers; defaults to BrightData's 5 scraped surfaces + OpenRouter if unset — explicit user decision, not the original 4 direct APIs).
+2. Draws multiple samples per (prompt, target) pair — output is
+   non-deterministic, so a single pass/fail sample is noisy; several
+   samples give a mention *rate* instead.
+3. Parses each sample for: whether the brand (and every tracked competitor)
+   was mentioned, rough position within the answer, sentiment
+   (positive/neutral/negative), and a response snippet — all from the
+   **same** real response, so checking competitors costs nothing extra over
+   brand-only sampling.
+4. Rolls all of that up into a **visibility %**, a trend over time, a
+   per-prompt/per-provider breakdown, and (via the other views above) a
+   competitor comparison, real citations, real captured search queries, and
+   an LLM-generated opportunities report.
+
+This is a multi-provider, multi-sample run (`prompts × targets × samples`
+real calls) — worth keeping in mind if you're paying per-call/per-scrape for
+a configured provider, especially BrightData.
+
+## Provider architecture: `packages/ai-visibility/src/providers/`
+
+A `Provider` interface (`types.ts`) decouples "how we reach an AI surface"
+from "what we do with the answer" — every downstream feature (mention
+detection, citation extraction, Query Fan-Out) consumes only the normalized
+`ScrapeResult` shape (`{ textContent, webQueries, citations, modelVersion? }`),
+never a provider-specific raw payload. Six providers are registered
+(`registry/`):
+
+| Provider id | Access | What it reaches | Env var |
+|---|---|---|---|
+| `openai` | direct API | GPT (`gpt-4o-mini`), no web search by default | `OPENAI_API_KEY` |
+| `anthropic` | direct API | Claude (`claude-haiku-4-5`), no web search by default | `ANTHROPIC_API_KEY` |
+| `google` | direct API | Gemini (`gemini-2.0-flash`), no grounding | `GOOGLE_AI_API_KEY` |
+| `perplexity` | direct API | `sonar` — always searches, real `citations` array | `PERPLEXITY_API_KEY` |
+| `brightdata` | scraped | Real ChatGPT/Gemini/Perplexity/Copilot consumer UIs (async dataset-collector trigger/poll/fetch), plus Google AI Overview via a separate SERP call | `BRIGHTDATA_API_TOKEN` (optional `BRIGHTDATA_SERP_ZONE`) |
+| `openrouter` | direct API | Any OpenRouter-hosted model (pass-through, one key) — `:online` routes to the underlying model's native web search | `OPENROUTER_API_KEY` |
+
+**BrightData** is real browser-automation scraping infrastructure, not an
+LLM API call — it drives the actual consumer product and reads back the
+rendered answer, which is why it's the only way to get Google AI Overview
+data (no public API exists for that surface) or to see what a real user
+sees at chatgpt.com rather than a raw model completion. Implemented via
+plain `fetch` against BrightData's public REST endpoints (trigger/progress/
+snapshot), not the `@brightdata/sdk` npm package Elmo uses — kept consistent
+with this project's "no vendor SDKs" convention. One known gap: there's no
+verified public REST endpoint for cancelling an abandoned snapshot, so
+(unlike Elmo) an abandoned trigger just expires on BrightData's side rather
+than being actively cancelled.
+
+**OpenRouter** is a pass-through gateway — same per-token pricing as calling
+the underlying model directly, just one integration instead of one per
+model family, plus real annotation-based citations (raw `fetch`, not the
+Vercel AI SDK, since the SDK's schema strips the `annotations` field).
+
+`llm-caller.ts` stays as a thin compatibility shim over this registry for
+callers that only need freeform text from one of the original 4 providers
+(`page-guidance.ts`, `local-seo-guidance.ts`, `local-seo-strategy.ts`) — the
+entity-mention sampling in `client.ts` talks to the registry directly.
+
+## What's real vs. mock today
+
+**Real-only across the whole module — no mock fallback anywhere.**
+`sampleEntities()`/`samplePrompt()` return `null` (not a fabricated result)
+when a target's provider isn't configured or the real call fails; callers
+skip that attempt entirely rather than persisting or rendering made-up
+mention data — a visibility run against zero configured providers inserts
+zero rows and shows an honest empty state, it does not fall back to
+deterministic mock output. This used to have a "real-with-mock-fallback"
+convention (matching `packages/dataforseo` elsewhere in this app); it was
+deliberately removed by explicit user request so every AI Visibility and
+Brand Lookup result on screen is either real or clearly marked "not
+configured," never a plausible-looking fake. `generateOpportunitiesReport()`
+and `analyzeBrand()` (onboarding research) were already real-only from when
+they were built: they need `runStructuredResearch`, only implemented by
+OpenRouter/OpenAI/Anthropic, and return `null` when none is configured or
+the call fails.
+
+**Citations are real from every provider capable of returning them** — no
+longer a Perplexity-only exception. `citations` widened from a plain
+`string[]` of URLs to structured `{ url, title?, domain, citationIndex }[]`;
+pre-widening rows (plain strings) are normalized defensively at read time,
+not backfilled.
+
+**Query Fan-Out is now entirely real, replacing its previous LLM-guessed
+version.** The old `generateQueryFanOut()` (one extra LLM call asking for
+"related sub-queries", no real search data behind it) has been deleted.
+The real replacement (`fanout-analysis.ts`'s `computeFanoutAnalysis()`)
+operates purely on `aiVisibilityResults.webQueries` — real search queries
+captured from BrightData/OpenRouter `:online` runs (and Perplexity, whose
+searches are real but whose query strings aren't exposed by its API, marked
+with the `"unavailable"` sentinel rather than treated as empty). A project
+with none of those configured legitimately sees an empty Query Fan-Out page
+— that's an honest gap, not a bug.
+
+Runs happen **synchronously** today (`POST .../run`). Per
+`architecture.mdx`'s runtime process model, a production version should
+enqueue this as a `pg-boss` job on `apps/worker` instead, with the page
+polling for status — noted here as a deliberate simplification, not an
+oversight.
+
+## Package: `@seo-tool/ai-visibility`
+
+- **`providers/`** — the registry above (`getProvider(id)`, `getAvailableProviders()`, `getAllProviders()`, `DEFAULT_DIRECT_API_PROVIDER_IDS`, `PROVIDER_COST_ESTIMATES_USD` — coarse, hand-maintained per-run cost hints, never presented as a real bill).
+- **`client.ts`** — `sampleEntities(promptText, brandDomain, competitorDomains, target: AiVisibilityTarget, sampleIndex?)` — **one** real call via the target's provider, parsed for a mention of the brand AND every competitor domain from the same response text. `samplePrompt(...)` is a brand-only convenience wrapper (Brand Lookup). `runVisibilityCheckDetailed({ prompts, brandDomain, competitorDomains?, targets?, samplesPerProvider? })` is the real primitive the run route persists rows from; `toBrandOnlyRunResult(detailed)` strips it to the brand-only shape the Visibility page renders. `defaultTargets()` returns BrightData's 5 real scraped surfaces + OpenRouter (`anthropic/claude-sonnet-5`) — the fallback set when a project has no custom `aiVisibilityTargets` saved.
+- **`fanout-analysis.ts`** — `computeFanoutAnalysis(rows, opts?)`: pure aggregation over real captured `webQueries` — tokenizes and diffs each real query against its prompt (preserved/dropped/added words), builds top-queries-by-runs and top-queries-by-breadth rankings, a term-frequency cloud, and per-model/per-prompt stats.
+- **`citation-classification.ts`** — `classifyUrl(url, domain, title, brandDomain, competitorDomains)`: real-time category (brand/competitor/editorial/reviews/ecommerce/social/developer/pr/reference/institutional/other) + page-type classification, reimplementing Elmo's `categorizeDomain`/`inferPageType` cascade over a compact curated domain list rather than Elmo's ~25k-entry one — the page-type fallback (an unlisted domain that reads like an article/review/product page still classifies as editorial/ecommerce) is what keeps long-tail sources out of "other". Also `normalizeUrl`, `isRedditDomain`, `extractSubreddit`.
+- **`citation-analysis.ts`** — pure aggregation over classified citation rows: `rollUpCitationUrls`/`rollUpCitationDomains` (weighted avg citation position, per-prompt breakdowns), `buildCategorySeries`/`buildPageTypeSeries` (daily % stacks, capped to the app's 6 validated chart colors + "other", smoothed with a trailing 7-day window), `buildRecentChanges` (new/dropped pages, title changes, new/dropped domains between two equal-length windows, gated at count ≥2), `buildContentGaps` (prompts where a competitor is cited but the brand isn't), `buildRedditRollup`.
+- **`visibility-opportunity.ts`** — `generateOpportunitiesReport(digest, brandContext?)`: one structured LLM completion (no web search — the digest already carries every real fact) turning a real digest (per-prompt brand-vs-competitor standing with 7d momentum, a real "locked-in"/"contested"/"wide-open" difficulty label derived from day-to-day citation-domain churn, branded/unbranded flagging, per-platform visibility, and citation-source mix) into `{ summary, opportunities: {category, title, why, relatedPrompts}[], risks }`. Defaults to **OpenRouter targeting a Gemini model** (`google/gemini-2.5-flash`, overridable via `OPPORTUNITIES_OPENROUTER_MODEL`) rather than OpenRouter's usual GPT default, falling back to OpenAI/Anthropic's own models if OpenRouter isn't configured — retries up to 3 times on schema-validation failure. Digest-building and enrichment (resolving `relatedPrompts` strings back to real prompt IDs, splitting citations into `yourCitations`/`competitorCitations`) stay in the API route (this package has no DB dependency).
+- **`onboarding-research.ts`** — `analyzeBrand(name, website)`: one structured, web-search-enabled LLM call researching a brand-new project, returning canonical name/domains/aliases, up to 10 real competitors, and a balanced (mostly-unbranded, 3-5 branded) starter prompt set for review before saving.
+- **`calculateVisibilityScore(samples)`** — visibility % = share of samples where `mentioned` is `true`. Reused everywhere: trend chart, Share of Voice, Opportunities digest, the printable report.
+
+## Database tables
+
+All migrated (`packages/db/src/app-schema.ts`, RLS-protected — queries must
+go through `withUserContext`, never the bare `db` export):
+
+- **`aiVisibilityPrompts`** — `id`, `projectId`, `promptText`, `parentPromptId` (nullable self-FK, kept for schema compatibility but no longer written to — Query Fan-Out no longer generates child prompts), `tags` (nullable jsonb `string[]` — real user-added labels, purely organizational, no effect on sampling), `enabled` (boolean, default `true` — `POST .../run` skips disabled prompts but keeps their history), `createdAt`.
+- **`aiVisibilityResults`** — `id`, `promptId`, `runId`, `entityDomain` (nullable — `null` = the brand), `provider` (registry id — `openai | anthropic | google | perplexity | brightdata | openrouter`), `model` (nullable — the AI surface when it differs from `provider`, e.g. BrightData's `chatgpt`/`gemini`/etc.), `mentioned`, `position`, `sentiment`, `responseSnippet`, `webQueries` (nullable jsonb `string[]` — real captured search queries, powers Query Fan-Out), `citations` (nullable jsonb array of `{url, title?, domain, citationIndex}`), `runAt`.
+- **`aiVisibilityOpportunityReports`** — `id`, `projectId`, `report` (jsonb, the *enriched* report — `relatedPrompts` already resolved to real prompt IDs, citations already split into `yourCitations`/`competitorCitations`, not the raw LLM output), `provider`, `model` (the resolved model id, e.g. `google/gemini-2.5-flash`), `createdAt` — append-only history; the Opportunities page renders the latest row.
+- **`projects.aiVisibilityContext`** — nullable free-text brand context fed into the Opportunities digest prompt.
+- **`projects.aiVisibilityTargets`** — nullable jsonb array of `{ model, provider, version?, webSearch, enabled }` — a project's Settings → Providers pick. Empty/null falls back to `defaultTargets()` (BrightData + OpenRouter). Credentials themselves stay global env vars (this is a self-hosted, single-operator tool — same reasoning that led to removing the credit-metering system); this column is purely "which of the globally-configured providers to actually use."
+
+## API routes
+
+`apps/web/app/api/projects/[projectId]/ai-visibility/` — all handlers go
+through `withAuth` + `requireProjectAccess` + `withUserContext`.
+
+- **`GET /ai-visibility`** — lists tracked prompts, each annotated with its most-recent result per provider, plus an overall `visibilityPercent`.
+- **`POST /ai-visibility`** — add a tracked prompt (`{ promptText: string }`).
+- **`DELETE /ai-visibility/:promptId`** — stop tracking a prompt (results cascade-delete via FK).
+- **`PATCH /ai-visibility/:promptId`** — update a prompt's real `tags` and/or `enabled` state.
+- **`POST /ai-visibility/run`** — runs every tracked prompt across the project's enabled targets, checking the brand **and** every tracked competitor per sample, all under one `runId`. Persists `model`/`webQueries`/structured `citations` per row.
+- **`GET /ai-visibility/opportunities`** — the latest cached LLM report. **`POST`** — regenerates it (real digest + one structured LLM completion + enrichment), replacing the old per-prompt on-demand tip route.
+- **`POST /ai-visibility/onboarding-research`** — real `analyzeBrand()` call for the project-creation flow.
+- **`GET`/`PATCH /ai-visibility/targets`** — a project's Settings → Providers pick.
+- **`PATCH /ai-visibility/brand`** — saves `aiVisibilityContext` (`{ context: string }`).
+
+## Pages
+
+`apps/web/app/(dashboard)/ai-visibility/`, each an async server component
+(`getCurrentProject()`) rendering a client workspace under
+`apps/web/components/ai-visibility/`:
+
+- **`/overview`** — real summary landing page (Visibility % + Share of Voice %, each with a 30-day trend area chart, plus real footer stats). `AiVisibilityTrendAreaChart` (`apps/web/components/ai-visibility/ai-visibility-trend-area-chart.tsx`) is a shared gradient-fill chart used for both metrics.
+- **`/visibility`** — `AiVisibilityRunControls` (AI selector + samples + Run, `router.refresh()`s the page on success) above `VisibilityDashboard` (`apps/web/components/ai-visibility/visibility-dashboard.tsx`) - the filterable per-prompt card view, plus a "View report" link to the printable report. Prompt management itself (add/tags/enable/bulk-delete) moved to Settings → Prompts.
+- **`/share-of-voice`** — `ShareOfVoiceDashboard` (`apps/web/components/ai-visibility/share-of-voice-dashboard.tsx`): a real leaderboard (rank, mentions, share % bar, distinct prompts), a donut (`ShareOfVoiceDonut` - brand + top 2 competitors + one real "Other" slice, capped per the dataviz skill's all-pairs guidance for donut/pie forms), and a trend chart, all computed once server-side (no separate API route anymore) and filtered client-side by model/tags/day-window.
+- **`/query-fan-out`** — `QueryFanOutDashboard` (`apps/web/components/ai-visibility/query-fan-out-dashboard.tsx`): real captured-search-query analysis, computed once server-side (all-time rows with real `webQueries`, no separate API route, same pattern as Visibility/Share of Voice) and filtered client-side by model/tags/day-window. 4 real stat cards (search-prompt runs, runs with unknown vs. known queries, average fan-out), then 3 tabs: **Prompt Fan-Out** (searchable, expandable per-prompt rows — capped top-10 queries with an uncapped "View Details" drill-down), **Top Queries** (ranked by recurrence across prompts, expandable to the exact prompts each query came from), **Query Words** (a single-hue term-frequency word cloud plus an Added/Preserved/Dropped word-diff bar list, both behind a "Hide stop words" toggle — deliberately one accent color rather than Elmo's arbitrary rainbow, per the dataviz skill's color-follows-meaning rule).
+- **`/citations`** — `CitationsDashboard` (`apps/web/components/ai-visibility/citations-dashboard.tsx`): every real citation classified server-side (category + page type), computed once (all-time, no separate API route) and filtered client-side by model/tags/day-window. 3 real stat cards (Brand Citation Share, Unique Domains, Total Citations), 2 stacked-area charts (Citation Categories, Citation Page Types, both capped to 6 validated chart colors + "other"), a Recent Changes card (5 tabs diffing the current window against the immediately preceding equal-length one), a Content Gaps card, Top Cited Domains and Top Cited URLs (category/page-type tabs, search, pagination, avg citation position, NEW badges), and a Reddit section (subreddit rollup, expandable to threads).
+- **`/opportunities`** — `OpportunitiesWorkspace`: a Summary card, then Creation/Existing Content/Outreach/Social sections (only categories the report actually populated, each with a live count), each opportunity a card with 3 expandable pills — Prompts / Your citations / Competitor citations — resolved against real tracked-prompt and citation data, a Reality Check section, and a manual "Regenerate" button next to a real "Last evaluated" date.
+- **`/settings/brand`** — real project name/domain (read-only) + editable AI-context textarea.
+- **`/settings/competitors`** — real add/remove UI over `project_competitors` (the same table Competitor Research uses). Adding one here requires both a real brand name and a domain (Competitor Research's own add-competitor form only asks for a domain, so `name` is nullable on the shared table — populated for AI Visibility competitors, left `null` for domain-only ones).
+- **`/settings/prompts`** — real prompt CRUD, matching Elmo's table structure: bulk-select checkboxes (real bulk delete), a real per-prompt "System" badge (branded/unbranded, computed client-side from whether the prompt text names the brand - not stored), real user-added/removable tags, a real per-prompt enable/disable toggle (`POST .../run` skips disabled prompts but keeps their history), and "Add Multiple" for real bulk-paste (one prompt per line). No fake "/100" cap on the count footer - that's Elmo's SaaS plan-tier limit, this app has no billing.
+- **`/settings/providers`** — per-project on/off toggles over the 6 registered providers/models (BrightData's 5 surfaces individually, OpenRouter with an editable model slug), each showing its `PROVIDER_COST_ESTIMATES_USD` hint. Writes to `projects.aiVisibilityTargets`.
+
+Outside the dashboard shell entirely:
+
+- **`/reports/ai-visibility/:projectId`** — a live, print-CSS-driven report (cover, competitive landscape, per-prompt mention rates, content-gap table, top cited domains). Renders straight from the database on every view rather than a frozen snapshot (Elmo's version is built by an async report-generation job queue this app doesn't have) — simpler, no new table/job, always current.
+
+## Onboarding research
+
+`apps/web/app/onboarding/page.tsx` (project creation) gained a second step:
+after a project is created, it calls `POST .../onboarding-research`. If a
+structured-research-capable provider is configured and the call succeeds,
+the user sees a review screen (real suggested competitors + a real starter
+prompt set, each with a checkbox) before anything is saved — accepted
+competitors go to `project_competitors`, accepted prompts to
+`aiVisibilityPrompts`. If no provider is configured or the call fails, this
+step is skipped silently and the flow falls straight through to the
+dashboard, exactly as it did before this feature existed.

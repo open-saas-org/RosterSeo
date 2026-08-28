@@ -1,0 +1,52 @@
+---
+title: Backlinks
+description: Ad-hoc domain lookup for total backlinks, referring domains, and domain rating from the built-in backlink index.
+---
+
+Route: `/backlinks`.
+
+## What it does
+
+Enter any domain and get its total backlink count, referring domain count,
+and a 0–100 domain rating from the built-in backlink index, in a single
+lookup. This is a stateless, one-off search — no project or tracked-list
+concept, just type a domain and get its backlink summary.
+
+This is the same backlink data shown per-competitor on the
+[Competitor Research](/docs/competitors) page's "Backlink profile" card, but
+surfaced as its own standalone module for a quick one-off check.
+
+## What's real vs mock today
+
+- **The lookup itself**: real. `@seo-tool/dataforseo`'s `getBacklinksOverview(domain)`
+  calls DataForSEO's `backlinks/summary/live` when `DATAFORSEO_LOGIN` /
+  `DATAFORSEO_PASSWORD` are configured (see `isDataForSeoConfigured()`), falling
+  back to deterministic mock data otherwise or on a failed call. `domainRating`
+  is DataForSEO's own 0–1000 domain rank, normalized to a 0–100 scale. The page
+  shows a "Mock data" badge next to the domain heading whenever the mock
+  fallback is in effect.
+- **Domain validation/normalization**: real — reuses
+  `apps/web/components/competitors/domain-utils.ts` (`normalizeDomain` /
+  `isValidDomain`), the same helper the Competitor Research and Domain
+  Overview pages use.
+- **No individual backlink list**: `BacklinksOverview` only exposes aggregate
+  counts (total backlinks, referring domains, domain rating) — there's no
+  per-link data (source URL, anchor text, first-seen date, etc.) in this
+  contract yet, so this page shows the three aggregate stats only, not a
+  table of individual backlinks. The page calls this out with a "Not a full
+  backlink audit" note, matching the same caveat already shown on the
+  Competitor Research detail view — this index is a lightweight estimate,
+  not as deep as a specialized tool like Ahrefs.
+- **No persistence**: a search here is not saved anywhere (no project, no
+  history) — it's purely an in-memory result for the current page view.
+
+## Components
+
+- `apps/web/app/(dashboard)/backlinks/actions.ts` — `fetchBacklinksOverview`
+  Server Action: normalizes/validates the domain, calls
+  `getBacklinksOverview`, and reports whether the result is mock data.
+- `apps/web/app/(dashboard)/backlinks/page.tsx` — server component rendering
+  `PageHeader` + the workspace.
+- `apps/web/components/backlinks/backlinks-workspace.tsx` — client
+  component: domain search input, loading/error states, and `MetricCard`s
+  for total backlinks, referring domains, and domain rating.

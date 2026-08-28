@@ -1,0 +1,126 @@
+---
+title: Keyword Research
+description: Real DataForSEO keyword ideas, persisted metrics cache and search history, SERP + trend detail panel (PRD Section 5.2)
+---
+
+Route: `/keyword-research`.
+
+## What it does
+
+Enter a seed keyword and a location, get a real seed-keyword summary
+(volume, CPC, competition, intent, difficulty) plus up to 50 real keyword
+results in one filterable, sortable, bulk-selectable table, ordered
+similar-first: real "searches related to" matches, then real substring
+variations of the seed, then (only if those two are thin) broader
+same-category ideas - each row tagged with which tier it came from.
+Clicking any keyword shows a real 12-month volume trend chart and a real
+top-10 SERP preview for it in a side panel. A results-table toggle splits
+ideas from question-format keywords ("how", "what", "why"...) without an
+extra API call. Every keyword the search returns - not just ones the user
+tracks - is saved to the database, and every search itself is logged so
+past searches are revisitable from a "Recent searches" list.
+
+This is a full rebuild, not the original version. The original page called
+an unauthenticated Server Action directly from the client with zero
+persistence, and its "keyword ideas" were never real - just the seed
+keyword with 10 hardcoded suffixes ("best", "free", "vs"...) appended and
+re-looked-up, and "questions" were 4 hardcoded string templates. The
+location dropdown was also cosmetic: the real DataForSEO call underneath
+always used a hardcoded US location code regardless of what was selected -
+which is very likely why real searches for non-US-relevant keywords kept
+returning "no data" and silently falling back to mock output, the exact
+bug that prompted this rebuild.
+
+## What's real vs mock today
+
+- **Keyword results**: real, tiered, real-only (no mock fallback for the
+  tiered functions specifically - a failed/unconfigured call returns fewer
+  real results rather than fabricated-looking ones). `getRelatedKeywords()`
+  (DataForSEO Labs `related_keywords` - Google's actual "searches related
+  to" matches) and `getKeywordSuggestions()` (Labs `keyword_suggestions` -
+  real substring variations of the seed) run together and are shown first,
+  in that order; `getKeywordIdeas()` (Labs `keyword_ideas` - broader
+  same-category matches, the one function here that still keeps its mock
+  fallback) only runs as a third tier when the first two together return
+  fewer than 15 results. Each result carries a `source` tag
+  (`related`/`suggestion`/`idea`) shown as a badge and filterable in the
+  table. None of these three endpoints has a prior caller anywhere in this
+  codebase, so - same honesty convention as this project's other new
+  DataForSEO integrations - their real response shapes aren't yet proven
+  against a funded account, only typed against DataForSEO's published docs.
+- **Seed keyword metrics and location**: real, and now actually
+  location-aware. `getKeywordMetrics()` gained an optional `locationCode`
+  parameter (previously hardcoded to US/2840 internally) - Keyword
+  Research passes the real selected location code through; Page Analyzer's
+  existing single-keyword call is untouched (parameter is optional,
+  defaults to US). Rank Tracking's metrics-refresh call site
+  (`apps/worker/src/features/rank-check-runner.ts`) was also fixed to pass
+  its project's real configured location instead of the same implicit
+  US default - a second instance of the identical bug, fixed alongside
+  this one.
+- **SERP preview**: real, via `checkKeywordRanking()` (the same function
+  Rank Tracking uses) - not the older free-text-location `getSerpResults()`,
+  which only resolves a location through a crude ~19-country name map and
+  would silently default to US for the numeric location codes this page's
+  picker produces.
+- **Persistence**: real. Two new tables - `keyword_metrics_cache` (every
+  keyword any search returns gets upserted here, keyed by
+  project+keyword+location; a repeat search for an already-cached,
+  still-fresh keyword within 7 days skips DataForSEO) and
+  `keyword_research_searches` (a real log of every search run, powering
+  "Recent searches"). Not built: a full per-search result-snapshot table -
+  reopening a past search from history re-runs the real idea-generation
+  call rather than replaying an exact frozen result set; only the
+  per-keyword metrics are guaranteed to come from cache on a repeat.
+- **Question classification**: not a separate API call. A keyword counts
+  as a question if it starts with a common question word (how/what/why/
+  when/where/who/which/can/does/do/is/are/will/should) - pure client-side
+  regex over the same real `keyword_ideas` results already fetched.
+- **The Track button**: real, unchanged in destination -
+  `POST /api/projects/:projectId/keywords` (the same route
+  [Rank Tracking](/docs/rank-tracking) reads from). The client no longer
+  sends a `location` field (that route already silently ignored it -
+  location is a project-wide Rank Tracking setting now, not per-keyword),
+  and the tracked-state check is keyed by keyword alone instead of
+  `keyword|location` to match.
+
+## Database tables
+
+Both new, in `packages/db/src/app-schema.ts`, RLS-protected the same way as
+Rank Tracking's `rank_check_runs` (direct `project_id` column policy):
+
+- **`keywordMetricsCache`** (`keyword_metrics_cache`) - `projectId`,
+  `keyword`, `locationCode`, `searchVolume`, `keywordDifficulty`, `cpc`,
+  `intent`, `monthlySearches` (jsonb, last 12 months), `fetchedAt`. Unique
+  on `(projectId, keyword, locationCode)`.
+- **`keywordResearchSearches`** (`keyword_research_searches`) - `projectId`,
+  `seedKeyword`, `locationCode`, `locationName`, `resultCount`, `createdAt`.
+
+## API routes
+
+### `GET /api/projects/:projectId/keyword-research`
+
+Lists the 20 most recent `keyword_research_searches` rows for the project.
+
+### `POST /api/projects/:projectId/keyword-research`
+
+Body: `{ seedKeyword, locationCode, locationName }`. The only route that
+calls DataForSEO for this feature - real `getKeywordMetrics()` for the
+seed (cache-checked first) + real `getKeywordIdeas()` for the results
+grid, upserts every returned keyword into `keyword_metrics_cache`, logs one
+`keyword_research_searches` row, returns `{ seed, results }`.
+
+### `GET /api/projects/:projectId/keyword-research/serp?keyword=...&locationCode=...`
+
+Real top-10 organic SERP for one keyword, via `checkKeywordRanking()`.
+
+## Notable follow-up work (not built in this pass)
+
+- A cascading multi-source fallback (try `related_keywords`, then
+  `keyword_suggestions`, then `keyword_ideas`, stopping once enough results
+  accumulate) instead of the single `keyword_ideas` call this pass ships
+  with - deliberately deferred; one real endpoint is enough to ship real
+  data now, and this is a clean addition later if recall on obscure seeds
+  ever proves insufficient.
+- Live verification of `getKeywordIdeas()`'s real response parsing against
+  a funded DataForSEO account (not yet confirmed live in this environment).

@@ -1,0 +1,466 @@
+---
+title: Integrations
+description: Google (GSC + GA4 + GBP + Merchant Center) OAuth, plus Bing Webmaster Tools, IndexNow, and WordPress — setup, data model, routes, and the quota/lag constraints to design around
+---
+
+OAuth connect flow for Google Search Console (GSC), Google Analytics 4
+(GA4), Google Business Profile (GBP), and Google Merchant Center, pulling
+real impressions/clicks/CTR/position (GSC) and sessions/conversions (GA4)
+alongside the estimated SERP data from DataForSEO. See PRD Section 5.6
+(`seo-saas-prd-v1.md`) for the original requirements this implements.
+
+This page also covers three non-Google integrations that don't use OAuth at
+all: [Bing Webmaster Tools](#bing-webmaster-tools) (one workspace API key),
+[IndexNow](#indexnow) (keyless, no setup), and [WordPress](#wordpress) (a
+per-project Application Password). See the per-integration sections below
+for what's fully built vs. connect-only.
+
+**GBP is connect/disconnect-only here, and nothing else in the app
+depends on it.** [Local SEO](/docs/local-seo) originally used a real GBP
+connection, but now runs entirely on DataForSEO's Business Data API
+instead (no OAuth, no approval wait) — the GBP card and its underlying
+`packages/google/src/business-profile.ts` wrapper are kept as dormant
+plumbing for a possible future GBP-connected feature, not wired into any
+picker UI today.
+
+**Google Merchant Center has a full stats page, [Merchant Insights](/merchant-insights)** — real shopping-ads
+clicks/impressions/CTR/conversions, same shape as GSC/GA/Bing Insights: connect once on this page, then each
+project picks which of the connected account's real Merchant Center accounts it reports on via `PropertyPicker`
+(same component GSC/GA4 use), persisted to `projects.merchant_account_id`.
+
+**Migrated mid-build from the Content API for Shopping to the new Merchant API**, confirmed live: Google Cloud
+Console now points new projects at `merchantapi.googleapis.com` instead of the old `content.googleapis.com` —
+the Content API for Shopping is being sunset. Same OAuth scope
+(`https://www.googleapis.com/auth/content` — unchanged, confirmed from the SDK's own real request examples), so
+no reconnect was needed for the swap. `listMerchantAccounts()` now calls the Merchant API's Accounts sub-API
+(`accounts.list`, replacing the old `accounts.authinfo`); real product-performance stats come from the Merchant
+API's Reports sub-API (`accounts.reports.search`, a SQL-like query language over a `product_performance_view`
+table) — not yet live-tested against a real Merchant Center account, same untested-real-API honesty note as
+GBP's Performance metrics and Bing's endpoints.
+
+**One-time bootstrap step, confirmed live**: a GCP project must be registered as an `API_DEVELOPER` on the
+Merchant Center account before `accounts.list` (or anything else) works — Google returns a real 401 ("GCP
+project ... is not registered with the merchant account") otherwise. There's no dedicated Merchant Center
+settings page for this (the "Access and services → People and access" page confirms the *calling Google account*
+has Admin rights, which is necessary but not sufficient) — the actual registration only happens via
+`developerRegistration.registerGcp`.
+
+**Confirmed live, and initially got wrong**: `developerRegistration.getAccountForGcpRegistration` looks like a
+discovery/bootstrap call from its name, but it isn't — per its own description it reports "the account that the
+GCP is registered with," i.e. it's a **post-registration status check** that 401s with the identical "not
+registered" error when called first, same as every other method. There is no API-only way to auto-discover the
+target account before registration exists, so the user supplies their numeric Merchant Center account ID
+directly (found in the Merchant Center URL, `merchants.google.com/mc/overview?a=<id>`, or the account switcher).
+`PropertyPicker` collects it and calls `registerGcp` with `accounts/<id>/developerRegistration` — `POST
+/api/integrations/merchant/register?projectId=`, `registerMerchantApiDeveloper()` in
+`packages/google/src/merchant-center.ts` — rather than sending the user hunting for a settings page that doesn't
+exist. Google says the registration can take a few minutes to propagate before `accounts.list` starts working.
+
+**The OAuth connection is per organization, not per project.** A Google
+grant belongs to a Google account, and one grant can see every property
+that account has access to — so a user connects Google **once**, and every
+project under their organization just *picks* which property it uses from
+that same connection. No project ever needs its own separate consent flow.
+(An earlier pass in this build got this wrong — scoped the connection to
+`project_id` — which would have forced a full re-auth per project; fixed
+before shipping, see the migration history below.)
+
+Shopify Connect (PRD Section 5.10) is a separate, Phase 2 integration — it
+shows as a disabled "Coming in Phase 2" card on the Integrations page today
+and has no backing routes or package yet.
+
+## Status: plumbing is real, credentials are not
+
+`GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` are empty by
+default (see `.env.example`), so this can't complete a real OAuth round
+trip until an operator registers a Google Cloud OAuth client and sets
+both. Every layer below — the `@seo-tool/google` package, the three route
+handlers, and the DB writes — is real, working code against the
+`googleapis` SDK, not mocked; it starts working the moment credentials are
+added. `isGoogleOAuthConfigured()` gates all of it so the UI shows an
+honest "not configured" state instead of attempting a call that would fail
+confusingly. GBP specifically has one extra real-world gate on top of
+this: Google's own manual production-approval process for the Business
+Profile APIs (unrelated to `isGoogleOAuthConfigured()`) — this is exactly
+why Local SEO no longer depends on this connection at all, see
+[Local SEO](/docs/local-seo).
+
+The Integrations page renders real connection state — it resolves the
+current project via `getCurrentProject()` (`apps/web/lib/current-project.ts`),
+then queries `google_connections` by that project's `organizationId`, run
+through the same `toConnectionStatus()` helper
+(`apps/web/lib/google-connection-status.ts`) [GSC Insights](/docs/gsc-insights)
+and the Dashboard's `GoogleConnectCard` use, so no two surfaces can ever
+disagree about whether the org's Google account is connected. The Connect
+button links straight to the real `/api/integrations/google/connect`
+route.
+
+## Setup
+
+1. In Google Cloud Console, create an OAuth 2.0 Client ID (type: Web
+   application).
+2. Add an authorized redirect URI:
+   `<your-app-origin>/api/integrations/google/callback` (e.g.
+   `http://localhost:3000/api/integrations/google/callback` locally).
+3. Set these in `.env`:
+
+   | Var | Purpose |
+   |---|---|
+   | `GOOGLE_OAUTH_CLIENT_ID` | OAuth client ID from Google Cloud Console |
+   | `GOOGLE_OAUTH_CLIENT_SECRET` | OAuth client secret |
+   | `GOOGLE_OAUTH_REDIRECT_URI` *(optional)* | Overrides the callback URL if it needs to differ from `BETTER_AUTH_URL` + `/api/integrations/google/callback` (the default) |
+
+4. While your OAuth consent screen is in "Testing" publish status, you can
+   onboard up to 100 test users with **zero verification** — enough to
+   build and beta-test the whole feature. All three scopes below
+   (`webmasters.readonly`, `analytics.readonly`, `business.manage`) are
+   Google-classified as *sensitive*, not *restricted*, so going to
+   production only requires Google's free verification review (privacy
+   policy, homepage, scope justification, demo video) — no paid CASA
+   security audit. **This is separate from GBP's own additional API-access
+   approval** (see [Local SEO](/docs/local-seo)) — scope verification
+   covers the OAuth consent screen, not whether the Business Profile REST
+   APIs themselves will respond.
+
+## OAuth flow
+
+1. **Connect** — the Integrations page's Connect button is a plain link to
+   `GET /api/integrations/google/connect?projectId=<id>&service=gsc|ga4|gbp`.
+   `projectId` here is only an access-check anchor (proves the session's
+   user belongs to *some* project in the org) and a UX convenience (the
+   button lives on a project-scoped page) — it is **not** what the
+   connection ends up keyed by. That route checks project access, then
+   redirects to a real Google consent URL built by `getGoogleAuthUrl()` in
+   `@seo-tool/google`. `state` is `base64url(JSON.stringify({ projectId, service }))`, same as before — the callback re-derives the
+   organization from that project.
+2. **Consent** — the user grants (or declines) access on Google's own
+   page, scoped to exactly one of:
+   - GSC: `https://www.googleapis.com/auth/webmasters.readonly`
+   - GA4: `https://www.googleapis.com/auth/analytics.readonly`
+   - GBP: `https://www.googleapis.com/auth/business.manage`
+   - Merchant Center: `https://www.googleapis.com/auth/content`
+3. **Callback** — Google redirects to
+   `GET /api/integrations/google/callback?code=...&state=...`. The route
+   decodes `state`, re-checks project access (`requireProjectAccess`),
+   exchanges `code` for tokens via `exchangeCodeForTokens()`, and upserts a
+   row into `google_connections` **keyed by `(project.organizationId,
+   service)`** inside `withUserContext` (RLS-scoped) — connecting from any
+   project in the org lands in the same shared row. It always redirects
+   back to `/integrations` (with `?connected=<service>` on success or
+   `?error=<reason>` on failure) — this is a top-level browser navigation,
+   not a fetch, so errors can't be returned as a JSON body.
+   `access_type: "offline"` + `prompt: "consent"` are both set on the auth
+   URL so a refresh token is reliably returned even on a repeat consent
+   (Google only returns one on the very first-ever consent for a
+   user+client otherwise).
+4. **Status / disconnect / set property** —
+   `GET /api/projects/:projectId/integrations` returns each service's
+   status (`not_connected` | `connected` | `needs_reconnect`) — sourced
+   from the org-level `google_connections` row — plus `connectedAt` and
+   *this project's own* `propertyId` (sourced from
+   `projects.gsc_property_id` / `ga4_property_id` / `merchant_account_id`,
+   see Data model below). `PATCH /api/projects/:projectId/integrations`
+   (body: `{ service, propertyId }`, GSC/GA4/Merchant Center — GBP has no
+   per-project property concept here) sets **this project's** property
+   selection — it requires the org-level connection to already exist, but
+   only ever writes to the `projects` row, never to `google_connections`.
+   `DELETE /api/projects/:projectId/integrations?service=gsc|ga4|gbp|merchant`
+   deletes the **org-level** connection row — this revokes it for every
+   project under the organization, not just the one you clicked Disconnect
+   from, which is the correct real-world semantics (revoking Google access
+   is an account action). The Integrations card says this explicitly.
+5. **List properties** — `GET
+   /api/projects/:projectId/integrations/properties?service=gsc|ga4|merchant`
+   returns the real properties the org's connected Google account can
+   access: `listSearchConsoleSites()` (Search Console `sites.list`,
+   filtering out `siteUnverifiedUser`), `listGA4Properties()` (Analytics
+   Admin API `accountSummaries.list`, flattened to one property per row),
+   or `listMerchantAccounts()` (Merchant API Accounts sub-API
+   `accounts.list`) — all in `@seo-tool/google`. A stale/invalid token
+   surfaces as an HTTP 502 with `error: "needs_reconnect"` in the body,
+   rather than an opaque failure. GBP isn't listed here — it has no
+   per-project property to pick; its account/location listing lives as
+   dormant plumbing under `.../local-seo/business-profile/accounts` and
+   `.../locations` (two cascading real calls, not a flat list), unused by
+   any page today.
+
+### Property selection
+
+The token exchange alone doesn't tell you *which* GSC site, GA4 property,
+or Merchant Center account to sync. `PropertyPicker`
+(`apps/web/components/integrations/property-picker.tsx`) fetches the real
+list from the route above into a dropdown — the user picks from their
+actual verified properties, never types one in — then `PATCH`es the
+selection onto *this project's* `gsc_property_id` / `ga4_property_id` /
+`merchant_account_id`. It's used on [GSC Insights](/docs/gsc-insights),
+[Merchant Insights](/merchant-insights), the Dashboard's `GoogleConnectCard`,
+and inline on this Integrations page once a service is connected but this
+project hasn't picked a property yet. Since the underlying connection is
+org-wide but the property selection is per-project, switching projects
+(`ProjectSwitcher`) always shows **already connected** (no re-auth) with
+that project's *own* independent property picker/selection — two projects
+can sync two different properties from the same Google account with zero
+extra consent. No extra OAuth scope was needed for the GA4 listing call —
+`analytics.readonly` (already requested for GA4 connect) covers Admin API
+reads, not just the Data API. Same for Merchant Center — its listing and
+reporting calls both use the one `content` scope already requested at
+connect time.
+
+## Data model
+
+**`google_connections`** (`packages/db/src/app-schema.ts`) — one row per
+`(organizationId, service)`, `UNIQUE (organization_id, service)` enforced
+at the database level:
+
+| Column | Notes |
+|---|---|
+| `id` | uuid PK |
+| `organization_id` | FK → `organizations`, cascade delete — **not** `project_id`; the OAuth grant is account-level, shared by every project in the org |
+| `service` | `"gsc"` \| `"ga4"` \| `"gbp"` \| `"merchant"` |
+| `access_token` | short-lived OAuth access token |
+| `refresh_token` | long-lived, used to mint new access tokens; Google can revoke it any time from the user's account |
+| `expires_at` | access token expiry |
+| `connected_at` | last (re)connect time |
+| `needs_reconnect` | boolean, default `false` — see below |
+
+**`projects`** gained three columns for per-project property selection —
+this is deliberately on `projects`, not `google_connections`, since one
+connection can back many projects each syncing a different property:
+
+| Column | Notes |
+|---|---|
+| `gsc_property_id` | nullable text; GSC site URL (e.g. `sc-domain:example.com`), null until picked |
+| `ga4_property_id` | nullable text; GA4 property ID (e.g. `properties/123456`), null until picked |
+| `merchant_account_id` | nullable text; Merchant Center account resource name (e.g. `accounts/123456`), null until picked (migration `0016`) |
+
+Reads/writes to both tables go through `withUserContext()` (RLS-scoped) —
+never the bare `db` export — per the same convention as every other
+tenant-scoped table. `google_connections`' RLS policy checks
+`organization_id` directly against the caller's `organization_members`
+rows (no nested `projects` subquery needed, unlike most tenant tables here,
+since this one was never project-scoped to begin with).
+
+`needs_reconnect` is a real, explicit flag, not a timestamp heuristic: it's
+only ever set `true` by `apps/web/lib/google-token.ts`'s `getValidAccessToken()`
+when a refresh attempt gets Google's `invalid_grant` back (the refresh
+token itself was revoked or expired from disuse), and cleared back to
+`false` on any successful (re)connect or refresh. An `access_token` being
+past `expires_at` is expected and unremarkable — every real GSC/GA4 call
+goes through `getValidAccessToken()`, which transparently exchanges the
+refresh token for a new access token and persists the new pair before the
+caller ever sees a stale one. This is what makes a connection survive dev
+server restarts and long-running sessions without the user re-doing OAuth
+consent — see the package section below.
+
+## `@seo-tool/google` package
+
+- `isGoogleOAuthConfigured(): boolean`
+- `getGoogleAuthUrl(projectId, service): string`
+- `exchangeCodeForTokens(code): Promise<{ accessToken, refreshToken, expiresAt }>`
+- `refreshAccessToken(refreshToken): Promise<{ accessToken, expiresAt }>` —
+  real token refresh via the same OAuth2 client. Throws
+  `GoogleReauthRequiredError` specifically when Google returns
+  `invalid_grant` (the refresh token was revoked) — every other failure
+  (network blip, etc.) throws a plain `Error` instead, so a transient
+  failure never gets misreported as "needs reconnect."
+- `encodeState` / `decodeState` — the `state` param round-trip helpers
+- `getSearchConsolePerformance(accessToken, siteUrl, startDate, endDate, rowLimit?)` —
+  thin, real wrapper around the Search Analytics API for once a connection
+  exists. Callers must paginate with `startRow` past 25,000 rows.
+- `listSearchConsoleSites(accessToken): Promise<{ siteUrl, permissionLevel }[]>` —
+  real `sites.list` call, powers `PropertyPicker` for GSC.
+- `listGA4Properties(accessToken): Promise<{ propertyId, displayName, accountName }[]>` —
+  real Analytics Admin API `accountSummaries.list` call, powers
+  `PropertyPicker` for GA4.
+- `getGA4OrganicTrend(accessToken, propertyId, startDate, endDate)` /
+  `getGA4TopLandingPages(accessToken, propertyId, startDate, endDate, limit?)` —
+  real Analytics Data API `runReport` calls, both filtered to
+  `sessionDefaultChannelGroup = "Organic Search"`. Power
+  [GA Insights](/docs/ga-insights).
+- `listMerchantAccounts(accessToken): Promise<{ id, accountId, name }[]>` —
+  real Merchant API Accounts sub-API `accounts.list` call (`id` is the
+  resource name, e.g. `"accounts/123456"` - what the Reports API's
+  `parent` needs). Powers `PropertyPicker` for Merchant Center.
+- `getMerchantProductPerformance(accessToken, accountResourceName, startDate, endDate)` —
+  real Merchant API Reports sub-API `accounts.reports.search` call, a
+  SQL-like query over `product_performance_view` aggregated to one row per
+  day. Powers [Merchant Insights](/merchant-insights). Both Merchant API
+  calls are inspected from the installed `googleapis` SDK's generated
+  types (confirming the real method names/shapes exist) but not yet
+  live-tested end-to-end against a real Merchant Center account — same
+  untested-real-API honesty note as GBP's Performance metrics
+  (see [Local SEO](/docs/local-seo)).
+
+## Token refresh: `apps/web/lib/google-token.ts`
+
+`refreshAccessToken()` above is pure (no DB) — `getValidAccessToken(userId,
+connection)` is the app-level wrapper every real caller (GSC Insights, GA
+Insights, the Dashboard, and the properties-listing route) actually uses to
+turn a `google_connections` row into a usable access token:
+
+1. If `expires_at` is more than 5 minutes out, returns the stored
+   `access_token` as-is — no network call.
+2. Otherwise calls `refreshAccessToken()` and persists the new
+   `access_token` / `expires_at` (and clears `needs_reconnect`) back onto
+   the row inside `withUserContext()`, then returns the new token.
+3. If that throws `GoogleReauthRequiredError`, sets `needs_reconnect: true`
+   on the row before re-throwing — every call site already has a catch
+   block that shows "needs reconnecting" messaging on any thrown error, so
+   this only needs to persist the flag for `toConnectionStatus()` to read
+   afterwards (the Integrations page's badge, the Dashboard's
+   `GoogleConnectCard`, etc.).
+
+Nothing here runs as a background job — refresh is lazy, on the next real
+request that needs the token. That's a deliberate simplification (same
+"noted, not an oversight" framing as the sync-worker constraints below) —
+a proactive refresh job would only matter for a scheduled sync worker that
+doesn't exist yet.
+
+## GSC / GA4 constraints to design around (PRD Section 5.6)
+
+These aren't implemented as enforcement code yet (no sync worker exists
+this pass) — they're the constraints whoever builds that worker needs to
+respect, restated here so they're not lost:
+
+- **GSC Search Analytics API**: 25,000 rows per request, 50,000 rows/day
+  per site per search type, plus per-project QPS/QPM/QPD quotas. Large
+  sites need `startRow` pagination; very high-traffic sites can hit the
+  daily row cap.
+- **GSC reporting lag**: data lags ~2-3 days and only covers roughly the
+  trailing 16 months. Don't imply real-time in the UI, and don't treat a
+  request whose `endDate` falls inside that lag window as complete.
+- **GA4 Data API**: 25,000 tokens/day and 1,250 tokens/hour *per property*
+  (i.e. per customer, not pooled across the whole app — good for
+  multi-tenancy), 10 concurrent requests. A single dashboard load can burn
+  ~10 tokens — cache aggressively and refresh on a schedule, not on every
+  page view.
+- **Not every customer has GA4** — some are still on Universal Analytics or
+  have nothing configured. Always design for a "not connected" state, not
+  just success/failure.
+- **Refresh tokens can be revoked any time** by the customer from their
+  Google account (or expire from ~6 months of disuse). `getValidAccessToken()`
+  catches this as `GoogleReauthRequiredError` and flips `needs_reconnect`
+  (see above) — handle re-auth gracefully, never fail silently.
+- **Sync incrementally**: pull yesterday's new data once per site per day
+  and store it; don't re-fetch full history on every dashboard load. For
+  oversized customer sites, GSC Bulk Data Export and GA4 BigQuery Export
+  both offer unlinked-rows export to BigQuery as a Phase 2 escape hatch —
+  not a v1 requirement.
+
+## Bing Webmaster Tools
+
+Built fully — real search performance from Bing, no OAuth. See
+[Bing Insights](/docs/bing-insights) for the data-view page; this section
+covers the connection itself.
+
+- **Auth**: one global `BING_WEBMASTER_API_KEY` for the whole self-hosted
+  deploy (Bing Webmaster Tools → Settings → API access) — a single
+  workspace-level key, same shape as `GOOGLE_PAGESPEED_API_KEY`, not
+  per-project OAuth. `isBingConfigured()` (`@seo-tool/bing`) gates it.
+- **`packages/bing`** (mirrors `packages/dataforseo`'s scaffolding —
+  `main`/`types` point straight at `src/index.ts`, no build step):
+  `listBingSites()` (`GetUserSites`) and
+  `getBingRankAndTrafficStats(siteUrl, startDate, endDate)`
+  (`GetRankAndTrafficStats`) against
+  `https://ssl.bing.com/webmaster/api.svc/json/{Method}`.
+- **Not yet live-tested**: no funded Bing Webmaster Tools account was
+  available while building this — field names are taken from Bing's
+  published docs, not confirmed against a real response yet.
+- **Schema**: `projects.bing_site_url` (nullable text) — which verified
+  Bing site this project reports on, picked via `BingSitePicker` from a
+  real `GetUserSites` list.
+- **Routes**: `GET /api/projects/:projectId/bing-insights/sites` (site
+  list), `GET /api/projects/:projectId/bing-insights?days=7|28|90`
+  (performance), `PATCH /api/projects/:projectId/bing-insights` (save
+  chosen site).
+- **UI**: `BingIntegrationCard` (`apps/web/components/integrations/bing-integration-card.tsx`)
+  on this page, copying `PageSpeedIntegrationCard`'s exact structure — no
+  per-project connect/disconnect, just a "configured" badge.
+
+## IndexNow
+
+Built fully — a free, keyless protocol (indexnow.org) that notifies Bing,
+Yandex, Seznam, and Naver directly when a URL changes, so they crawl it
+sooner instead of waiting for their own schedule. No account, no API key,
+nothing in `.env` — genuinely zero setup.
+
+- **`packages/indexnow`**: `generateIndexNowKey()` (a random key, generated
+  lazily on first submit) and
+  `submitUrlsToIndexNow(host, key, keyLocation, urls)` — POSTs
+  `{ host, key, keyLocation, urlList }` to `https://api.indexnow.org/indexnow`,
+  which fans the notification out to every participating engine.
+- **Schema**: `projects.indexnow_key` (nullable text).
+- **Public route `GET /api/indexnow/:key`** — the `keyLocation` IndexNow's
+  crawlers fetch to verify a submission; deliberately unauthenticated and
+  does **no DB lookup**, just echoes the key segment back as plain text
+  (same contract as hosting a static `<key>.txt` file) — the key carries no
+  confidential meaning on its own, and `keyLocation` doesn't have to live
+  on the customer's own domain for the protocol to work.
+- **Route `POST /api/projects/:projectId/indexnow/submit`** — body
+  `{ urls: string[] }`; generates+saves a key on first use, then submits.
+  All URLs in one submission must share the same host (IndexNow's own
+  requirement).
+- **UI**: a real "Ready" `IndexNowIntegrationCard` on this page (no setup
+  state to show), and a "Notify search engines" action on
+  [Site Audit](/docs/site-audit)'s results page
+  (`apps/web/components/site-audit/indexnow-submit-action.tsx`) — "Submit
+  all crawled URLs" (sourced from the audit's own `siteAuditPages`) plus a
+  manual textarea for ad-hoc URLs.
+
+## WordPress
+
+Connect-only for now — real, verified WordPress REST API access, with
+recent posts shown inline as proof-of-connection. Nothing in the app pushes
+content to WordPress yet (no auto-publish/write-back agent); that's future
+work, same framing as Shopify's own Phase 2 tag.
+
+- **Auth**: WordPress core's built-in **Application Passwords** (5.6+, no
+  plugin) — the user generates one in their own WP admin (Users → Profile
+  → Application Passwords) and gives this app the site URL + username + app
+  password. HTTP Basic Auth against `{siteUrl}/wp-json/wp/v2/posts` — a
+  working authenticated request *is* the verification, no separate ping
+  endpoint.
+- **`packages/wordpress`**: `verifyWordPressConnection(siteUrl, username, appPassword)`
+  and `listRecentPosts(siteUrl, username, appPassword, limit?)`.
+- **Schema**: `wordpress_connections` — one row per project (`project_id`
+  is both PK and FK, same shape as `local_business_profiles`), RLS-protected
+  with the standard `tenant_isolation` policy. `application_password` is
+  stored as plain `text`, matching `google_connections.access_token` /
+  `refresh_token`'s existing convention rather than introducing a new
+  encryption layer inconsistently.
+- **Routes**: `GET` / `POST` / `DELETE
+  /api/projects/:projectId/wordpress` — status+posts, verify-and-save, and
+  disconnect.
+- **UI**: `WordPressIntegrationCard` — an inline connect form
+  (site URL, username, application password) when not connected; site URL,
+  a Disconnect button, and the real recent-posts list when connected.
+
+## LLM Providers
+
+Read-only status card, no OAuth or app-side connect flow — each of the 6
+providers in [AI Visibility](/docs/ai-visibility)'s provider registry
+(`packages/ai-visibility/src/providers/`) is "connected" purely by whether
+its credential env var is set, checked via each provider's own
+`isConfigured()`:
+
+| Provider | Env var | Access |
+|---|---|---|
+| OpenAI | `OPENAI_API_KEY` | direct API |
+| Anthropic | `ANTHROPIC_API_KEY` | direct API |
+| Google | `GOOGLE_AI_API_KEY` | direct API |
+| Perplexity | `PERPLEXITY_API_KEY` | direct API |
+| BrightData | `BRIGHTDATA_API_TOKEN` (optional `BRIGHTDATA_SERP_ZONE`) | scraped (real ChatGPT/Gemini/Perplexity/Copilot + Google AI Overview) |
+| OpenRouter | `OPENROUTER_API_KEY` | direct API (pass-through to any hosted model) |
+
+Which of these a project actually samples from on a run is a separate,
+per-project pick in AI Visibility's own Settings → Providers page (not this
+page) — this card only shows global connection status. This used to be its
+own page at `/ai-visibility/settings/llms` (4 providers only); moved here
+since it's connection status, not a per-project setting, consistent with
+every other integration on this page, then expanded to all 6 registry
+providers when BrightData/OpenRouter were added.
+
+- **UI**: `LlmProvidersIntegrationCard`
+  (`apps/web/components/integrations/llm-providers-integration-card.tsx`)
+  on this page — a Connected/Not configured row per provider with the exact
+  env var to set and its access mode (direct API vs. scraped).

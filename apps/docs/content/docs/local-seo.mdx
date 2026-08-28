@@ -1,0 +1,202 @@
+---
+title: Local SEO
+description: Real Google Business Data (no OAuth), geo-grid map-pack rank tracking with automatic weekly re-checks, and an LLM-generated optimization checklist
+---
+
+## What it does
+
+Per PRD Section 5.5 ("Local SEO"), this module is three real pages under
+its own sidebar group, each backed entirely by DataForSEO's real APIs — no
+Google OAuth or manual approval required for any of it:
+
+- **Profile** (`/local-seo`) — search-and-pick your real business (a real
+  Country → State → City selector feeding a real Google Maps name search),
+  then pull its full real listing: category, additional categories, hours,
+  phone, website, description, attributes, rating, review count, photo
+  count, claimed status.
+- **Monitor** (`/local-seo/monitor`) — real geo-grid rank tracking: a
+  tracked keyword checked at every point in an NxN grid of real lat/lng
+  coordinates around the business, plotted on a map with a colored pin per
+  point (green = top 3 "map pack", yellow = found outside it, red = not
+  found) — the same visualization pattern tools like Local Falcon,
+  BrightLocal, and ProRankTracker use. Runs on demand ("Run now") **and**
+  automatically once a week, building rank history without the user
+  re-running it by hand.
+- **Optimize** (`/local-seo/optimize`) — an LLM-generated local SEO
+  strategy (listing gaps, content/pages to build, review/citation
+  pointers, technical fixes), generated on demand from the real profile +
+  rank data + real nearby competitors, and persisted as a checklist so it
+  survives across visits instead of being regenerated every time.
+
+## Why DataForSEO instead of Google Business Profile OAuth
+
+An earlier version of this module connected a project's business via real
+Google Business Profile (GBP) OAuth. Live-tested this session: production
+access to GBP's REST APIs needs a **separate manual approval from Google**
+(an access-request form, a GBP location verified 60+ days, unknown review
+turnaround) — a real barrier, unlike GSC/GA4's self-serve "sensitive
+scope" review.
+
+DataForSEO's **Business Data API**
+(`business_data/google/my_business_info/live`) returns everything GBP's
+own Business Information API would have — category, additional
+categories, real hours, phone, website, description, attributes
+(accessibility/parking/amenities/etc.), rating, review count, photo count,
+claimed status, `cid`/`place_id` — confirmed live against a real business
+this session, for $0.0054/call, with **no OAuth and no approval wait**.
+Local SEO now runs on this entirely, which is a strict upgrade, not a
+fallback: it works today, for every user, regardless of Google's approval
+queue.
+
+**Google Business Profile OAuth itself is kept, but decoupled** — the
+`gbp` scope, `packages/google/src/business-profile.ts`, and the
+Integrations page's "Google Business Profile" connect card all still work
+(dormant plumbing, ready for a future GBP-connected feature), but nothing
+in Local SEO depends on it anymore. See [Integrations](/docs/integrations).
+
+## Database
+
+Migration `0013` drops the old GBP-coupled shape and replaces it:
+
+- Dropped `projects.gbp_account_id`/`gbp_location_id`/`gbp_location_name`/
+  `gbp_lat`/`gbp_lng` and the old single-point `local_rank_checks` table
+  (superseded by grid scanning, a strict superset).
+- **New `local_business_profiles`** — one row per project (`project_id` is
+  both PK and FK), holding everything pulled from DataForSEO (`name`,
+  `lat`/`lng`, `place_id`, `cid`, `search_query`/`location_code` — replayed
+  on re-sync, `address`, `phone`, `website`, `domain`, `category`,
+  `additional_categories`, `description`, `rating`, `review_count`,
+  `total_photos`, `is_claimed`, `work_time`, `attributes`,
+  `last_synced_at`) plus Monitor's tracking config (`tracked_keyword`,
+  `grid_size`, `radius_km`, `auto_track_enabled`) — config lives on this
+  row since it's 1:1 with "the business," not a separate settings table.
+- **New `local_seo_recommendations`** — Optimize's checklist: `id`,
+  `project_id`, `category` (`listing`/`content`/`reviews`/`technical`),
+  `title`, `description`, `status` (`todo`/`done`).
+- `local_grid_scans`/`local_grid_scan_points` (unchanged from the original
+  build) — one row per real scan, one row per grid cell.
+
+All four tables are RLS-protected, same `tenant_isolation` shape as the
+rest of the app.
+
+## `@seo-tool/dataforseo` changes
+
+- **`getBusinessListingDetails(query, locationCode)`** — the real listing
+  pull described above. No mock fallback (same reasoning as
+  `searchMapsBusinesses`): fabricated listing details would actively
+  mislead a user optimizing their real business. Returns `null` on a real
+  empty result; throws through any other DataForSEO error.
+- **`runGridScanPoints(keyword, businessName, points)`** — the grid-check
+  orchestration (`Promise.all` over `getLocalPackResultsAtCoordinate` +
+  name-matching) pulled out into a shared function specifically so the
+  on-demand API route and the weekly scheduled worker job run the exact
+  same real logic instead of two implementations drifting apart.
+- `getLocalPackResultsAtCoordinate`, `generateGridPoints` — unchanged from
+  the original build.
+- The underlying `maps/live/advanced` and `business_data` calls share a
+  55s timeout (`MAPS_LIVE_TIMEOUT_MS`) — these are real synchronous Google
+  Maps scrapes, not cached lookups, and routinely run past the previous
+  20s limit.
+
+## `@seo-tool/ai-visibility` changes
+
+New `generateLocalSeoStrategy({ profile, gridSummary, topCompetitors })` —
+one real, on-demand LLM call (manual trigger only) returning a JSON array
+of recommendations, validated with zod, malformed entries dropped rather
+than failing the whole call. `null` when no provider is configured.
+`generateLocalSeoGuidance` (per-scan free-text tip) is unchanged, still
+used by Monitor's "Get guidance" button.
+
+## Weekly automatic tracking
+
+The first recurring job in this codebase, built on pg-boss's `.schedule()`
+(added as a `scheduleRecurring()` method on `packages/jobs`'s `defineJob`
+factory):
+
+- `localGridScanFanoutJob` — scheduled `0 3 * * 1` (Monday 3am UTC).
+  Because `projects`/`organization_members` have `FORCE ROW LEVEL
+  SECURITY` (deliberately, so no role can read across every tenant at
+  once — see `packages/db/drizzle/0001_rls_policies.sql`), the fanout
+  can't query "every project with tracking enabled" directly. Instead it
+  lists user ids from the unprotected `user` auth table, then runs one
+  RLS-scoped query per user to find *that user's own* projects with
+  `auto_track_enabled` + a `tracked_keyword` set, enqueuing
+  `localGridScanJob` for each match (deduped within the run, since two
+  teammates in the same org would otherwise both match the same project).
+- `localGridScanJob` — one project's scan, via `apps/worker/src/features/
+  grid-scan-runner.ts`'s `runProjectGridScan`, using the same
+  `runGridScanPoints` the on-demand API route uses.
+
+Per-project auto-tracking is toggled from Monitor's config row
+(`auto_track_enabled` on `local_business_profiles`).
+
+## API routes
+
+`apps/web/app/api/projects/[projectId]/local-seo/`:
+
+- **`business-profile/geo/route.ts`**, **`business-profile/search/route.ts`**
+  — unchanged: the real Country/State/City selector and Maps name search.
+- **`business-profile/route.ts`** — `GET` returns the saved profile (or
+  `null`). `PATCH` upserts the base fields from a picked search result (or
+  a manual lat/lng entry), then makes one further real
+  `getBusinessListingDetails` call to enrich — if enrichment fails, the
+  base fields still save (handle errors gracefully, don't block the save).
+- **`business-profile/resync/route.ts`** — `POST`, replays the same real
+  lookup to refresh the enrichment columns. 400s for a manual-only entry
+  (nothing to replay).
+- **`monitor/config/route.ts`** — `PATCH`, saves Monitor's tracking config.
+- **`grid-scan/route.ts`** — `POST` takes **no body**: reads
+  keyword/grid size/radius/center straight from `local_business_profiles`
+  (the same config both the UI and the weekly job read), so the on-demand
+  and scheduled paths share `runGridScanPoints` identically. `GET` lists
+  recent scans with aggregated summary stats.
+- **`grid-scan/[scanId]/route.ts`**, **`grid-scan/[scanId]/guidance/route.ts`**
+  — unchanged.
+- **`optimize/route.ts`** — `GET` lists the checklist. `POST` gathers the
+  real profile + latest scan summary + real nearby competitors (one more
+  live local-pack check at the business's own coordinates, excluding
+  itself), calls `generateLocalSeoStrategy`, and inserts only
+  recommendations whose title isn't already saved (regenerating doesn't
+  spam duplicates).
+- **`optimize/[recommendationId]/route.ts`** — `PATCH { status }` to
+  toggle a checklist item.
+
+All routes: `withAuth` + `requireProjectAccess` + `withUserContext`.
+
+## Pages
+
+- **`/local-seo`** (Profile) — the search-and-pick flow
+  (`business-profile-form.tsx`) when nothing's saved yet; once saved, a
+  single read-only listing card (`business-profile-listing.tsx`) with a
+  "Re-sync from Google" button and a "Change business" link back to the
+  search flow. Below it, an optional **GBP Performance** section
+  (`gbp-performance-section.tsx`) - the one piece of data that genuinely
+  can't come from DataForSEO or any public source: real calls, chats,
+  bookings, direction requests, website clicks, and menu views are
+  private, owner-only numbers that only exist inside Google's own
+  Performance API. This section reuses the GBP OAuth plumbing kept dormant
+  in `packages/google/src/business-profile.ts` (see
+  [Integrations](/docs/integrations)) - connecting and picking a location
+  works immediately, but the actual numbers stay gated behind Google's
+  separate manual Performance API approval, same honesty note as before.
+  The account/location link lives on `local_business_profiles.gbp_account_id`
+  / `gbp_location_id` / `gbp_location_name` (migration `0014`) rather than
+  the old `projects.gbp_*` columns dropped in `0013` - purely additive, no
+  other part of Local SEO reads these three columns.
+- **`/local-seo/monitor`** — a compact tracking-config row (keyword, grid
+  size, radius, weekly auto-track toggle), "Run now", the Leaflet grid
+  map, summary metrics, on-demand LLM tip, and scan history (which now
+  includes automatic weekly runs).
+- **`/local-seo/optimize`** — "Generate strategy" (becomes "Regenerate"
+  once recommendations exist — manual trigger only, never automatic), a
+  checklist grouped by category with a click-to-toggle status, completed
+  items collapsed into a "Done" section.
+
+### Why Leaflet, not Google Maps
+
+Unchanged from the original build: the map is a pure display choice with
+zero effect on actual Google ranking. Leaflet + OpenStreetMap tiles needs
+no new API key or billing account. `GridMap`
+(`components/local-seo/grid-map.tsx`) is loaded via
+`next/dynamic({ ssr: false })`, since Leaflet touches `window` at module
+load time.

@@ -1,0 +1,31 @@
+{
+  "name": "seo-tool",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/open-saas-org/seo.git"
+  },
+  "homepage": "https://github.com/open-saas-org/seo#readme",
+  "bugs": {
+    "url": "https://github.com/open-saas-org/seo/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.21.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @seo-tool/db generate",
+    "db:migrate": "pnpm --filter @seo-tool/db migrate"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.10"
+  }
+}

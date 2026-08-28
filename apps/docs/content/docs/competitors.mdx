@@ -1,0 +1,89 @@
+---
+title: Competitor Research
+description: Track competitor domains and compare traffic, top pages, backlink profile, and keyword gaps against your project.
+---
+
+## What it does
+
+The Competitor Research module (`/competitors`) lets you track competitor domains for a
+project and see, per domain:
+
+- **Domain overview** — estimated monthly organic traffic, total organic keywords, and top
+  pages by estimated traffic.
+- **Backlink profile summary** — total backlinks, referring domains, and a domain rating
+  (0–100).
+- **Keyword gap ideas** — real keywords the competitor domain actually ranks for (DataForSEO
+  Labs `ranked_keywords`), sorted by search volume. This is **not** a diff against your own
+  site's rankings ("keywords they rank for that you don't") — that would need a second
+  domain to compare against — it's the competitor's own real top keywords.
+
+## What's mock vs. real today
+
+Everything backing this module comes from `@seo-tool/dataforseo`
+(`getDomainOverview`, `getBacklinksOverview`, `getRankedKeywords`). All three are **real**,
+gated by `isDataForSeoConfigured()`: `getDomainOverview` calls DataForSEO Labs'
+`domain_rank_overview` + `relevant_pages`, `getBacklinksOverview` calls `backlinks/summary`,
+and `getRankedKeywords` calls `ranked_keywords`. Falls back to deterministic mock data when
+`DATAFORSEO_LOGIN`/`DATAFORSEO_PASSWORD` aren't configured, or if a real call fails — same
+convention as every other DataForSEO-backed feature. The page shows a "Mock data" badge on
+each competitor's detail view whenever that fallback is in effect.
+
+The backlink index in particular is intentionally lightweight — the UI calls this out
+directly (see the "Not a full backlink audit" note on the backlink profile card) since it
+isn't as deep as a specialized tool like Ahrefs.
+
+## Tracked competitor list vs. domain stats — two different data paths
+
+This module deliberately has two independent halves:
+
+1. **Domain stats** (traffic, top pages, backlinks, keyword ideas) are fetched directly from
+   `@seo-tool/dataforseo` via a Next.js Server Action
+   (`app/(dashboard)/competitors/actions.ts` → `fetchCompetitorSnapshot`). This is a pure
+   domain → stats lookup with no tenant data involved, so it doesn't need project scoping -
+   it needs no auth or database access beyond the page already being behind login.
+2. **The tracked-competitor list itself** persists to the `project_competitors` table via a
+   real, typed, RLS-scoped API route (real tenant data, real auth requirement).
+
+### Database
+
+Table `project_competitors` (defined in `packages/db/src/app-schema.ts`, already migrated):
+
+| Column       | Type      | Notes                                   |
+| ------------ | --------- | ---------------------------------------- |
+| `id`         | uuid      | Primary key                              |
+| `project_id` | uuid      | FK → `projects.id`, cascades on delete   |
+| `domain`     | text      | Competitor domain, normalized lowercase  |
+| `created_at` | timestamp | Defaults to now                          |
+
+Row-Level Security is enabled; all reads/writes go through `withUserContext(userId, ...)`
+from `@seo-tool/db` so RLS enforces tenant isolation. Querying the bare `db` export for
+tenant data returns zero rows by design (fail-closed).
+
+### API route
+
+`apps/web/app/api/projects/[projectId]/competitors/route.ts`, guarded by `withAuth` +
+`requireProjectAccess`:
+
+- `GET` — list tracked competitors for a project, newest first.
+- `POST` — add a competitor. Body: `{ "domain": string }`. Validates and normalizes the
+  domain (strips protocol/path, lowercases, drops a leading `www.`), and rejects duplicates
+  for the same project with `409`.
+- `DELETE` — remove a tracked competitor. Query param: `?id=<competitorId>`.
+
+All three return `401` if there's no session, and `404` if the project doesn't exist or
+doesn't belong to the caller's organization (these two cases are deliberately
+indistinguishable, so the route can't be used to probe for other tenants' project IDs).
+
+## Components
+
+All competitor-specific UI lives under `apps/web/components/competitors/`:
+
+- `competitor-workspace.tsx` — top-level client component owning the tracked-competitor
+  state, wiring the add form, summary table, and detail panel together.
+- `add-competitor-form.tsx` — domain input with inline validation.
+- `competitor-summary-table.tsx` — `DataTable`-based list of tracked competitors (domain,
+  traffic, keywords, domain rating, actions).
+- `competitor-detail.tsx` — per-competitor detail view: `MetricCard`s, top-pages table,
+  backlink summary, and keyword gap ideas table.
+- `domain-utils.ts` — shared domain normalization/validation, used by both the Server Action
+  and the API route so client and server never disagree on what counts as a valid domain.

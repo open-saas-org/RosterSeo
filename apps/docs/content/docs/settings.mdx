@@ -1,0 +1,39 @@
+---
+title: Settings
+description: Account and organization details, plus sign-out (PRD Section 4)
+---
+
+Route: `/settings`.
+
+## What it does
+
+Displays the signed-in user's account info and their organization, and
+gives a second, more discoverable place to sign out than the sidebar's
+account dropdown. This is also the page `nav-user.tsx`'s "Account settings"
+dropdown item already links to — it existed before this page did.
+
+## What's real vs mock today
+
+- **Session and account info**: real. Server component, fetches the
+  session the same way `app/(dashboard)/layout.tsx` does
+  (`auth.api.getSession({ headers: await headers() })`) and renders the
+  real `name`/`email` from it. Read-only — there is no edit-profile flow
+  yet.
+- **Organization info**: real. Same membership -> organization join shape
+  used by `lib/auth.ts`'s signup hook and `app/api/projects/route.ts`'s "my
+  org" lookup — joins `organizationMembers` to `organizations` for the
+  current user via `withUserContext`, since v1 is one organization per user
+  (created automatically at signup). Shows name, slug, and role.
+- **Sign out**: real. `components/settings/sign-out-button.tsx` calls the
+  exact same sequence as `nav-user.tsx`'s dropdown sign-out —
+  `authClient.signOut()`, then `router.push("/login")` and
+  `router.refresh()` — just exposed as a visible button instead of a menu
+  item.
+
+## Notable follow-up work (not built in this pass)
+
+- An edit-profile flow (name/email changes, password reset).
+- An invite-teammates flow — organizations are currently always
+  single-member, so there's no member list or role management to build
+  here yet.
+- Danger-zone actions (delete account/organization) aren't implemented.
