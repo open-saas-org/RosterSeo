@@ -10,10 +10,10 @@ import { ReportShareButton } from "@/components/ai-visibility/report-share-butto
 
 // A live-rendered, print-CSS-driven AI Visibility snapshot report - deliberately
 // outside the (dashboard) route group so it renders with no sidebar/topbar
-// chrome, just the report content plus one print button. Unlike Elmo's
-// version (a frozen JSON snapshot built by an async report-generation job
-// queue we don't have), this renders straight from the database on every
-// view - simpler, no new table/job, and always current as of the moment
+// chrome, just the report content plus one print button. Renders straight
+// from the database on every view rather than a frozen snapshot built by a
+// report-generation job queue - simpler, no new table/job, and always
+// current as of the moment
 // it's opened.
 //
 // Reachable two ways: a real logged-in session with real access to this

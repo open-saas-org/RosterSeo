@@ -1,9 +1,9 @@
 // Shared last-value-carried-forward (LVCF) trend smoothing. AI Visibility
 // has no scheduler yet - every run is a manual, irregular event - so a raw
 // day-by-day series (today's real value, or a bare 0/gap on days nothing
-// ran) reads as a noisy sawtooth instead of a trend. Modeled on Elmo's
-// per-prompt cadence normalization (chart-utils.ts) but generalized to one
-// pure function shared by every AI Visibility chart pipeline that needs it:
+// ran) reads as a noisy sawtooth instead of a trend. Generalizes per-prompt
+// cadence normalization into one pure function shared by every AI
+// Visibility chart pipeline that needs it:
 // citation-analysis.ts's buildDailySeries (category/page-type series),
 // share-of-voice-dashboard.tsx's day-by-day Share of Voice % trend, and
 // visibility-dashboard.tsx's computePromptChartData per-prompt/per-entity %

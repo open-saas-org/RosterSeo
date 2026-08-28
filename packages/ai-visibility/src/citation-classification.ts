@@ -1,14 +1,12 @@
 // Real-time citation classification: what kind of source a cited URL is
 // (brand / competitor / editorial / ... ) and what kind of page it is
-// (homepage / article / review / ...). Modeled on Elmo's
-// elmo-reference/apps/web/src/lib/domain-categories.ts approach (classify at
-// read time from url/domain/title, never store a category column - so
-// reclassification logic changes apply retroactively with no backfill) but
-// reimplemented against our own schema, with a compact curated domain list
-// rather than Elmo's ~25k-entry editorial list: the page-type heuristic
-// below (classifyUrl's "other" -> page-type reclassification) is what keeps
-// long-tail blogs/publishers out of the "other" bucket without needing that
-// list.
+// (homepage / article / review / ...). Classifies at read time from
+// url/domain/title, never storing a category column - so reclassification
+// logic changes apply retroactively with no backfill. Deliberately uses a
+// compact curated domain list rather than a large editorial list: the
+// page-type heuristic below (classifyUrl's "other" -> page-type
+// reclassification) is what keeps long-tail blogs/publishers out of the
+// "other" bucket without needing that list.
 
 export type CitationCategory =
   | "brand"
@@ -200,8 +198,8 @@ export function categorizeDomain(domain: string, brandDomains: string[], competi
 }
 
 // Regex cascade over URL path + title - order matters, first match wins.
-// Trimmed from Elmo's version: no Google shopping/search surfaces (we don't
-// have a separate Google AI Mode module).
+// Deliberately excludes Google shopping/search surfaces (we don't have a
+// separate Google AI Mode module).
 export function inferPageType(url: string, title?: string | null): CitationPageType {
   let path = "/";
   let host = "";

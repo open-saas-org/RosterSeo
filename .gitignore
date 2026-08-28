@@ -36,10 +36,10 @@ coverage/
 # shared/committed since other contributors need it too.
 .claude/settings.local.json
 
-# Local reference clones used during development (elmo, open-seo) and any
-# unrelated scratch project folders that end up at the repo root - these
-# are separate codebases with their own licenses, not part of this
-# project, and must never be published inside this repo.
+# Local reference clones used during development, and any unrelated
+# scratch project folders that end up at the repo root - these are
+# separate codebases with their own licenses, not part of this project,
+# and must never be published inside this repo.
 elmo-reference/
 open-seo-reference/
 seo tool hubspot/

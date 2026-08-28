@@ -2,28 +2,26 @@ import type { Provider, ProviderOptions, ScrapeResult } from "../types";
 import { collectAioSnippets, dedupeCitations, stripAioTitleNoise } from "../text-extraction";
 import { PLAIN_SAMPLE_TIMEOUT_MS, WEB_QUERIES_UNAVAILABLE } from "../constants";
 
-// Ported (close to 1:1) from elmo-reference/packages/lib/src/providers/registry/brightdata.ts.
 // Real browser-automation scraping infrastructure: drives the actual consumer
 // UI (chatgpt.com, gemini.google.com, perplexity.ai, copilot) via BrightData's
 // async dataset-collector trigger/poll/fetch lifecycle, plus a separate SERP
 // call for Google's AI Overview (not a dataset collector - it's the AI
 // summary block on a normal Google results page).
 //
-// Deviation from Elmo: uses plain fetch against BrightData's public REST API
-// throughout (trigger/progress/snapshot endpoints) instead of the
-// `@brightdata/sdk` npm package, matching this project's established
-// "raw fetch, no vendor SDKs" convention (dataforseo/google/bing packages all
-// do this). One consequence: Elmo's best-effort "cancel an abandoned snapshot"
-// cleanup step is not implemented here (no verified public REST cancel
-// endpoint found) - an abandoned snapshot just expires on BrightData's side
-// instead of being actively cancelled. Flagged here rather than guessing at
-// an unverified endpoint.
+// Uses plain fetch against BrightData's public REST API throughout
+// (trigger/progress/snapshot endpoints) instead of the `@brightdata/sdk`
+// npm package, matching this project's established "raw fetch, no vendor
+// SDKs" convention (dataforseo/google/bing packages all do this). One
+// consequence: a best-effort "cancel an abandoned snapshot" cleanup step is
+// not implemented here (no verified public REST cancel endpoint found) - an
+// abandoned snapshot just expires on BrightData's side instead of being
+// actively cancelled. Flagged here rather than guessing at an unverified
+// endpoint.
 //
-// Dataset IDs below are copied from Elmo's own registry (real BrightData
-// marketplace dataset ids at the time Elmo shipped them) - BrightData dataset
-// ids can change, so these should be confirmed against a real BrightData
-// dashboard before relying on them in production, same honesty convention as
-// every other new integration in this project.
+// Dataset IDs below are real BrightData marketplace dataset ids - BrightData
+// dataset ids can change, so these should be confirmed against a real
+// BrightData dashboard before relying on them in production, same honesty
+// convention as every other new integration in this project.
 
 const AI_OVERVIEW_MODEL = "google-ai-overview";
 
@@ -139,9 +137,8 @@ function extractSources(record: Record<string, any>) {
   return dedupeCitations(items);
 }
 
-// Same non-obvious rule Elmo documents: don't gate on `web_search_triggered`
-// (unreliable - real ChatGPT runs report `false` while still exposing a real
-// query derived from the prompt).
+// Don't gate on `web_search_triggered` - it's unreliable: real ChatGPT runs
+// report `false` while still exposing a real query derived from the prompt.
 function extractWebQueries(record: Record<string, any>): string[] {
   if (Array.isArray(record.web_search_query)) {
     return record.web_search_query.filter((q: unknown) => typeof q === "string" && q.trim());
@@ -167,10 +164,10 @@ async function getSnapshotStatus(snapshotId: string): Promise<string> {
 }
 
 // Hard wall-clock cap, not just an attempt count - a real scrape typically
-// finishes well under a minute (Elmo's own docs: "roughly a minute, since a
-// live session has to finish"). Previously this could wait up to ~8.5
-// minutes per single sample (60 attempts, backing off to a 10s interval) -
-// with several targets/samples run concurrently that turned into the whole
+// finishes well under a minute, since it depends on a live browser session
+// finishing. Previously this could wait up to ~8.5 minutes per single
+// sample (60 attempts, backing off to a 10s interval) - with several
+// targets/samples run concurrently that turned into the whole
 // visibility-check request hanging for many minutes. 2 minutes is generous
 // slack over the real-world case while still failing fast when something is
 // actually stuck.

@@ -6,8 +6,8 @@ import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTool
 // Multi-series % stacked area chart - the Citation Categories / Citation
 // Page Types charts, a stacked sibling of AiVisibilityTrendAreaChart's
 // single-series gradient area. Keys are rendered in the order given, then
-// reversed (biggest band drawn last / on top) so the chart reads the same
-// as Elmo's version.
+// reversed (biggest band drawn last / on top) so the largest category
+// reads clearly on top of the stack.
 export function CitationStackedAreaChart({
   data,
   keys,

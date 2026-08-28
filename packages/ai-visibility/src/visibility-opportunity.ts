@@ -6,10 +6,7 @@ import { getProvider, type Provider } from "./providers";
 // ownership mix, which sources are "locked in" vs. contestable) gets fed
 // into ONE structured LLM completion (no web search - the digest already
 // carries every real fact the model needs) that returns a prioritized,
-// categorized action list. Modeled on Elmo's Opportunities page
-// (elmo-reference/apps/web/src/server/opportunities.ts) - same "single
-// structured completion over a compact digest" architecture, reimplemented
-// against our schema. Digest building + enrichment (resolving relatedPrompts
+// categorized action list. Digest building + enrichment (resolving relatedPrompts
 // back to real prompt IDs, splitting citations into yours-vs-competitors')
 // stay in the API route - this package has no DB dependency, matching
 // fanout-analysis.ts's "operate on passed-in data" convention.

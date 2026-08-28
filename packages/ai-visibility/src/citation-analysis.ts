@@ -1,10 +1,8 @@
 // Real citation aggregation: rollups, recent-changes diffing, content-gap
 // detection, and daily category/page-type series - all pure functions over
 // already-classified citation rows (see citation-classification.ts),
-// modeled on Elmo's elmo-reference/apps/web/src/lib/citation-rollup.ts and
-// elmo-reference/apps/web/src/server/citations.ts approach, reimplemented
-// against our schema (one aiVisibilityResults row carries a citations[]
-// array rather than Elmo's one-row-per-citation table).
+// reimplemented against our schema (one aiVisibilityResults row carries a
+// citations[] array rather than a one-row-per-citation table).
 
 import { type CitationCategory, type CitationPageType, isRedditDomain, extractSubreddit } from "./citation-classification";
 import { fillLastValueCarriedForward, dailyDateRange, type RawDailyValues } from "./trend-smoothing";

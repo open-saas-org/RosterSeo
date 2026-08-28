@@ -49,7 +49,7 @@ export function ProvidersSettingsWorkspace({
   // No scheduler exists yet (runs are triggered manually from the
   // Visibility page today) - this is purely a "what would it cost if you
   // ran this often" projection, not a real recurring spend. Defaults to
-  // once a day since that's the cadence Elmo-style competitors run at.
+  // once a day, a common cadence for this category of tool.
   const [assumedRunsPerDay, setAssumedRunsPerDay] = useState(1);
 
   useEffect(() => {

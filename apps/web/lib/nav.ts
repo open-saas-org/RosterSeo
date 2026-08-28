@@ -64,8 +64,8 @@ export const navPillars: NavPillar[] = [
     label: "SEO",
     groups: [
       {
-        // Grouping matches OpenSEO's own IA (My Site / Research / Connect), with
-        // My Site leading since it's the project's own real connected data -
+        // My Site / Research / Connect grouping, with My Site leading since
+        // it's the project's own real connected data -
         // Dashboard lives here too now rather than a separate one-item "Overview"
         // group. Our own modules (Page Analyzer, Competitors, Local SEO, AI
         // Visibility, Integrations) are folded into whichever group they fit,

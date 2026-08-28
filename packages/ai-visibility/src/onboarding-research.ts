@@ -3,11 +3,10 @@ import { getProvider, type Provider } from "./providers";
 
 // Automated onboarding research: one structured, web-search-enabled LLM
 // call that researches a brand-new project's brand and suggests a starter
-// AI Visibility setup for the user to review before saving - modeled on
-// Elmo's onboarding analyzer (elmo-reference/packages/lib/src/onboarding/analyze.ts):
-// canonical brand identity, real competitors, and a prompt set that's
-// deliberately mostly unbranded (to test organic AI mention behavior) with
-// a handful of branded/comparison prompts.
+// AI Visibility setup for the user to review before saving - canonical
+// brand identity, real competitors, and a prompt set that's deliberately
+// mostly unbranded (to test organic AI mention behavior) with a handful of
+// branded/comparison prompts.
 
 export interface OnboardingCompetitorSuggestion {
   name: string;
@@ -77,9 +76,9 @@ export async function analyzeBrand(name: string, website: string): Promise<Onboa
     });
 
     const canonicalLower = object.canonicalName.toLowerCase();
-    // Drop redundant aliases (substrings of the canonical name - matching
-    // Elmo's rule, since mention-matching is substring-based and a
-    // redundant alias adds nothing).
+    // Drop redundant aliases (substrings of the canonical name), since
+    // mention-matching is substring-based and a redundant alias adds
+    // nothing.
     const aliases = [...new Set(object.aliases.map((a) => a.trim()).filter((a) => a && !canonicalLower.includes(a.toLowerCase())))];
     const additionalDomains = [...new Set(object.additionalDomains.map((d) => d.trim()).filter(Boolean))];
 

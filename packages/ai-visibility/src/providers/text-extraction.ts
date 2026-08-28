@@ -2,7 +2,7 @@ import type { Citation, TokenUsage } from "./types";
 
 // Shared citation helpers used by multiple providers' run() implementations
 // (write-time extraction only - see Phase A's plan note: we don't keep raw
-// payloads, so there's no second read-time re-extraction layer like Elmo's).
+// payloads, so there's no second read-time re-extraction layer).
 
 // Parses a URL, strips a leading "www." from the hostname for `domain`, and
 // stamps the running index. Every provider's citation extraction should
@@ -55,8 +55,7 @@ export function dedupeCitations(items: Array<{ url: unknown; title?: unknown }>)
 }
 
 // Recursive depth-first walker for BrightData's Google AI Overview payload,
-// which nests paragraph/list blocks arbitrarily (ported from Elmo's
-// collectAioSnippets - elmo-reference/packages/lib/src/text-extraction.ts).
+// which nests paragraph/list blocks arbitrarily.
 // Collects every text-bearing leaf up to a depth cap so a deeply nested
 // overview still extracts fully without risking infinite recursion on
 // malformed data.

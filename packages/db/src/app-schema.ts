@@ -47,8 +47,9 @@ export const projects = pgTable("projects", {
   aiVisibilityContext: text("ai_visibility_context"),
   // Alternate/sub-brand names an LLM's answer might use instead of the
   // project name (e.g. an abbreviation or a product line name) - fed into
-  // parseResponseForEntity's mention matching alongside `name`, same gap
-  // Elmo's `brands.aliases` closes. Null/empty = match on `name` only.
+  // parseResponseForEntity's mention matching alongside `name`, so a
+  // response naming the sub-brand instead of the project name still
+  // counts as a real mention. Null/empty = match on `name` only.
   aiVisibilityAliases: jsonb("ai_visibility_aliases").$type<string[]>(),
   // Other domains this brand owns (blog, regional ccTLD, docs subdomain) -
   // citations from these count as the brand's own instead of falling into
@@ -528,9 +529,9 @@ export const aiVisibilityResults = pgTable("ai_visibility_results", {
 // One cached, categorized LLM-generated "what to do next" report per
 // generation (Opportunities page, Phase E) - a deterministic digest of real
 // citation/mention data fed into a single structured LLM completion.
-// Append-only history (mirrors Elmo's brandOpportunities table): the latest
-// row per project is what the page renders, older rows are just kept as a
-// simple audit trail rather than deleted.
+// Append-only history: the latest row per project is what the page
+// renders, older rows are just kept as a simple audit trail rather than
+// deleted.
 export const aiVisibilityOpportunityReports = pgTable("ai_visibility_opportunity_reports", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id")

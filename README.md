@@ -1,11 +1,10 @@
 # SEO Tool
 
 Open-source SEO + AI-search-visibility platform. Combines a Screaming
-Frog–style crawler/auditor, an [open-seo](https://github.com/every-app/open-seo)-style
-keyword/SERP/competitor research suite, and an [elmo](https://github.com/elmohq/elmo)-style
-AI-answer-engine (ChatGPT/Gemini/Perplexity) brand-visibility tracker, plus
-GSC/GA4 integration so recommendations are grounded in your site's real
-performance data — not just estimated SERP data.
+Frog–style crawler/auditor, a keyword/SERP/competitor research suite, and
+an AI-answer-engine (ChatGPT/Gemini/Perplexity) brand-visibility tracker,
+plus GSC/GA4 integration so recommendations are grounded in your site's
+real performance data — not just estimated SERP data.
 
 Full product spec: [seo-saas-prd-v1.md](./seo-saas-prd-v1.md). Architecture
 and rationale: [ARCHITECTURE.md](./ARCHITECTURE.md). Both are also published
@@ -27,8 +26,8 @@ plausible-looking number when a real integration isn't configured.
 ## Two ways to run this
 
 **1. Self-hosted (`SELF_HOSTED=true`)** — single-tenant, no billing, you
-bring your own DataForSEO/LLM API keys. This is the open-source distribution
-model, same as open-seo and elmo.
+bring your own DataForSEO/LLM API keys. This is the standard open-source
+self-host distribution model.
 
 **2. Hosted SaaS (`SELF_HOSTED=false`)** — multi-tenant, Stripe billing,
 per-org credit metering. Same codebase, different env flag — this is how

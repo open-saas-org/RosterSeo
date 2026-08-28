@@ -3,12 +3,10 @@ import { WEB_QUERIES_UNAVAILABLE } from "./providers";
 // Real Query Fan-Out analysis: what actual web-search queries an AI engine
 // issued while answering a tracked prompt, sourced from
 // aiVisibilityResults.webQueries (only ever populated by scraped/web-search-
-// enabled provider runs - BrightData, OpenRouter :online). Originally
-// modeled on Elmo's pure aggregation module
-// (elmo-reference/apps/web/src/lib/fanout-analysis.ts), adapted to run over
-// plain JS rows instead of Elmo's pre-aggregated SQL, and to be called
-// client-side (filters - model/tags/day-window - never re-fetch, matching
-// this app's Visibility/Share of Voice dashboards).
+// enabled provider runs - BrightData, OpenRouter :online). A pure
+// aggregation module that runs over plain JS rows instead of pre-aggregated
+// SQL, and is called client-side (filters - model/tags/day-window - never
+// re-fetch, matching this app's Visibility/Share of Voice dashboards).
 //
 // This replaces the previous Query Fan-Out feature, which just asked an LLM
 // to guess related sub-queries (a single extra API call, no real search data

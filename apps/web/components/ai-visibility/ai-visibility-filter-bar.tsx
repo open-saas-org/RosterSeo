@@ -15,8 +15,8 @@ import {
 
 // 0 is the "all time" sentinel - every dashboard's own cutoff/windowing
 // logic must treat days === 0 as "no cutoff" rather than a literal 0-day
-// window. Matches Elmo's lookback range (1w/1m/3m/6m/1y/all) - we didn't
-// have anything past 90 days before.
+// window. A wider lookback range (1w/1m/3m/6m/1y/all) - we didn't have
+// anything past 90 days before.
 export const AI_VISIBILITY_DAY_OPTIONS = [7, 30, 90, 180, 365, 0] as const;
 
 export const DAY_OPTION_LABELS: Record<number, string> = {

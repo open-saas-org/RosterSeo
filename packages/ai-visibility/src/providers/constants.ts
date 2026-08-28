@@ -1,5 +1,4 @@
-// Load-bearing sentinel (same convention as Elmo's WEB_QUERIES_UNAVAILABLE):
-// written to a result's webQueries when a real web search demonstrably
+// Load-bearing sentinel: written to a result's webQueries when a real web search demonstrably
 // happened (citations prove it) but the provider's API didn't expose the
 // actual query strings it searched for. Distinct from an empty array, which
 // means no search happened at all. The Query Fan-Out aggregator (Phase C)
@@ -9,9 +8,8 @@ export const WEB_QUERIES_UNAVAILABLE = "unavailable";
 
 // Deliberately coarse, hand-maintained per-run cost estimates (not real
 // invoice-derived pricing) - shown in Settings as an honest "≈$X/run" hint,
-// never presented as a real bill. Same convention as Elmo's own
-// PROVIDER_COST_ESTIMATES_USD (packages/lib/src/usage/cost.ts), re-mapped
-// onto this project's 6 registered provider ids.
+// never presented as a real bill. Mapped onto this project's 6 registered
+// provider ids.
 export const PROVIDER_COST_ESTIMATES_USD: Record<string, number> = {
   openai: 0.01,
   anthropic: 0.01,

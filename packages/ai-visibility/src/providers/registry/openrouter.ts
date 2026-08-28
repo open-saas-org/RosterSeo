@@ -3,12 +3,11 @@ import { dedupeCitations, extractOpenAiStyleUsage } from "../text-extraction";
 import { STRUCTURED_RESEARCH_TIMEOUT_MS, WEB_QUERIES_UNAVAILABLE, WEB_SEARCH_SAMPLE_TIMEOUT_MS } from "../constants";
 import { fromOpenAiCompatibleResponse, toOpenAiCompatibleMessages, toOpenAiCompatibleTools, type AgenticChatOptions, type AgenticChatResult } from "../agentic";
 
-// Ported from elmo-reference/packages/lib/src/providers/registry/openrouter.ts:
-// a pass-through gateway to any OpenRouter-hosted model (Claude, GPT, Gemini,
+// A pass-through gateway to any OpenRouter-hosted model (Claude, GPT, Gemini,
 // Llama, DeepSeek, etc.) via one API key - same per-token pricing as calling
 // the underlying provider directly, but one integration instead of one per
-// model family. Raw fetch (not the Vercel AI SDK), same as Elmo, since the
-// SDK's response schema strips the `annotations` field that carries real web
+// model family. Uses raw fetch (not the Vercel AI SDK), since the SDK's
+// response schema strips the `annotations` field that carries real web
 // citations.
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";

@@ -1,8 +1,8 @@
 import type { ZodType } from "zod";
 import type { AgenticChatOptions, AgenticChatResult } from "./agentic";
 
-// Provider abstraction modeled on Elmo's (elmo-reference/packages/lib/src/providers/types.ts):
-// decouples "how we reach an AI surface" from "what we do with the answer" - every
+// Provider abstraction that decouples "how we reach an AI surface" from
+// "what we do with the answer" - every
 // downstream feature (mention detection, citation extraction, fan-out analysis) consumes
 // only ScrapeResult, never a provider-specific raw payload shape directly.
 

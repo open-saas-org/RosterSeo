@@ -13,21 +13,20 @@ closed, Vercel+Supabase-hosted SaaS. Two decisions changed that:
    per-org credit metering, Postgres row-level tenant isolation).
 2. **Self-hostable stack, not vendor-locked.** Vercel and Supabase are
    fine if you're the only operator, but they don't work for "anyone can
-   one-click deploy this on Railway." [open-seo](https://github.com/every-app/open-seo)
-   and [elmo](https://github.com/elmohq/elmo) both converged on plain
-   Postgres + Drizzle + Docker for exactly this reason — followed here.
+   one-click deploy this on Railway." Plain Postgres + Drizzle + Docker is
+   the well-established pattern for that goal — followed here.
 
 ## Stack
 
 | Layer | Choice | Why |
 |---|---|---|
-| Monorepo | pnpm workspaces + Turborepo | Matches both reference repos; page-analyzer needs in-process access to crawler, SERP, AI-visibility, and GSC/GA4 modules simultaneously — not worth splitting into separately-versioned repos |
-| App framework | Next.js (App Router) | Single deploy artifact for dashboard UI + API routes; supports Docker standalone output for Railway. Both open-seo and elmo use TanStack Start instead — considered switching, decided against it: their reason (Cloudflare Workers portability via Vinxi) doesn't apply since we're Railway/Docker-only, and Next.js has deeper ecosystem maturity + lower implementation risk for an AI-assisted solo build |
-| API layer | Next.js Route Handlers, no separate Express/NestJS | Confirmed both reference projects also skip a standalone API framework (they use TanStack Start server functions instead) — validates not running a second HTTP service |
+| Monorepo | pnpm workspaces + Turborepo | page-analyzer needs in-process access to crawler, SERP, AI-visibility, and GSC/GA4 modules simultaneously — not worth splitting into separately-versioned repos |
+| App framework | Next.js (App Router) | Single deploy artifact for dashboard UI + API routes; supports Docker standalone output for Railway. TanStack Start was considered (Cloudflare Workers portability via Vinxi) and decided against — that portability doesn't matter since we're Railway/Docker-only, and Next.js has deeper ecosystem maturity + lower implementation risk for an AI-assisted solo build |
+| API layer | Next.js Route Handlers, no separate Express/NestJS | No need to run a second HTTP service alongside the dashboard |
 | Database | Postgres + Drizzle ORM | Portable — works identically on Railway's managed Postgres, Docker Compose, or any Postgres host. No vendor-specific schema magic |
 | Auth | better-auth | Self-hostable (unlike Supabase Auth or Clerk), Drizzle adapter, org/session model we control |
 | Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | PRD Section 6 requirement. Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
-| Background jobs | pg-boss, run in a separate `apps/worker` process | Confirmed against elmo's actual source (`apps/worker`, `pg-boss@^12`) — Postgres-native, no extra infra, matches our self-host-first goal |
+| Background jobs | pg-boss, run in a separate `apps/worker` process | Postgres-native, no extra infra, matches our self-host-first goal |
 | Billing | Stripe (hosted mode only) | Off entirely when `SELF_HOSTED=true` |
 | SEO data | DataForSEO API | Per PRD — single vendor for keywords/SERP/backlinks/on-page/local |
 | AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity) | Per PRD Section 5.7 and 5.1 |
@@ -53,9 +52,9 @@ Two processes, one Docker image family:
   pages, Route Handler APIs, auth. Never does expensive work inline —
   every crawl / SERP pull / AI-visibility run gets enqueued and returns
   immediately.
-- `apps/worker` — plain Node process (no HTTP framework at all, mirroring
-  elmo's `apps/worker`). Consumes `pg-boss` jobs and calls into the
-  `packages/*` domain packages to do the actual work.
+- `apps/worker` — plain Node process (no HTTP framework at all). Consumes
+  `pg-boss` jobs and calls into the `packages/*` domain packages to do the
+  actual work.
 
 Both apps import shared business logic from `packages/*` (db, dataforseo,
 ai-visibility, google, shopify) rather than each other, so the MCP server
