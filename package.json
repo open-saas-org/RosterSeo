@@ -11,7 +11,7 @@
     "url": "https://github.com/open-saas-org/seo/issues"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "packageManager": "pnpm@11.21.0",
   "scripts": {

@@ -22,7 +22,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Requires Node 20+ and pnpm (`packageManager` in `package.json` pins the
+Requires Node 22.13+ (pnpm 11 itself needs it) and pnpm (`packageManager` in `package.json` pins the
 exact version corepack will use). See the main [README](./README.md) for
 the full quick-start, and [packages/db/README.md](./packages/db/README.md)
 before your first `pnpm db:migrate` — the two-role RLS setup there is easy

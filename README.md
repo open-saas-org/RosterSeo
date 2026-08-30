@@ -34,7 +34,7 @@ you'd run your own paid hosted instance.
 
 ## Quick start (local dev)
 
-Requires Node 20+, pnpm, and a Postgres instance (local install, or a free
+Requires Node 22.13+ (pnpm 11 itself needs it), pnpm, and a Postgres instance (local install, or a free
 one from Railway/Neon/Supabase — Docker is not required for this path).
 
 ```bash

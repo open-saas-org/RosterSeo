@@ -18,7 +18,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # pnpm 11 (this repo's packageManager) itself requires Node
+          # >=22.13 to run at all (uses node:sqlite internally) - this isn't
+          # about what the app needs, pnpm literally crashes with
+          # ERR_UNKNOWN_BUILTIN_MODULE on Node 20, confirmed live in this
+          # workflow before this was fixed.
+          node-version: 22.13
           cache: pnpm
 
       - name: Install dependencies
