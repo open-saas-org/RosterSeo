@@ -42,7 +42,7 @@ export function BrandLookupResultCard({
       <CardContent className="flex flex-col gap-2 text-sm">
         {result === null ? (
           <p className="text-muted-foreground">
-            Set this provider's API key to sample it — see the LLM Providers card on{" "}
+            Set this provider&apos;s API key to sample it — see the LLM Providers card on{" "}
             <a href="/integrations" className="underline">
               Integrations
             </a>

@@ -1,6 +1,6 @@
 ---
 title: GSC Insights
-description: The read-only Search Console performance view for a project — clicks, impressions, CTR, position, and a daily trend
+description: The read-only Search Console performance view for a project — clicks, impressions, CTR, position, query/page breakdowns, and a daily trend
 ---
 
 Route: `/gsc-insights`.
@@ -9,7 +9,9 @@ Route: `/gsc-insights`.
 
 The performance **view** for a project's Google Search Console connection:
 headline metric cards (clicks, impressions, average CTR, average position),
-a clicks/impressions trend chart, and a sortable daily-performance table.
+a clicks/impressions trend chart, a date-range selector (last 7/28/90 days),
+and a tabbed breakdown table — Daily performance, Queries, Pages, and
+Striking distance.
 
 This is **not** the connect flow — connecting/disconnecting GSC (and GA4)
 stays entirely on [Integrations](/docs/integrations). GSC Insights only
@@ -55,29 +57,48 @@ call (e.g. wrong/deleted property, or a genuinely revoked refresh token)
 surfaces as the same "needs reconnecting" empty state via a `fetchFailed`
 flag, independent of the row's `needs_reconnect` value.
 
-## What's real vs. mock today
+## What's real today
 
 - **`getSearchConsolePerformance(accessToken, siteUrl, startDate, endDate, rowLimit?)`**
-  (`@seo-tool/google`, `packages/google/src/data.ts`) is called for real
-  now, for the trailing 30 days, whenever a project is connected with a
-  `propertyId` set. The `accessToken` passed in comes from
-  `getValidAccessToken()` (`apps/web/lib/google-token.ts`), which
-  transparently refreshes a stale one via `refresh_token` first — see
-  [Integrations](/docs/integrations)'s token-refresh section. The call is
-  still wrapped in `try`/`catch`: a genuine failure (revoked access, wrong
-  property) shows the "needs reconnecting" empty state rather than
+  and **`getSearchConsoleQueryPageBreakdown(accessToken, siteUrl, startDate, endDate, rowLimit?)`**
+  (`@seo-tool/google`, `packages/google/src/data.ts`) are both called for
+  real, for whichever date range is selected. `getSearchConsolePerformance`
+  requests only the `date` dimension (the daily trend + metric cards);
+  `getSearchConsoleQueryPageBreakdown` requests the `["query", "page"]`
+  dimension pair in one real call, and the Queries, Pages, and Striking
+  Distance tabs are all derived client-side from that single fetch
+  (`gsc-insights-breakdown.ts`'s `aggregateByQuery`, `aggregateByPage`, and
+  `strikingDistanceRows`) — the same two-call shape GSC's own UI uses,
+  rather than firing a separate request per tab. The `accessToken` passed
+  in comes from `getValidAccessToken()` (`apps/web/lib/google-token.ts`),
+  which transparently refreshes a stale one via `refresh_token` first —
+  see [Integrations](/docs/integrations)'s token-refresh section. Both
+  calls are wrapped in `try`/`catch`: a genuine failure (revoked access,
+  wrong property) shows the "needs reconnecting" empty state rather than
   crashing the page or silently showing stale data.
-- **Only the `date` dimension is real** — the real function's
-  request only dimensions by `date` (`dimensions: ["date"]` in
-  `data.ts`), so `SearchConsoleRow.query` and `.page` are never populated
-  by the current contract. That's why this page shows a **daily
-  performance table** rather than a top-queries/top-pages breakdown:
-  mocking query- or page-level rows here would imply a capability the real
-  integration doesn't actually have yet. A top-queries/top-pages view is a
-  reasonable follow-up once the real call is dimensioned that way.
+- **The date range is user-adjustable** — a `FilterSelect` (7/28/90 days,
+  default 28) drives `GET /api/projects/:projectId/gsc-insights?days=N`,
+  which re-runs both real GSC calls for the new window and returns fresh
+  `dailyRows`/`queryPageRows`. `fetchGscExactWindow()`
+  (`packages/google/src/gsc-window.ts`) fetches a slightly wider window
+  than requested and trims to the last N real rows, since GSC's Search
+  Analytics API doesn't guarantee row order and can return fewer than N
+  days near the reporting-lag boundary.
+- **Striking distance** (`strikingDistanceRows`) is real (query, page)
+  pairs currently averaging position 5–20 — just outside the top results,
+  sorted by impressions (highest opportunity first). Query/page position is
+  aggregated as an impressions-weighted average, matching how GSC itself
+  rolls a query's position up across multiple ranking pages.
 - **Metric card deltas** ("+N% vs prior 15d", etc.) are computed by
-  splitting the mock window in half and comparing sums/averages between
-  the two halves — not a real prior-period fetch.
+  `summarizeSearchConsoleRows()` splitting the currently-loaded window of
+  real rows in half and comparing sums/averages between the two halves —
+  not a separate prior-period fetch.
+- Search Console's Search Analytics API withholds the most recent 1–3 days
+  as not-yet-finalized (unlike the Search Console *website*, which shows a
+  preliminary version of very recent days through a different pipeline).
+  The page computes how many days behind the real data actually is and
+  states it directly under the chart ("Google hasn't finalized the last N
+  days yet") instead of just looking stale for no stated reason.
 
 ## Chart component
 
@@ -85,27 +106,37 @@ The trend chart reuses the dashboard Overview page's own chart component,
 `apps/web/components/charts/traffic-chart.tsx` (recharts `AreaChart` via
 the shared `ChartContainer`/`ChartTooltip` primitives in
 `components/ui/chart.tsx`), rather than introducing a second charting
-approach. `TrafficChart` now accepts an optional `data` prop (defaulting
-to the dashboard's own `trafficTrend` mock so the Overview page's usage is
-unchanged) so this page can plot its own `{ date, clicks, impressions }[]`
-through the identical component.
+approach. `TrafficChart` takes a required `data` prop — every caller,
+including the Dashboard, passes its own real `{ date, clicks, impressions }[]` —
+so this page plots its own real data through the identical component.
 
 ## Files
 
 - `apps/web/app/(dashboard)/gsc-insights/page.tsx` — server component;
   resolves the current project, real connection status, and (when
-  possible) the real performance rows, then renders the empty state, the
-  property picker, or the workspace.
+  possible) the initial real performance rows for the default 28-day
+  window, then renders the empty state, the property picker, or the
+  workspace.
+- `apps/web/app/api/projects/[projectId]/gsc-insights/route.ts` — `GET`
+  route backing the date-range selector; re-runs both real GSC calls for
+  the requested `days` (7, 28, or 90) and returns fresh daily + query/page
+  rows.
 - `apps/web/components/integrations/property-picker.tsx` — client
   component, shared with the Dashboard's `GoogleConnectCard`; lists real
   properties via `GET .../integrations/properties`, then `PATCH`es
   `/api/projects/:projectId/integrations` on save.
 - `apps/web/components/gsc-insights/gsc-insights-workspace.tsx` — client
-  component; owns the `DataTable` column definitions (cell renderers are
-  functions and can't cross the Server → Client Component prop boundary,
-  so column construction has to happen client-side — same pattern as
+  component; owns the `DataTable` column definitions for all four tabs
+  (cell renderers are functions and can't cross the Server → Client
+  Component prop boundary, so column construction has to happen
+  client-side — same pattern as
   `apps/web/components/site-audit/site-audit-columns.tsx` +
-  `site-audit-view.tsx`) plus the metric cards and chart.
+  `site-audit-view.tsx`), the date-range selector, the metric cards, and
+  the chart.
+- `apps/web/components/gsc-insights/gsc-insights-breakdown.ts` — real
+  query/page aggregation (`aggregateByQuery`, `aggregateByPage`) and the
+  striking-distance filter, all derived from one `["query","page"]`-
+  dimensioned GSC fetch.
 - `apps/web/components/gsc-insights/gsc-insights-metrics.ts` — just
   `summarizeSearchConsoleRows()`, the metric-delta aggregation described
   above (renamed from `gsc-insights-mock-data.ts` once nothing about it was
@@ -117,9 +148,3 @@ This page's card is also embedded directly on the Dashboard
 (`apps/web/components/dashboard/google-connect-card.tsx`) so connecting
 and picking a property doesn't require navigating here first — see
 [Integrations](/docs/integrations)'s "Property selection" section.
-
-## Notable follow-up work (not built in this pass)
-
-- If/when a query- or page-dimensioned request is added to
-  `getSearchConsolePerformance()`, add a top-queries/top-pages `DataTable`
-  here alongside the daily table.

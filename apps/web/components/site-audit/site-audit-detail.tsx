@@ -236,7 +236,7 @@ export function SiteAuditDetail({
         </div>
 
         <Card className="max-w-3xl mx-auto w-full mt-12 bg-card/50 shadow-none border-border/50">
-          <CardContent className="p-6 flex flex-col gap-8">
+          <CardContent className="p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Loader2 className="size-5 text-primary animate-spin" />

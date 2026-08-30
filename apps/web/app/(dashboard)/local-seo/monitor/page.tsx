@@ -58,7 +58,7 @@ export default async function MonitorPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Monitor" description={`Real Google local-pack rank across a grid of points around ${project.name}, tracked weekly.`} />
       <MonitorWorkspace
         projectId={project.id}

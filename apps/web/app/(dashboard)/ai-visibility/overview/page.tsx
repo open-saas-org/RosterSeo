@@ -144,7 +144,7 @@ export default async function AiVisibilityOverviewPage() {
   const currentSov = shareOfVoiceTrend.at(-1)?.shareOfVoicePercent ?? 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Overview" description="Real visibility and share-of-voice trends across your last 30 days of tracking." />
 
       <section className="flex flex-col gap-4">

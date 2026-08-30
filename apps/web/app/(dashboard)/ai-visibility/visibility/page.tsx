@@ -1,4 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
+import Link from "next/link";
 import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@seo-tool/db";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -108,7 +109,7 @@ export default async function AiVisibilityPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Visibility"
         actions={
@@ -149,9 +150,9 @@ export default async function AiVisibilityPage() {
           Showing your brand plus the first {MAX_COMPETITOR_ENTITIES} of {totalCompetitors} tracked competitors (by
           when they were added) - only {MAX_COMPETITOR_ENTITIES} competitor slots fit the chart palette. Manage the
           list on{" "}
-          <a href="/competitors" className="underline hover:text-foreground">
+          <Link href="/competitors" className="underline hover:text-foreground">
             Competitors
-          </a>
+          </Link>
           .
         </p>
       ) : null}

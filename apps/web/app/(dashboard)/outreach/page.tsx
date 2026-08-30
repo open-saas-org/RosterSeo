@@ -13,7 +13,7 @@ export default async function OutreachPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Backlink Outreach"
         description="AI-drafted outreach for real backlink targets - edit before sending, from whichever of your own connected email accounts you pick."

@@ -6,7 +6,7 @@ export default async function AiVisibilityBrandSettingsPage() {
   const { project } = await getCurrentProject();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Brand" description="Project identity and context used across AI Visibility." />
       <BrandSettingsWorkspace
         projectId={project.id}

@@ -56,7 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       />
       <SidebarInset>
         <SiteHeader totalSpendUsd={totalAllTimeUsd} />
-        <div className="flex min-w-0 flex-1 flex-col gap-6 p-6">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-col gap-4 p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

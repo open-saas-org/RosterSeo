@@ -10,18 +10,21 @@ plus GSC/GA4 integration so recommendations are grounded in real site
 performance data, not just estimated SERP data.
 
 <Cards>
-  <Card title="Product Spec (PRD)" href="/docs/product-spec" description="Vision, ICP, features, roadmap, cost model" />
   <Card title="Architecture" href="/docs/architecture" description="Stack choices and why, monorepo layout, runtime process model" />
   <Card title="Self-Hosting" href="/docs/self-hosting" description="Run it locally, via Docker, or deploy to Railway" />
 </Cards>
 
 ## Status
 
-Early scaffold. Auth, dashboard shell, and the shared job-queue/tenant-isolation
-foundation exist; most product features (page analyzer, keyword research,
-site audit, AI visibility, GSC/GA4 sync) are still being built. See the
-[roadmap](/docs/product-spec#9-phased-roadmap-reality-check-on-the-34-month-timeline)
-for sequencing.
+A real, working Next.js dashboard across three pillars - SEO (Page
+Analyzer, Keyword Research, Site Audit, Rank Tracking, Competitors, AI
+Visibility, Local SEO), Publish (multi-platform blog publishing), and
+Social - all backed by auth-protected API routes and Postgres persistence
+with row-level tenant isolation. Every integration is a real API call,
+never fabricated data - each one simply stays inert (and renders an honest
+"not connected" state) until you set its API keys/credentials. See the
+per-feature pages in the sidebar for what each module does and which
+integration it depends on.
 
 ## License
 

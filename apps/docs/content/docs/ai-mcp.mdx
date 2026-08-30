@@ -1,59 +1,142 @@
 ---
 title: AI & MCP
-description: Connecting external AI tools to project data over the Model Context Protocol (PRD Section 5.8)
+description: Connecting external AI tools to project data over the Model Context Protocol
 ---
 
 Route: `/ai-mcp`.
 
 ## What it does
 
-A documentation-style page explaining how to connect an MCP client (Claude
-Desktop, or any other Model Context Protocol client) to `apps/mcp-server`,
-and what tools that server currently exposes. There's no interactivity or
-DB access from the page itself — it's static content describing a separate
-process.
+The AI & MCP page manages access to `apps/mcp-server`, a standalone MCP
+server (`@seo-tool/mcp-server`) that exposes real project data and live SEO
+lookups to any Model Context Protocol client (Claude Desktop, or others).
+The page does two real things: `McpKeyManager` generates and revokes actual
+`SEO_TOOL_API_KEY` values (backed by the `mcp_api_keys` table), and the rest
+of the page documents how to point a client at the server and lists every
+tool currently registered on it, grouped by module, transcribed from the
+server's own `TOOLS` array.
 
 ## Connecting
 
-`apps/mcp-server` is a standalone MCP server (`@seo-tool/mcp-server`) that
-speaks over stdio transport, the standard way MCP clients launch a local
-server subprocess. Run it with:
+`apps/mcp-server` speaks over stdio transport, the standard way MCP clients
+launch a local server subprocess. Run it with:
 
 ```bash
 pnpm --filter @seo-tool/mcp-server dev
 ```
 
 That's `tsx watch` over `apps/mcp-server/src/index.ts`, reading the same
-`DATABASE_URL` as the rest of the app. There's no separate API key or auth
-flow for the MCP server yet — it queries `@seo-tool/db` directly rather than
-going through a session.
+`DATABASE_URL` as the rest of the app, plus a real `SEO_TOOL_API_KEY`
+generated from this page (`McpKeyManager` → `POST /api/mcp-keys`). The key
+is a high-entropy random token (`generateMcpApiKey()` in
+`apps/web/lib/mcp-keys.ts`: a `seotool_` prefix + 24 random bytes,
+base64url-encoded) shown in full exactly once at creation — only its
+SHA-256 hash and a short display prefix (e.g. `seotool_ab12cd...`, for UI
+identification) are ever persisted, in `mcp_api_keys`.
+
+For Claude Desktop, add the server to `claude_desktop_config.json` with the
+generated key in its `env`:
+
+```json
+{
+  "mcpServers": {
+    "seo-tool": {
+      "command": "pnpm",
+      "args": ["--filter", "@seo-tool/mcp-server", "dev"],
+      "env": {
+        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/seo_tool",
+        "SEO_TOOL_API_KEY": "paste your generated key here"
+      }
+    }
+  }
+}
+```
+
+## Auth
+
+Every tool call is scoped to exactly one real user, resolved once from
+`SEO_TOOL_API_KEY` (`resolveUserId()` in `apps/mcp-server/src/index.ts`):
+the server hashes the incoming key, looks it up in `mcp_api_keys` by
+`keyHash`, and refuses to proceed if there's no match or the row has a
+`revokedAt` set. The resolved user ID is cached for 30 seconds
+(`AUTH_CACHE_TTL_MS`) so a long-lived stdio session doesn't re-hit Postgres
+on every call, while keeping revocation effective within seconds rather
+than "never until the process restarts." The server also refuses to start
+at all — `process.exit(1)` — if `SEO_TOOL_API_KEY` isn't set in its
+environment.
+
+Every DB-backed tool runs through `asCaller()`, which wraps the real
+handler in `withUserContext(userId, ...)` — the same RLS-backed helper
+every Route Handler in `apps/web` uses — so a key can only ever see or act
+on projects belonging to organizations that user is actually a member of.
+`mcp_api_keys` itself carries no RLS policy (the server has to resolve a
+key's owner *before* any user context exists to scope by), so ownership
+there is enforced explicitly in application code instead — in the
+`GET`/`POST /api/mcp-keys` and `DELETE /api/mcp-keys/:keyId` routes that
+back `McpKeyManager`. Revoking sets `revokedAt` (a soft delete, so
+`lastUsedAt`/`createdAt` stay visible as "revoked" in the UI rather than
+the row just disappearing) — the server's own lookup filters on
+`revokedAt IS NULL`, so a revoked key stops working within the 30-second
+cache window regardless of whether the stdio process restarts.
 
 ## What's real vs mock today
 
-- **`list_projects`**: real. The only tool currently registered in the
-  server's `ListToolsRequestSchema` handler. Takes no input
-  (`{ type: "object", properties: {}, additionalProperties: false }`) and
-  returns `{ content: [{ type: "text", text: JSON.stringify(rows) }] }`
-  where `rows` is every row in the `projects` table, each with `id`, `name`,
-  `domain`, `organizationId`. Note this reads the bare `db` export, not
-  `withUserContext` — there's no per-caller scoping yet, so it currently
-  returns every project across every organization, not just the caller's.
-- **Everything else**: not built. `apps/mcp-server/src/index.ts` has a
-  comment naming the rest of Section 5.8's planned tool set —
-  `get_rankings`, `get_keywords`, `get_site_audit`, `get_brand_visibility`,
-  `get_competitors` — as shipping alongside the dashboard features they
-  read from. None of them are registered in the tools list or handled in
-  `CallToolRequestSchema` yet; calling any tool name other than
-  `list_projects` throws `Unknown tool: <name>`.
+All 26 tools currently registered in the server's `TOOLS` array are real —
+each one resolves through `asCaller()`/`withUserContext()` (or, for the
+five live-lookup tools below, `resolveUserId()` alone) and reads or writes
+actual data. There is no mock or stub response anywhere in
+`CallToolRequestSchema`; calling any tool name not in the list throws
+`Unknown tool: <name>`.
 
-## Notable follow-up work (not built in this pass)
+| Module | Tools |
+|---|---|
+| Projects | `list_projects`, `get_project_details` |
+| Rank Tracking | `get_keywords`, `add_tracked_keyword`, `get_rankings` |
+| Site Audit | `get_site_audits`, `get_site_audit_detail` |
+| Competitors | `get_competitors`, `add_competitor` |
+| AI Visibility | `get_brand_visibility`, `get_ai_visibility_opportunities`, `track_ai_visibility_prompt` |
+| Page Analyzer | `get_page_analyzer_reports`, `get_page_analyzer_report` |
+| Keyword Research | `get_keyword_research_history`, `research_keywords`, `get_keyword_metrics`, `get_serp_results` |
+| Backlinks & Domain Research | `get_backlinks_overview`, `get_domain_overview` |
+| Local SEO | `get_local_business_profile`, `get_local_grid_scans` |
+| Bing & Indexing | `get_bing_performance`, `submit_urls_to_indexnow` |
 
-- Scope `list_projects` (and every future tool) to the caller's
-  organization instead of returning all projects — likely via an API key ->
-  organization lookup, since MCP tool calls don't carry a browser session.
-- Register `get_rankings`, `get_keywords`, `get_site_audit`,
-  `get_brand_visibility`, `get_competitors` as each underlying feature's
-  data model stabilizes.
-- Some form of auth for the MCP server itself (API key issuance/rotation) —
-  right now anyone who can spawn the stdio process has full DB read access
-  via `list_projects`.
+Most of these are plain project-scoped reads/writes (tracked keywords,
+rankings, audits, competitors, AI-visibility prompts/results, page-analyzer
+reports, local grid scans) straight out of `@seo-tool/db`. Five are live,
+non-project-scoped external calls — still gated behind a valid key via
+`resolveUserId()`, but not run inside `withUserContext()` since they don't
+touch a specific project's rows: `research_keywords`, `get_keyword_metrics`,
+and `get_serp_results` call the real DataForSEO helpers from
+`@seo-tool/dataforseo` (`getKeywordIdeas`/`getRelatedKeywords`/
+`getKeywordSuggestions`, `getRealKeywordMetrics`, `getSerpResults`);
+`get_backlinks_overview` and `get_domain_overview` do the same
+(`getBacklinksOverview`, `getDomainOverview`). All five real DataForSEO
+calls made through this server are logged into `provider_spend_log` via the
+same `setDataForSeoSpendLogger` wiring `apps/web/lib/spend-logging.ts`
+uses, so MCP-driven usage shows up in cost tracking alongside every other
+real caller. `get_bing_performance` calls the real
+`getBingRankAndTrafficStats()` from `@seo-tool/bing` for a project's
+connected Bing site. `submit_urls_to_indexnow` calls the real
+`submitUrlsToIndexNow()` from `@seo-tool/indexnow`, and requires `APP_URL`
+to be set — unlike the browser-facing app, this server has no inbound HTTP
+request to derive an origin from, so it fails loudly rather than building
+a `keyLocation` IndexNow could never actually verify.
+
+## Notable follow-up work (not built)
+
+Per `apps/mcp-server/README.md`'s own "known gaps" list:
+
+- **No GSC/GA4/Merchant Center tools** — those need per-project OAuth token
+  refresh (`apps/web/lib/google-token.ts`), which lives in `apps/web` and
+  isn't cleanly reachable from this standalone server without duplicating
+  that logic. A future pass could add it as a small package-level helper.
+- **No "trigger a background job" tools** (run a full site audit, a rank
+  check, a local grid scan) — those go through `apps/worker`'s job queue,
+  not a direct DB write, so wiring them in here would mean either
+  duplicating orchestration logic or adding an HTTP call path into
+  `apps/web`. Read-only and simple-insert tools only for now.
+- **No rate limiting or per-key scope restriction** — a key can call every
+  tool its account has data for. Fine for the self-hosted, single-operator
+  model this is built around; would need more work before offering this in
+  a hosted multi-tenant deploy to untrusted third parties.

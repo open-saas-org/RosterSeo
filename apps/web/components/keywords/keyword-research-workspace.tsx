@@ -128,7 +128,7 @@ export function KeywordResearchWorkspace({
       : (results?.find((r) => r.keyword === selectedKeyword)?.trend ?? []);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1">
           <Label htmlFor="seed-keyword" className="mb-1.5 block text-xs font-medium text-muted-foreground">
@@ -205,7 +205,7 @@ export function KeywordResearchWorkspace({
           ) : null}
         </div>
       ) : (
-        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex min-w-0 flex-col gap-4">
             {seedMetrics ? (
               <Card>

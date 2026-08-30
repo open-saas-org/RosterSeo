@@ -113,7 +113,7 @@ const EXAMPLE_PROMPTS = [
 
 export default function AiMcpPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="AI & MCP"
         description="Connect external AI tools (Claude Desktop, other MCP clients) to your SEO Tool data over the Model Context Protocol."

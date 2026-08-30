@@ -1,0 +1,43 @@
+name: Bug report
+description: Something in the app or self-hosted setup isn't working
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: input
+    id: mode
+    attributes:
+      label: Self-hosted or hosted, and how deployed?
+      placeholder: "Self-hosted, Docker Compose / self-hosted, Railway / self-hosted, plain Dockerfile"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Commit / version
+      description: Output of `git rev-parse HEAD`, or the Railway/Docker image tag.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Server logs, browser console errors, or a stack trace. Redact any real API keys/tokens/URLs first.
+      render: shell
+    validations:
+      required: false

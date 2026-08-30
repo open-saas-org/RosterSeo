@@ -195,7 +195,7 @@ export function PromptDetail({
   const promptTagsList = [{ id: prompt.id, tags: prompt.tags }];
 
   return (
-    <div className="flex flex-col gap-6 pb-20">
+    <div className="flex flex-col gap-4 pb-20">
       <div className="flex flex-col gap-3 border-b pb-6">
         <Link href="/ai-visibility/visibility" className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-3.5" />

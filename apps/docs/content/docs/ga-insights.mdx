@@ -1,6 +1,6 @@
 ---
 title: GA Insights
-description: Real Google Analytics 4 organic-search performance — sessions, engagement, conversions, and top landing pages
+description: Real Google Analytics 4 organic-search performance — sessions, engagement, conversions, top landing pages, and device/country breakdowns
 ---
 
 Route: `/ga-insights`.
@@ -11,14 +11,19 @@ The performance **view** for a project's GA4 connection, scoped specifically
 to **Organic Search** traffic — not a general-purpose GA4 dashboard. This is
 an SEO tool, so what matters is how search-driven traffic is actually
 performing: headline metric cards (organic sessions, engagement rate,
-average engagement time, conversions), a sessions trend chart, and a
-sortable table of the top organic landing pages.
+average engagement time, conversions), a sessions trend chart, a date-range
+selector (last 7/28/90 days), and a tabbed breakdown table — Landing pages,
+Devices, and Countries.
 
-The landing-pages table is the actionable part: sessions, engagement rate,
+The landing-pages tab is the actionable one: sessions, engagement rate,
 average duration, and conversions per page, ranked by sessions. A
 high-traffic page with poor engagement is worth investigating (content
 mismatch with what search sent people looking for); a page converting well
-from organic is worth studying and replicating elsewhere.
+from organic is worth studying and replicating elsewhere. The Devices and
+Countries tabs surface the same metrics split by device category
+(desktop/mobile/tablet) and country — low mobile engagement on a
+mobile-heavy site, or a geography search is bringing in traffic from
+without converting, are both signals a single blended number would hide.
 
 This is **not** the connect flow — connecting/disconnecting Google (GSC and
 GA4) stays entirely on [Integrations](/docs/integrations). GA Insights only
@@ -54,50 +59,67 @@ listing uses the same route.
 
 ## What's real today
 
-Unlike most of this app's data-heavy modules, there is **no mock path**
-here at all — GA4 data-fetching didn't exist before this page, so it was
-built real from the start:
+There is no mock path here at all — GA4 data-fetching didn't exist before
+this page, so it was built real from the start:
 
-- **`getGA4OrganicTrend(accessToken, propertyId, startDate, endDate)`** and
-  **`getGA4TopLandingPages(accessToken, propertyId, startDate, endDate, limit?)`**
-  (`@seo-tool/google`, `packages/google/src/ga4-performance.ts`) — real
+- **`getGA4OrganicTrend`**, **`getGA4TopLandingPages`**,
+  **`getGA4DeviceBreakdown`**, and **`getGA4CountryBreakdown`**
+  (`@seo-tool/google`, `packages/google/src/ga4-performance.ts`) — four real
   Analytics Data API `runReport` calls (`analyticsdata.properties.runReport`),
-  both filtered to `sessionDefaultChannelGroup = "Organic Search"` via a
+  fired in parallel and all filtered to
+  `sessionDefaultChannelGroup = "Organic Search"` via a shared
   `dimensionFilter` — a standard GA4 dimension, no custom event setup
-  required. The `accessToken` comes from `getValidAccessToken()`
-  (`apps/web/lib/google-token.ts`), which transparently refreshes a stale
-  one via `refresh_token` first — see [Integrations](/docs/integrations)'s
-  token-refresh section.
+  required. `getGA4DeviceBreakdown` dimensions by `deviceCategory`
+  (desktop/mobile/tablet); `getGA4CountryBreakdown` dimensions by `country`,
+  capped at the top 25 by sessions. The `accessToken` for all four comes
+  from `getValidAccessToken()` (`apps/web/lib/google-token.ts`), which
+  transparently refreshes a stale one via `refresh_token` first — see
+  [Integrations](/docs/integrations)'s token-refresh section.
+- **The date range is user-adjustable** — a `FilterSelect` (7/28/90 days,
+  default 28) drives `GET /api/projects/:projectId/ga-insights?days=N`,
+  which re-runs all four real Analytics Data API calls for the new window
+  via `getDateRange()` (`apps/web/lib/date-range.ts`) and returns fresh
+  trend/landing-page/device/country rows.
 - No extra OAuth scope was needed: `analytics.readonly` (already requested
   for GA4 connect) covers the Data API the same way it covers the Admin API
   `listGA4Properties()` uses for the property picker.
 - **Metric-card deltas** ("+N% vs prior 15d", etc.) are computed by
   `summarizeGaOrganicTrend()` (`apps/web/components/ga-insights/ga-insights-metrics.ts`),
   the same half-window period-comparison technique GSC Insights'
-  `summarizeSearchConsoleRows()` uses — not shared between the two since
-  GSC and GA4 rows have different fields.
-- The last 30 days is a fixed window for now, same convention as GSC
-  Insights.
+  `summarizeSearchConsoleRows()` uses on the currently-loaded window of real
+  rows — not shared between the two since GSC and GA4 rows have different
+  fields.
+- Like GSC Insights, GA4's Data API withholds the most recent 1–3 days as
+  not-yet-finalized. The page computes how many days behind the real data
+  actually is and states it directly under the chart ("Google Analytics
+  hasn't finalized the last N days yet") rather than just looking stale.
 
 ## Files
 
 - `apps/web/app/(dashboard)/ga-insights/page.tsx` — server component;
   resolves the current project, real connection status, and (when
-  possible) both real report calls, then renders the empty state, the
-  property picker, or the workspace.
+  possible) the initial four real report calls for the default 28-day
+  window, then renders the empty state, the property picker, or the
+  workspace.
+- `apps/web/app/api/projects/[projectId]/ga-insights/route.ts` — `GET`
+  route backing the date-range selector; re-runs all four real Analytics
+  Data API calls for the requested `days` (7, 28, or 90) and returns fresh
+  trend/landing-page/device/country rows.
 - `apps/web/components/ga-insights/ga-insights-workspace.tsx` — client
-  component; metric cards, trend chart, and the landing-pages `DataTable`
-  (column definitions have to live client-side — cell renderers can't
-  cross the Server → Client Component prop boundary).
+  component; metric cards, trend chart, date-range selector, and the
+  `DataTable` column definitions for all three tabs (Landing pages,
+  Devices, Countries) — cell renderers can't cross the Server → Client
+  Component prop boundary, so column construction has to live client-side.
 - `apps/web/components/ga-insights/ga-insights-metrics.ts` — the
   period-over-period aggregation described above.
 - `apps/web/components/charts/organic-sessions-chart.tsx` — recharts
   `AreaChart`, same setup as `traffic-chart.tsx` but plotting GA4's
   `sessions` field instead of GSC's `clicks`/`impressions`.
+- `apps/web/lib/date-range.ts` — `getDateRange(days)`, the shared
+  `{ start, end }` ISO-date helper both the page and the API route use.
 
 ## Notable follow-up work (not built in this pass)
 
 - A non-organic channel comparison (e.g. organic's share of total traffic)
   would need a third, unfiltered `runReport` call — deliberately out of
-  scope for this pass, which is organic-only by design.
-- The date range (last 30 days) isn't user-adjustable yet.
+  scope, since this page is organic-only by design.

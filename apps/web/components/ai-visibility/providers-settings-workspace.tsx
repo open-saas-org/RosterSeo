@@ -148,7 +148,7 @@ export function ProvidersSettingsWorkspace({
       <Card>
         <CardHeader>
           <CardTitle>Direct APIs</CardTitle>
-          <CardDescription>Call each provider's model directly - cheapest per run, but not the real consumer product UI.</CardDescription>
+          <CardDescription>Call each provider&apos;s model directly - cheapest per run, but not the real consumer product UI.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col divide-y divide-border">
           {grouped.direct.map((c) => {

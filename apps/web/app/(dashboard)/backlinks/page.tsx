@@ -17,7 +17,7 @@ export default async function BacklinksPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Backlinks"
         description="Look up any domain to see its total backlinks, referring domains, and domain rating from the built-in backlink index."

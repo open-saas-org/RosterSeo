@@ -1,7 +1,6 @@
 # Architecture
 
-This supersedes PRD Section 7 (`seo-saas-prd-v1.md`), which assumed a
-closed, Vercel+Supabase-hosted SaaS. Two decisions changed that:
+Two decisions shape everything below:
 
 1. **Open-core, not SaaS-only.** Same codebase runs as a single-tenant
    self-hosted deploy (`SELF_HOSTED=true`, no billing, operator's own API
@@ -21,25 +20,17 @@ closed, Vercel+Supabase-hosted SaaS. Two decisions changed that:
 | API layer | Next.js Route Handlers, no separate Express/NestJS | No need to run a second HTTP service alongside the dashboard |
 | Database | Postgres + Drizzle ORM | Portable — works identically on Railway's managed Postgres, Docker Compose, or any Postgres host. No vendor-specific schema magic |
 | Auth | better-auth | Self-hostable (unlike Supabase Auth or Clerk), Drizzle adapter, org/session model we control |
-| Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | PRD Section 6 requirement. Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
+| Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
 | Background jobs | pg-boss, run in a separate `apps/worker` process | Postgres-native, no extra infra, matches our self-host-first goal |
 | Billing | Stripe (hosted mode only) | Off entirely when `SELF_HOSTED=true` |
-| SEO data | DataForSEO API | Per PRD — single vendor for keywords/SERP/backlinks/on-page/local |
-| AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity) | Per PRD Section 5.7 and 5.1 |
-| MCP server | `@modelcontextprotocol/sdk`, separate app in the monorepo | Per PRD Section 5.8 |
+| SEO data | DataForSEO API | Single vendor for keywords/SERP/backlinks/on-page/local |
+| AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity), plus BrightData + OpenRouter for AI-answer-engine visibility | Broadest real coverage without vendor lock-in to one LLM provider |
+| MCP server | `@modelcontextprotocol/sdk`, separate app in the monorepo | Lets a user's own AI tools query their project data directly |
 | Deploy targets | Railway (Docker, one-click template), Docker Compose (self-host), any Node host | Railway is primary per the open-source goal; Vercel remains possible since it's still Next.js, just not the default path |
 
 ## Monorepo layout
 
 See README.md — same list, kept in one place to avoid drift.
-
-## Roadmap
-
-Phased build sequence is unchanged from PRD Section 9 (Month 1: auth +
-multi-project + page analyzer; Month 2: crawler + competitor research;
-Month 3: GSC/GA4 + local SEO; Month 4: AI-visibility + MCP server + polish;
-Phase 2: Shopify Connect). What changed is *how* each phase is built, not
-the sequence.
 
 ## Runtime process model
 
@@ -91,8 +82,8 @@ the policies check, rather than the bare `db` export.
 better-auth handles signup/login (`apps/web/lib/auth.ts`), with a
 `databaseHooks.user.create.after` hook that gives every new signup its own
 organization + owner membership row (no "invite teammates" flow yet, so
-org == account for now — PRD Section 5.9's multi-tenant org management is
-still open). `apps/web/middleware.ts` does a cheap cookie-presence check to
+org == account for now — multi-tenant org management (team invites) is
+still open, see "Open decisions" below). `apps/web/middleware.ts` does a cheap cookie-presence check to
 keep signed-out visitors out of `(dashboard)` routes; the dashboard layout
 itself does the real `auth.api.getSession()` check plus a project-count
 check, redirecting to `/onboarding` if the user has none yet.
@@ -121,8 +112,8 @@ This project deliberately doesn't run Redis. To maintain self-host simplicity an
 
 ## Open decisions
 
-- Product name/branding (PRD Section 12) — repo currently uses the
-  placeholder package scope `@seo-tool/*`.
-- Team invites / multi-member organizations (PRD Section 5.9) — schema
-  supports it (`organization_members` is already a many-to-many join), but
-  there's no invite flow yet. Every signup gets a single-member org.
+- Product name/branding — repo currently uses the placeholder package
+  scope `@seo-tool/*`.
+- Team invites / multi-member organizations — schema supports it
+  (`organization_members` is already a many-to-many join), but there's no
+  invite flow yet. Every signup gets a single-member org.

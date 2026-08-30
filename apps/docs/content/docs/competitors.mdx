@@ -17,30 +17,83 @@ project and see, per domain:
   site's rankings ("keywords they rank for that you don't") — that would need a second
   domain to compare against — it's the competitor's own real top keywords.
 
-## What's mock vs. real today
+## What's real today
 
-Everything backing this module comes from `@seo-tool/dataforseo`
-(`getDomainOverview`, `getBacklinksOverview`, `getRankedKeywords`). All three are **real**,
-gated by `isDataForSeoConfigured()`: `getDomainOverview` calls DataForSEO Labs'
-`domain_rank_overview` + `relevant_pages`, `getBacklinksOverview` calls `backlinks/summary`,
-and `getRankedKeywords` calls `ranked_keywords`. Falls back to deterministic mock data when
-`DATAFORSEO_LOGIN`/`DATAFORSEO_PASSWORD` aren't configured, or if a real call fails — same
-convention as every other DataForSEO-backed feature. The page shows a "Mock data" badge on
-each competitor's detail view whenever that fallback is in effect.
+There is no mock path left in this module. Every DataForSEO call it makes —
+`getDomainOverview`, `getBacklinksOverview`, `getRankedKeywords` (all three from
+`@seo-tool/dataforseo`) — is gated by `isDataForSeoConfigured()`
+(`packages/dataforseo/src/client.ts`), and none of them fabricate a fallback anymore:
+
+- **`getDomainOverview`** and **`getBacklinksOverview`** throw a real
+  `DataForSeoNotConfiguredError` when `DATAFORSEO_LOGIN`/`DATAFORSEO_PASSWORD` aren't set,
+  and propagate the real DataForSEO error when a live call fails. `getDomainOverview` calls
+  DataForSEO Labs' `domain_rank_overview` + `relevant_pages`; `getBacklinksOverview` calls
+  `backlinks/summary`. Both errors surface on the competitor's card as a real "Couldn't scan
+  &lt;domain&gt;" alert with a Retry button — nothing renders in their place.
+- **`getRankedKeywords`** (Labs `ranked_keywords`) is softer: it returns an empty array both
+  when DataForSEO isn't configured and when the live call throws (logged to the server
+  console either way), so a keyword-ideas fetch failure never blocks the traffic/backlink
+  numbers next to it from showing. An empty keyword-ideas table therefore isn't necessarily
+  "this domain has no ranked keywords" — it can also mean the call failed — but it is never a
+  made-up list standing in for real keywords.
+- `getDomainOverviewReal` had a real parsing bug until this pass: DataForSEO Labs'
+  `domain_rank_overview` response nests the actual metrics one level deeper than the old code
+  read (`result[0].items[0].metrics.organic`, not `result[0].metrics.organic`), so every real
+  domain was throwing "returned no data" once the old mock fallback that had been masking it
+  was removed. Fixed in `packages/dataforseo/src/client.ts`.
+
+There's no "Mock data" badge anywhere in this module anymore — there's nothing left for it to
+indicate.
 
 The backlink index in particular is intentionally lightweight — the UI calls this out
 directly (see the "Not a full backlink audit" note on the backlink profile card) since it
 isn't as deep as a specialized tool like Ahrefs.
 
+## Manual scan, not auto-scan
+
+Nothing in this module ever calls DataForSEO on its own. Adding a competitor only inserts a
+row in `project_competitors` — no scan. Loading the Competitors page only reads whatever is
+already cached — no scan. A domain gets (or refreshes) real traffic/backlink/keyword data
+only when the user presses **Scan** (an idle competitor) or **Rescan** (an already-scanned
+one), both wired to `fetchCompetitorSnapshot` in `competitor-workspace.tsx`. This keeps a
+project with a long tracked-competitor list from silently burning DataForSEO credits on
+every page load.
+
+Removing a tracked competitor asks for confirmation first (`competitor-workspace.tsx`'s
+`handleRemove`, a `confirm()` prompt) before it optimistically removes the row and calls
+`DELETE`; a failed delete reverts the list instead of leaving it drifted from what's actually
+persisted.
+
+## Read-through cache
+
+A domain's scanned data is no longer a pure, uncached DataForSEO passthrough — it's cached
+per `(project, domain, location)` in the `competitor_snapshot_cache` table for 7 days (the
+same staleness window Backlinks and Keyword Research use), via `fetchCompetitorSnapshot` in
+`app/(dashboard)/competitors/actions.ts`:
+
+1. On Scan, it looks up a cache row for this project/domain/location. If one exists and is
+   less than 7 days old, it's returned as-is — no DataForSEO call at all.
+2. Otherwise it fires `getDomainOverview` + `getBacklinksOverview` + `getRankedKeywords` for
+   real (in parallel), and upserts the result into `competitor_snapshot_cache`.
+3. The row being replaced becomes the new row's `previous*` columns — a real "vs last check"
+   data point, not a computed or estimated trend. It stays `null` until a domain has been
+   scanned at least twice, so a brand-new competitor never shows a fabricated delta arrow.
+
+Loading the Competitors page itself (`getCachedSnapshots`, same file) never calls DataForSEO
+— it only reads whatever is already cached, so a previously-scanned competitor's numbers
+survive a page refresh instead of reverting to "not scanned yet."
+
+`resolveLocationCode(project.targetLocation)` resolves the project's free-text target
+location to a real DataForSEO `location_code` before every cache lookup and every live call,
+so competitor stats reflect the project's actual market instead of always defaulting to US.
+
 ## Tracked competitor list vs. domain stats — two different data paths
 
 This module deliberately has two independent halves:
 
-1. **Domain stats** (traffic, top pages, backlinks, keyword ideas) are fetched directly from
-   `@seo-tool/dataforseo` via a Next.js Server Action
-   (`app/(dashboard)/competitors/actions.ts` → `fetchCompetitorSnapshot`). This is a pure
-   domain → stats lookup with no tenant data involved, so it doesn't need project scoping -
-   it needs no auth or database access beyond the page already being behind login.
+1. **Domain stats** (traffic, top pages, backlinks, keyword ideas) are fetched — or served
+   from cache — via the Server Action described above: a project-scoped read-through cache
+   in front of real DataForSEO calls.
 2. **The tracked-competitor list itself** persists to the `project_competitors` table via a
    real, typed, RLS-scoped API route (real tenant data, real auth requirement).
 
@@ -48,16 +101,25 @@ This module deliberately has two independent halves:
 
 Table `project_competitors` (defined in `packages/db/src/app-schema.ts`, already migrated):
 
-| Column       | Type      | Notes                                   |
-| ------------ | --------- | ---------------------------------------- |
-| `id`         | uuid      | Primary key                              |
-| `project_id` | uuid      | FK → `projects.id`, cascades on delete   |
-| `domain`     | text      | Competitor domain, normalized lowercase  |
-| `created_at` | timestamp | Defaults to now                          |
+| Column               | Type      | Notes                                                          |
+| --------------------- | --------- | --------------------------------------------------------------- |
+| `id`                  | uuid      | Primary key                                                     |
+| `project_id`          | uuid      | FK → `projects.id`, cascades on delete                          |
+| `domain`              | text      | Competitor domain, normalized lowercase                         |
+| `name`                | text      | Optional display name; required when added from AI Visibility   |
+| `aliases`             | jsonb     | Extra names this competitor is known by (nullable)               |
+| `additional_domains`  | jsonb     | Other domains this same competitor owns (nullable)               |
+| `created_at`          | timestamp | Defaults to now                                                  |
 
 Row-Level Security is enabled; all reads/writes go through `withUserContext(userId, ...)`
 from `@seo-tool/db` so RLS enforces tenant isolation. Querying the bare `db` export for
 tenant data returns zero rows by design (fail-closed).
+
+Domain stats are cached separately in `competitor_snapshot_cache`, keyed by
+`(project_id, domain, location_code)`: estimated traffic, organic keyword count, top pages,
+backlink totals, domain rating, real ranked-keyword ideas, and a full set of `previous_*`
+columns capturing the prior scan's values for the "vs last check" delta. See
+[Read-through cache](#read-through-cache) above.
 
 ### API route
 
@@ -65,12 +127,17 @@ tenant data returns zero rows by design (fail-closed).
 `requireProjectAccess`:
 
 - `GET` — list tracked competitors for a project, newest first.
-- `POST` — add a competitor. Body: `{ "domain": string }`. Validates and normalizes the
-  domain (strips protocol/path, lowercases, drops a leading `www.`), and rejects duplicates
-  for the same project with `409`.
+- `POST` — add a competitor. Body: `{ "domain": string, "name"?: string }`. Validates and
+  normalizes the domain (strips protocol/path, lowercases, drops a leading `www.`), and
+  rejects duplicates for the same project with `409`.
+- `PATCH` — edit an existing tracked competitor's `name`, `domain`, `aliases`, and/or
+  `additionalDomains`. Every field is optional. `additionalDomains` replaces the whole list;
+  `addDomain` instead appends one domain to whatever the competitor already has (used by the
+  one-click "Track domain" action on Citations' Top Domains card) — when both are present,
+  `additionalDomains` wins.
 - `DELETE` — remove a tracked competitor. Query param: `?id=<competitorId>`.
 
-All three return `401` if there's no session, and `404` if the project doesn't exist or
+All routes return `401` if there's no session, and `404` if the project doesn't exist or
 doesn't belong to the caller's organization (these two cases are deliberately
 indistinguishable, so the route can't be used to probe for other tenants' project IDs).
 
@@ -79,11 +146,17 @@ indistinguishable, so the route can't be used to probe for other tenants' projec
 All competitor-specific UI lives under `apps/web/components/competitors/`:
 
 - `competitor-workspace.tsx` — top-level client component owning the tracked-competitor
-  state, wiring the add form, summary table, and detail panel together.
+  state, wiring the add form and the per-competitor summary cards together. Nothing here
+  auto-scans; see [Manual scan, not auto-scan](#manual-scan-not-auto-scan).
 - `add-competitor-form.tsx` — domain input with inline validation.
-- `competitor-summary-table.tsx` — `DataTable`-based list of tracked competitors (domain,
-  traffic, keywords, domain rating, actions).
-- `competitor-detail.tsx` — per-competitor detail view: `MetricCard`s, top-pages table,
-  backlink summary, and keyword gap ideas table.
+- `competitor-summary-card.tsx` — the compact, always-visible card every tracked competitor
+  gets on the list page: a slim row of real stats with a real vs-last-check delta, plus
+  Scan/Rescan, Edit, and Stop tracking actions.
+- `competitor-detail.tsx` / `competitor-detail-page.tsx` — the deeper per-competitor view at
+  `/competitors/[id]`: `MetricCard`s, top-pages table, backlink summary, keyword gap ideas
+  table, and (when this domain has ever been sampled by AI Visibility) a real AI Visibility
+  mention-rate card.
+- `competitor-edit-panel.tsx` — inline editor for a tracked competitor's name, domain,
+  aliases, and additional domains, backed by the API route's `PATCH`.
 - `domain-utils.ts` — shared domain normalization/validation, used by both the Server Action
   and the API route so client and server never disagree on what counts as a valid domain.

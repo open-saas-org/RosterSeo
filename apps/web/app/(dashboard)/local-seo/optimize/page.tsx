@@ -18,7 +18,7 @@ export default async function OptimizePage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Optimize" description={`A local SEO strategy for ${project.name} - generated once, tracked as a checklist.`} />
       <OptimizeWorkspace
         projectId={project.id}

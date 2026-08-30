@@ -46,7 +46,7 @@ export function BrandLookupWorkspace({
   const sampledCount = result ? result.providerResults.filter((r) => r.result !== null).length : 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {!configured ? (
         <Alert>
           <Bot className="size-4" />

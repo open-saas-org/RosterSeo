@@ -46,7 +46,7 @@ export default async function LocalSeoProfilePage() {
     : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Profile"
         description={`Your business's real Google listing data for ${project.name} - no Google account needed.`}

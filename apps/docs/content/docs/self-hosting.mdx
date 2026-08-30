@@ -25,16 +25,40 @@ pnpm dev
 `apps/worker` (the job queue consumer) starts alongside them via the same
 `pnpm dev`.
 
-## Docker Compose
+## Self-host via Docker
+
+**Docker Compose** — app + a real local Postgres, good for trying it out:
 
 ```bash
 cp .env.example .env
 docker compose up --build
-docker compose run --rm web pnpm --filter @seo-tool/db migrate
 ```
 
 `docker/postgres-init.sql` creates the restricted app role automatically on
-first container start.
+first container start. Migrations run automatically on container start too
+(see `docker/docker-entrypoint.sh`, baked into the image's `ENTRYPOINT`) —
+there's nothing to run by hand after `up`.
+
+**Just the Dockerfile**, against a Postgres you already have (a managed
+instance, another container, whatever) — this is the plain "build an image
+and run it anywhere" path for a VPS, Fly.io, Render, or any other
+Docker-based host that isn't Railway:
+
+```bash
+docker build -t seo-tool-web .
+docker run -p 3000:3000 \
+  -e DATABASE_URL="postgres://user:pass@your-postgres-host:5432/seo_tool" \
+  -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
+  -e BETTER_AUTH_URL="http://localhost:3000" \
+  -e NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000" \
+  seo-tool-web
+```
+
+Same automatic migration-on-start behavior as Compose — the image migrates
+the database it's pointed at, then serves the app, every time it boots. See
+`.env.example` for every other variable (DataForSEO, AI providers, OAuth,
+etc.) — all optional beyond the ones above, each one just stays inert until
+you set it.
 
 ## Database roles
 
@@ -58,9 +82,21 @@ role can't execute. Full detail: `packages/db/README.md` in the repo.
 
 ## Deploy on Railway
 
-Not yet published as a one-click template. See `docker/RAILWAY.md` in the
-repo for the manual, one-time steps to publish the deploy button once
-there's enough built to be worth deploying.
+The deploy mechanics are already real and working: `railway.toml` at the
+repo root tells Railway to build `Dockerfile` and, via its
+`releaseCommand`, run the real Drizzle migrations
+(`node packages/db/dist/migrate.mjs`) once per deploy, before traffic
+switches to the new release — attach a **PostgreSQL** plugin, set the
+required variables from `.env.example` (`SELF_HOSTED`,
+`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `DATAFORSEO_LOGIN`/
+`DATAFORSEO_PASSWORD`, plus whichever AI-provider keys you want enabled),
+and it comes up with a fully migrated schema — no manual step required.
+
+What's *not* done yet is turning that into an actual clickable **"Deploy on
+Railway" button** — that's a one-time action in Railway's own dashboard
+(Project Settings → Create Template), not something a file in this repo can
+produce by itself. See `docker/RAILWAY.md` for the exact steps to publish
+that template.
 
 ## Two modes
 

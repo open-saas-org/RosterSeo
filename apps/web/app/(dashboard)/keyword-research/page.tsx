@@ -39,7 +39,7 @@ export default async function KeywordResearchPage() {
   const initialLocationName = project.targetLocation ?? "United States";
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Keyword Research"
         description="Enter a seed keyword to see search volume, difficulty, CPC, competition, and related & question ideas."

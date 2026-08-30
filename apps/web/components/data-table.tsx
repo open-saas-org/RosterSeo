@@ -35,6 +35,12 @@ export function createDataTableColumns<TData extends RowData>() {
   return createColumnHelper<typeof dataTableFeatures, TData>();
 }
 
+// TValue is deliberately left open - every page's columns render a
+// different cell value type (numbers, strings, real API response shapes),
+// and this generic helper type is shared across all of them. Narrowing it
+// would require threading a TValue generic through createDataTableColumns()
+// and every call site that builds a DataTableColumnDef across the app.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DataTableColumnDef<TData extends RowData> = ColumnDef<typeof dataTableFeatures, TData, any>;
 
 export function DataTable<TData extends RowData>({
@@ -137,7 +143,7 @@ export function DataTable<TData extends RowData>({
       </div>
       {pageCount > 1 || data.length > 10 ? (
         <div className={cn("flex items-center justify-between text-sm text-muted-foreground mt-2", !bordered && "border-t px-4 py-3 mt-0")}>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-xs">Rows per page</span>
               <Select

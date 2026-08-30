@@ -113,7 +113,7 @@ export function PageAnalyzerWorkspace({ projectId }: { projectId: string }) {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Page Analyzer"
         description="Crawl a page, compare it against the live top-10 SERP for your target keyword, and get a prioritized fix-it plan with AI-generated ranking and AI-visibility guidance."

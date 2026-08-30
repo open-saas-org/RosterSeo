@@ -132,7 +132,7 @@ export function ProjectSettingsDialog({
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : project ? (
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
               <span className="text-muted-foreground">Name</span>
               <span className="font-medium">{project.name}</span>

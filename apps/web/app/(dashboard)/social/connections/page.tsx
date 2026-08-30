@@ -14,7 +14,7 @@ export default async function SocialConnectionsPage() {
   const rows = await withUserContext(session.user.id, (tx) => tx.select().from(socialConnections).where(eq(socialConnections.projectId, project.id)).orderBy(desc(socialConnections.connectedAt)));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Social Connections" description="Connect the social platforms you want to post to - each is verified live before it's saved." />
       <OAuthStatusBanner platformNames={PLATFORM_NAMES} />
       <SocialConnectionsWorkspace

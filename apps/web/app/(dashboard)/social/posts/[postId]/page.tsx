@@ -34,7 +34,7 @@ export default async function SocialPostDetailPage({ params }: { params: Promise
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Review & post" description="AI-adapt each platform's version (character-limit aware), edit anything you like, then post now or schedule." />
       <SocialPostReview
         projectId={project.id}

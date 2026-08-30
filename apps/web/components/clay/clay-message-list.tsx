@@ -92,7 +92,7 @@ export function ClayMessageList({
   }, [messages.length, status]);
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 overflow-y-auto px-4 py-8">
+    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-8">
       {messages.map((m) =>
         m.role === "user" ? (
           <div key={m.id} className="flex justify-end">

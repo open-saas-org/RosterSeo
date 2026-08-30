@@ -11,7 +11,7 @@ export default async function SocialPage() {
   const rows = await withUserContext(session.user.id, (tx) => tx.select().from(socialConnections).where(eq(socialConnections.projectId, project.id)));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Social" description="Write a post once, adapt it per platform with AI, and post or schedule it to your connected social accounts." />
       <SocialComposer
         projectId={project.id}

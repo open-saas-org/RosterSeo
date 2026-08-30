@@ -11,7 +11,7 @@ export default async function SocialPostsPage() {
   const posts = await withUserContext(session.user.id, (tx) => tx.select().from(socialPosts).where(eq(socialPosts.projectId, project.id)).orderBy(desc(socialPosts.createdAt)));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Posts" description="Every social post you've composed - draft, scheduled, or published." />
       <SocialPostsList
         posts={posts.map((p) => ({

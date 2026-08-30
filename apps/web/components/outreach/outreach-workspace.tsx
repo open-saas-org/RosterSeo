@@ -55,14 +55,14 @@ export function OutreachWorkspace({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <OutreachConnectionsPanel projectId={projectId} connections={connections} onConnectionsChange={setConnections} />
 
       <Card>
         <CardHeader>
           <CardTitle>Add a target</CardTitle>
           <CardDescription>
-            Add a domain directly, or add one straight from a real backlink row on the Backlinks page. We'll try to
+            Add a domain directly, or add one straight from a real backlink row on the Backlinks page. We&apos;ll try to
             find a real contact email automatically.
           </CardDescription>
         </CardHeader>

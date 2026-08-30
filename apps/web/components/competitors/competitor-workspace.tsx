@@ -148,7 +148,7 @@ export function CompetitorWorkspace({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <Card className={competitors.length === 0 ? "border-lavender/30 bg-lavender/5" : undefined}>
         <CardHeader>
           <CardTitle>Track a competitor</CardTitle>

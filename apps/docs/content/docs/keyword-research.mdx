@@ -1,6 +1,6 @@
 ---
 title: Keyword Research
-description: Real DataForSEO keyword ideas, persisted metrics cache and search history, SERP + trend detail panel (PRD Section 5.2)
+description: Real DataForSEO keyword ideas, persisted metrics cache and search history, SERP + trend detail panel
 ---
 
 Route: `/keyword-research`.
@@ -33,27 +33,28 @@ bug that prompted this rebuild.
 
 ## What's real vs mock today
 
-- **Keyword results**: real, tiered, real-only (no mock fallback for the
-  tiered functions specifically - a failed/unconfigured call returns fewer
-  real results rather than fabricated-looking ones). `getRelatedKeywords()`
-  (DataForSEO Labs `related_keywords` - Google's actual "searches related
-  to" matches) and `getKeywordSuggestions()` (Labs `keyword_suggestions` -
-  real substring variations of the seed) run together and are shown first,
-  in that order; `getKeywordIdeas()` (Labs `keyword_ideas` - broader
-  same-category matches, the one function here that still keeps its mock
-  fallback) only runs as a third tier when the first two together return
-  fewer than 15 results. Each result carries a `source` tag
-  (`related`/`suggestion`/`idea`) shown as a badge and filterable in the
-  table. None of these three endpoints has a prior caller anywhere in this
-  codebase, so - same honesty convention as this project's other new
-  DataForSEO integrations - their real response shapes aren't yet proven
-  against a funded account, only typed against DataForSEO's published docs.
+- **Keyword results**: real, tiered, real-only - none of the three
+  DataForSEO Labs functions behind this grid has a mock fallback; a
+  failed/unconfigured call returns an honest empty list, never
+  fabricated-looking results (this is now the convention across the whole
+  `@seo-tool/dataforseo` package, not an exception specific to these
+  three). `getRelatedKeywords()` (Labs `related_keywords` - Google's actual
+  "searches related to" matches) and `getKeywordSuggestions()` (Labs
+  `keyword_suggestions` - real substring variations of the seed) run
+  together and are shown first, in that order; `getKeywordIdeas()` (Labs
+  `keyword_ideas` - broader same-category matches) only runs as a third
+  tier when the first two together return fewer than 15 results. Each
+  result carries a `source` tag (`related`/`suggestion`/`idea`) shown as a
+  badge and filterable in the table. These three functions are also used
+  outside this page - the Clay assistant's read tool
+  (`apps/web/lib/clay/tools/read.ts`) and the MCP server
+  (`apps/mcp-server/src/index.ts`) both call all three the same way.
 - **Seed keyword metrics and location**: real, and now actually
-  location-aware. `getKeywordMetrics()` gained an optional `locationCode`
-  parameter (previously hardcoded to US/2840 internally) - Keyword
-  Research passes the real selected location code through; Page Analyzer's
-  existing single-keyword call is untouched (parameter is optional,
-  defaults to US). Rank Tracking's metrics-refresh call site
+  location-aware. `getRealKeywordMetrics()` gained an optional
+  `locationCode` parameter (previously hardcoded to US/2840 internally) -
+  Keyword Research passes the real selected location code through; Page
+  Analyzer's existing single-keyword call is untouched (parameter is
+  optional, defaults to US). Rank Tracking's metrics-refresh call site
   (`apps/worker/src/features/rank-check-runner.ts`) was also fixed to pass
   its project's real configured location instead of the same implicit
   US default - a second instance of the identical bug, fixed alongside
@@ -75,7 +76,9 @@ bug that prompted this rebuild.
 - **Question classification**: not a separate API call. A keyword counts
   as a question if it starts with a common question word (how/what/why/
   when/where/who/which/can/does/do/is/are/will/should) - pure client-side
-  regex over the same real `keyword_ideas` results already fetched.
+  regex (`isQuestionKeyword()`, `apps/web/components/keywords/question-classifier.ts`)
+  over the same real tiered results already fetched, applied across all
+  three source tiers, not just `keyword_ideas`.
 - **The Track button**: real, unchanged in destination -
   `POST /api/projects/:projectId/keywords` (the same route
   [Rank Tracking](/docs/rank-tracking) reads from). The client no longer
@@ -105,22 +108,13 @@ Lists the 20 most recent `keyword_research_searches` rows for the project.
 ### `POST /api/projects/:projectId/keyword-research`
 
 Body: `{ seedKeyword, locationCode, locationName }`. The only route that
-calls DataForSEO for this feature - real `getKeywordMetrics()` for the
-seed (cache-checked first) + real `getKeywordIdeas()` for the results
-grid, upserts every returned keyword into `keyword_metrics_cache`, logs one
+calls DataForSEO for this feature - real `getRealKeywordMetrics()` for the
+seed (cache-checked first, skipping DataForSEO on a still-fresh cache hit)
+plus the tiered `getRelatedKeywords()` / `getKeywordSuggestions()` /
+`getKeywordIdeas()` fetch for the results grid, upserts every returned
+keyword into `keyword_metrics_cache`, logs one
 `keyword_research_searches` row, returns `{ seed, results }`.
 
 ### `GET /api/projects/:projectId/keyword-research/serp?keyword=...&locationCode=...`
 
 Real top-10 organic SERP for one keyword, via `checkKeywordRanking()`.
-
-## Notable follow-up work (not built in this pass)
-
-- A cascading multi-source fallback (try `related_keywords`, then
-  `keyword_suggestions`, then `keyword_ideas`, stopping once enough results
-  accumulate) instead of the single `keyword_ideas` call this pass ships
-  with - deliberately deferred; one real endpoint is enough to ship real
-  data now, and this is a clean addition later if recall on obscure seeds
-  ever proves insufficient.
-- Live verification of `getKeywordIdeas()`'s real response parsing against
-  a funded DataForSEO account (not yet confirmed live in this environment).

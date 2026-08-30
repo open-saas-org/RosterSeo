@@ -13,10 +13,12 @@ export const POST = withAuth(async (req, { params }, session) => {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  let body: any = {};
+  let body: { domain?: string; customSitemapUrl?: string; maxPages?: number } = {};
   try {
     body = await req.json();
-  } catch (e) {}
+  } catch {
+    // No body/invalid JSON - startSiteAudit's own defaults apply below.
+  }
 
   const auditId = await startSiteAudit(session.user.id, project, {
     domain: body.domain,

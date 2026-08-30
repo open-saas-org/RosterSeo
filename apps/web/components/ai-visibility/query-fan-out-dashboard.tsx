@@ -137,7 +137,7 @@ function PromptFanOutRow({ prompt }: { prompt: FanoutAnalysis["perPrompt"][numbe
             <p className="text-xs text-muted-foreground">{prompt.distinctQueryCount} variations</p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-6 text-sm tabular-nums text-muted-foreground">
+        <div className="flex shrink-0 items-center gap-4 text-sm tabular-nums text-muted-foreground">
           <span>{prompt.distinctQueryCount}</span>
           <span>{prompt.avgPerRun}</span>
         </div>
@@ -183,7 +183,7 @@ function TopQueryRow({ stat }: { stat: FanoutQueryStat }) {
             <HighlightedQuery query={stat.query} promptText={representativePromptText} />
           </span>
         </span>
-        <span className="flex shrink-0 items-center gap-6 text-sm tabular-nums text-muted-foreground">
+        <span className="flex shrink-0 items-center gap-4 text-sm tabular-nums text-muted-foreground">
           <span>{stat.promptCount}</span>
           <span>{stat.runCount}</span>
           <span className={cn(stat.brandMentionRate >= 50 ? "text-ai-accent" : "text-muted-foreground")}>{stat.brandMentionRate}%</span>
@@ -308,7 +308,7 @@ export function QueryFanOutDashboard({
               <CardContent className="p-0">
                 <div className="flex items-center justify-between border-y bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
                   <span>PROMPT</span>
-                  <span className="flex gap-6">
+                  <span className="flex gap-4">
                     <span>QUERIES</span>
                     <span>AVG/PROMPT RUN</span>
                   </span>
@@ -353,7 +353,7 @@ export function QueryFanOutDashboard({
               <CardContent className="p-0">
                 <div className="flex items-center justify-between border-y bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
                   <span>QUERY</span>
-                  <span className="flex gap-6">
+                  <span className="flex gap-4">
                     <span>PROMPTS</span>
                     <span>PROMPT RUNS</span>
                     <span>BRAND MENTION %</span>

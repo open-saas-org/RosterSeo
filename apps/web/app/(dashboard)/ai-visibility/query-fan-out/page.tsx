@@ -48,7 +48,7 @@ export default async function QueryFanOutPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Query Fan-Out" description="The web searches AI engines run when answering your prompts." />
       <QueryFanOutDashboard rows={rows} prompts={prompts} allTags={allTags} allModels={allModels} />
     </div>

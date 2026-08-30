@@ -13,7 +13,7 @@ export default async function AiVisibilityProvidersSettingsPage() {
   const providerStatus = Object.fromEntries(getAllProviders().map((p) => [p.id, p.isConfigured()])) as Record<string, boolean>;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Providers"
         description="Which of the globally-configured LLM/scraper providers this project samples from on a visibility run. Connect a provider's API key on the Integrations page first."

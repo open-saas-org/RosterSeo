@@ -109,7 +109,7 @@ export default async function CitationsPage({ searchParams }: { searchParams: Pr
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Citations" description="See which sources LLMs cite when responding to your prompts." />
       <CitationsDashboard
         projectId={project.id}

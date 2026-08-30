@@ -66,7 +66,7 @@ export function ClaySettingsDialog({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Clay settings</DialogTitle>
-          <DialogDescription>Which AI provider and model this project's assistant uses.</DialogDescription>
+          <DialogDescription>Which AI provider and model this project&apos;s assistant uses.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">

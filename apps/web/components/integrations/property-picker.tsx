@@ -204,7 +204,7 @@ export function PropertyPicker({
     );
   }
   if (loadError) {
-    return <p className="text-sm text-destructive">Couldn't load {label} properties. Try again.</p>;
+    return <p className="text-sm text-destructive">Couldn&apos;t load {label} properties. Try again.</p>;
   }
   if (properties === null) {
     return (

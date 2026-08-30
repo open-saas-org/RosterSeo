@@ -5,9 +5,9 @@ description: Real Google Business Data (no OAuth), geo-grid map-pack rank tracki
 
 ## What it does
 
-Per PRD Section 5.5 ("Local SEO"), this module is three real pages under
-its own sidebar group, each backed entirely by DataForSEO's real APIs — no
-Google OAuth or manual approval required for any of it:
+This module is three real pages under its own sidebar group, each backed
+entirely by DataForSEO's real APIs — no Google OAuth or manual approval
+required for any of it:
 
 - **Profile** (`/local-seo`) — search-and-pick your real business (a real
   Country → State → City selector feeding a real Google Maps name search),
@@ -160,6 +160,23 @@ Per-project auto-tracking is toggled from Monitor's config row
   spam duplicates).
 - **`optimize/[recommendationId]/route.ts`** — `PATCH { status }` to
   toggle a checklist item.
+- **`business-profile/accounts/route.ts`**, **`business-profile/locations/route.ts`**
+  — `GET`, real GBP account/location listing via the dormant OAuth
+  plumbing (needs a real `gbp` `google_connections` row from the
+  Integrations page). Kept for the GBP Performance link-up below, not used
+  by the DataForSEO-backed Profile search-and-pick flow.
+- **`business-profile/gbp/route.ts`** — `GET` returns the real connection
+  status plus whichever GBP location is linked, if any. `PATCH { accountId,
+  locationId, locationName }` links a real location (picked from the two
+  routes above) to this project's `local_business_profiles` row — requires
+  that row to already exist, since this only adds the optional Performance
+  link on top of the DataForSEO-sourced profile. `DELETE` unlinks without
+  touching the DataForSEO fields.
+- **`business-profile/performance/route.ts`** — `GET ?days=30`, the real
+  GBP Performance API numbers (views/calls/chats/bookings/direction
+  requests/website clicks/menu clicks) for whichever location is linked,
+  gated behind Google's separate manual Performance API approval (see
+  below).
 
 All routes: `withAuth` + `requireProjectAccess` + `withUserContext`.
 

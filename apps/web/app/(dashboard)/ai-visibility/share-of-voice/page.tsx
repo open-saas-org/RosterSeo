@@ -55,7 +55,7 @@ export default async function ShareOfVoicePage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Share of Voice" description="How often AI engines mention you versus your competitors." />
       <ShareOfVoiceDashboard rows={rows} entities={entities} prompts={prompts} allTags={allTags} allProviders={allProviders} brandName={project.name} />
     </div>

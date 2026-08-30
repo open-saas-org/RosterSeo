@@ -81,7 +81,7 @@ export function SocialComposer({
           <Share2 className="size-4 text-sky" />
           New post
         </CardTitle>
-        <CardDescription>Write it once here - on the next screen you can have AI adapt it per platform (respecting each one's character limit) before you post or schedule it.</CardDescription>
+        <CardDescription>Write it once here - on the next screen you can have AI adapt it per platform (respecting each one&apos;s character limit) before you post or schedule it.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleCreate} className="flex flex-col gap-4">

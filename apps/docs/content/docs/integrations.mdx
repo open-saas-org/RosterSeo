@@ -6,8 +6,7 @@ description: Google (GSC + GA4 + GBP + Merchant Center) OAuth, plus Bing Webmast
 OAuth connect flow for Google Search Console (GSC), Google Analytics 4
 (GA4), Google Business Profile (GBP), and Google Merchant Center, pulling
 real impressions/clicks/CTR/position (GSC) and sessions/conversions (GA4)
-alongside the estimated SERP data from DataForSEO. See PRD Section 5.6
-(`seo-saas-prd-v1.md`) for the original requirements this implements.
+alongside the estimated SERP data from DataForSEO.
 
 This page also covers three non-Google integrations that don't use OAuth at
 all: [Bing Webmaster Tools](#bing-webmaster-tools) (one workspace API key),
@@ -23,7 +22,7 @@ instead (no OAuth, no approval wait) — the GBP card and its underlying
 plumbing for a possible future GBP-connected feature, not wired into any
 picker UI today.
 
-**Google Merchant Center has a full stats page, [Merchant Insights](/merchant-insights)** — real shopping-ads
+**Google Merchant Center has a full stats page, [Merchant Insights](/docs/merchant-insights)** — real shopping-ads
 clicks/impressions/CTR/conversions, same shape as GSC/GA/Bing Insights: connect once on this page, then each
 project picks which of the connected account's real Merchant Center accounts it reports on via `PropertyPicker`
 (same component GSC/GA4 use), persisted to `projects.merchant_account_id`.
@@ -36,7 +35,8 @@ no reconnect was needed for the swap. `listMerchantAccounts()` now calls the Mer
 (`accounts.list`, replacing the old `accounts.authinfo`); real product-performance stats come from the Merchant
 API's Reports sub-API (`accounts.reports.search`, a SQL-like query language over a `product_performance_view`
 table) — not yet live-tested against a real Merchant Center account, same untested-real-API honesty note as
-GBP's Performance metrics and Bing's endpoints.
+GBP's Performance metrics (Bing's endpoints, by contrast, have been confirmed against a real account — see
+[Bing Webmaster Tools](#bing-webmaster-tools) below).
 
 **One-time bootstrap step, confirmed live**: a GCP project must be registered as an `API_DEVELOPER` on the
 Merchant Center account before `accounts.list` (or anything else) works — Google returns a real 401 ("GCP
@@ -65,9 +65,13 @@ that same connection. No project ever needs its own separate consent flow.
 `project_id` — which would have forced a full re-auth per project; fixed
 before shipping, see the migration history below.)
 
-Shopify Connect (PRD Section 5.10) is a separate, Phase 2 integration — it
-shows as a disabled "Coming in Phase 2" card on the Integrations page today
-and has no backing routes or package yet.
+**Shopify Connect — a full store integration (products, orders, catalog
+sync) — is planned but not started.** `packages/shopify` exists only as a
+scaffolded stub (`export {}`, no client code); there are no routes and no
+card for it on the Integrations page. This is unrelated to the Shopify
+entry under [WordPress](#wordpress) below, which is a real, working
+*blog-publishing* adapter (posts articles to a Shopify store's blog via a
+custom-app access token) — not a store/product integration.
 
 ## Status: plumbing is real, credentials are not
 
@@ -193,7 +197,7 @@ list from the route above into a dropdown — the user picks from their
 actual verified properties, never types one in — then `PATCH`es the
 selection onto *this project's* `gsc_property_id` / `ga4_property_id` /
 `merchant_account_id`. It's used on [GSC Insights](/docs/gsc-insights),
-[Merchant Insights](/merchant-insights), the Dashboard's `GoogleConnectCard`,
+[Merchant Insights](/docs/merchant-insights), the Dashboard's `GoogleConnectCard`,
 and inline on this Integrations page once a service is connected but this
 project hasn't picked a property yet. Since the underlying connection is
 org-wide but the property selection is per-project, switching projects
@@ -284,7 +288,7 @@ consent — see the package section below.
 - `getMerchantProductPerformance(accessToken, accountResourceName, startDate, endDate)` —
   real Merchant API Reports sub-API `accounts.reports.search` call, a
   SQL-like query over `product_performance_view` aggregated to one row per
-  day. Powers [Merchant Insights](/merchant-insights). Both Merchant API
+  day. Powers [Merchant Insights](/docs/merchant-insights). Both Merchant API
   calls are inspected from the installed `googleapis` SDK's generated
   types (confirming the real method names/shapes exist) but not yet
   live-tested end-to-end against a real Merchant Center account — same
@@ -316,7 +320,7 @@ request that needs the token. That's a deliberate simplification (same
 a proactive refresh job would only matter for a scheduled sync worker that
 doesn't exist yet.
 
-## GSC / GA4 constraints to design around (PRD Section 5.6)
+## GSC / GA4 constraints to design around
 
 These aren't implemented as enforcement code yet (no sync worker exists
 this pass) — they're the constraints whoever builds that worker needs to
@@ -363,9 +367,16 @@ covers the connection itself.
   `getBingRankAndTrafficStats(siteUrl, startDate, endDate)`
   (`GetRankAndTrafficStats`) against
   `https://ssl.bing.com/webmaster/api.svc/json/{Method}`.
-- **Not yet live-tested**: no funded Bing Webmaster Tools account was
-  available while building this — field names are taken from Bing's
-  published docs, not confirmed against a real response yet.
+- **Confirmed live against a real account**: `packages/bing/src/client.ts`
+  handles two real-response quirks that only surfaced against an actual
+  Bing Webmaster Tools account, not just the published docs — Bing's
+  legacy WCF/ASP.NET endpoint wraps every payload in a top-level `d`
+  property (sometimes further nested as `{ d: { results: [...] } }`,
+  the OData v2 shape) instead of returning a bare array, and `Date` fields
+  come back as `/Date(1234567890000)/` (ASP.NET JSON date format,
+  epoch milliseconds) rather than ISO 8601. Both are unwrapped/parsed
+  explicitly now, with a loud failure if a response ever doesn't match
+  either shape, instead of silently mis-parsing.
 - **Schema**: `projects.bing_site_url` (nullable text) — which verified
   Bing site this project reports on, picked via `BingSitePicker` from a
   real `GetUserSites` list.
@@ -409,10 +420,11 @@ nothing in `.env` — genuinely zero setup.
 
 ## WordPress
 
-Connect-only for now — real, verified WordPress REST API access, with
-recent posts shown inline as proof-of-connection. Nothing in the app pushes
-content to WordPress yet (no auto-publish/write-back agent); that's future
-work, same framing as Shopify's own Phase 2 tag.
+Real write-back publishing, not connect-only: WordPress is one of ten
+platforms in the **Sites** publishing system (`packages/publishing`,
+`BLOG_PLATFORMS` registry), reachable from the Integrations page's "Sites"
+row via **Publish Connections** (`/publish/connections`), not from a
+dedicated card on this page.
 
 - **Auth**: WordPress core's built-in **Application Passwords** (5.6+, no
   plugin) — the user generates one in their own WP admin (Users → Profile
@@ -420,20 +432,42 @@ work, same framing as Shopify's own Phase 2 tag.
   password. HTTP Basic Auth against `{siteUrl}/wp-json/wp/v2/posts` — a
   working authenticated request *is* the verification, no separate ping
   endpoint.
-- **`packages/wordpress`**: `verifyWordPressConnection(siteUrl, username, appPassword)`
-  and `listRecentPosts(siteUrl, username, appPassword, limit?)`.
-- **Schema**: `wordpress_connections` — one row per project (`project_id`
-  is both PK and FK, same shape as `local_business_profiles`), RLS-protected
-  with the standard `tenant_isolation` policy. `application_password` is
-  stored as plain `text`, matching `google_connections.access_token` /
-  `refresh_token`'s existing convention rather than introducing a new
-  encryption layer inconsistently.
-- **Routes**: `GET` / `POST` / `DELETE
-  /api/projects/:projectId/wordpress` — status+posts, verify-and-save, and
-  disconnect.
-- **UI**: `WordPressIntegrationCard` — an inline connect form
-  (site URL, username, application password) when not connected; site URL,
-  a Disconnect button, and the real recent-posts list when connected.
+- **`packages/wordpress`**: `verifyWordPressConnection(siteUrl, username, appPassword)`,
+  `listRecentPosts(siteUrl, username, appPassword, limit?)`, and
+  `createPost(siteUrl, username, appPassword, post, timeoutMs?)` — a real
+  `POST {siteUrl}/wp-json/wp/v2/posts` call.
+- **Adapter**: `packages/publishing/src/adapters/wordpress.ts`'s
+  `wordpressAdapter` wraps `verifyWordPressConnection` (connect-time check)
+  and `createPost` (the actual publish call) behind the platform-agnostic
+  `BlogAdapter` interface every registry entry implements — so a real post
+  from this app lands as a real published WordPress post, no draft/manual
+  step in between.
+- **Schema**: `blog_connections` (one row per project+platform;
+  `credentials` is a `jsonb` blob shaped per platform — `username` +
+  `appPassword` for WordPress) and `blog_posts`/`blog_post_targets` for the
+  posts fanned out to each connected platform, all RLS-protected.
+- **Routes**: `/api/integrations/blog/connect` and `.../callback` handle
+  the OAuth-capable platforms; credential-based platforms like WordPress
+  verify-and-save through `POST /api/projects/:projectId/blog/connections`
+  (called from `PublishConnectionsWorkspace` /
+  `apps/web/components/publish/publish-connect-card.tsx`), which runs the
+  adapter's `verify()` before persisting — no dedicated `/wordpress`-only
+  route. Publishing a post to a connected platform goes through
+  `POST /api/projects/:projectId/blog/posts/:postId/publish`, which calls
+  the adapter's `publish()`.
+- **UI**: `PlatformStatusGrid` on this Integrations page shows a
+  connected/not-connected row for WordPress alongside the other nine Sites
+  platforms, linking to `/publish/connections` to manage it; that page's
+  `PublishConnectionsWorkspace` has the actual connect form (site URL,
+  username, application password) and connection list.
+
+An earlier, now-orphaned build of this feature added a standalone
+`wordpress_connections` table and `GET`/`POST`/`DELETE
+/api/projects/:projectId/wordpress` route (status + recent posts,
+verify-and-save, disconnect) with its own dedicated card. That route still
+works — it's real code, not stubbed — but nothing in the current UI links
+to it; the Sites/`blog_connections` path above is what's actually wired up
+today.
 
 ## LLM Providers
 

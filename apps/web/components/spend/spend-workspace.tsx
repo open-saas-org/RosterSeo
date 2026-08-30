@@ -29,7 +29,7 @@ function LiveOrEstimatedBadge({ hasReal, hasEstimate }: { hasReal: boolean; hasE
   return (
     <Tooltip>
       <TooltipTrigger render={<Badge variant="outline">Estimated</Badge>} />
-      <TooltipContent>This provider's API doesn't return a real per-call cost - estimated from token usage (or a flat per-call rate) instead, never a real invoice.</TooltipContent>
+      <TooltipContent>This provider&apos;s API doesn&apos;t return a real per-call cost - estimated from token usage (or a flat per-call rate) instead, never a real invoice.</TooltipContent>
     </Tooltip>
   );
 }
@@ -115,11 +115,11 @@ export function SpendWorkspace({ initialSummary }: { initialSummary: SpendSummar
       <Card>
         <CardHeader>
           <CardTitle>By provider</CardTitle>
-          <CardDescription>All-time totals. "Live" means every logged call for that provider reports a real cost from its own API.</CardDescription>
+          <CardDescription>All-time totals. &quot;Live&quot; means every logged call for that provider reports a real cost from its own API.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {sortedProviders.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No spend recorded yet - it'll show up here after your first real API call.</p>
+            <p className="text-sm text-muted-foreground">No spend recorded yet - it&apos;ll show up here after your first real API call.</p>
           ) : (
             sortedProviders.map((p) => (
               <div key={p.provider} className="flex items-center justify-between gap-3 rounded-lg border p-3">

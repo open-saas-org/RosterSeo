@@ -178,7 +178,7 @@ export function CompetitorDetail({
 
       {competitor.status === "error" ? (
         <Alert variant="destructive">
-          <AlertTitle>Couldn't scan {competitor.domain}</AlertTitle>
+          <AlertTitle>Couldn&apos;t scan {competitor.domain}</AlertTitle>
           <AlertDescription>
             <p>{competitor.error ?? "Something went wrong fetching this competitor's data."}</p>
             <Button variant="outline" size="sm" className="mt-2" onClick={() => onScan(competitor.id)}>

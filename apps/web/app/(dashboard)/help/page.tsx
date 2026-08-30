@@ -9,14 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 // so that's the URL used here rather than inventing a production one.
 const DOCS_URL = "http://localhost:3001";
 
-// apps/docs/src/lib/shared.ts's gitConfig ("your-org/seo-tool") is an
-// explicit TODO placeholder ("update once this repo has a real GitHub
-// org/name"), and neither package.json in the repo declares a
-// `repository` field. There is no real GitHub URL yet - do not fabricate
-// one, so this links out is marked "coming soon" the same as the
-// community channel below.
-const GITHUB_CONFIGURED = false;
-const GITHUB_URL = "https://github.com/your-org/seo-tool";
+// Real repo (see apps/docs/src/lib/shared.ts's gitConfig and package.json's
+// "repository" field, both set to this same URL).
+const GITHUB_CONFIGURED = true;
+const GITHUB_URL = "https://github.com/open-saas-org/seo";
 
 export default function HelpPage() {
   return (

@@ -23,7 +23,7 @@ export default function BrandLookupPage() {
   ) as Record<AiVisibilityProvider, boolean>;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Brand Lookup"
         description="Run a one-off check across LLM providers: is this brand mentioned right now, and how?"

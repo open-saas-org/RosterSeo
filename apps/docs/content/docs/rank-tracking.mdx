@@ -1,6 +1,6 @@
 ---
 title: Rank Tracking
-description: Industry-standard rank tracker - bulk keyword add, background Fetch Rankings runs, position-distribution trend, SERP features (PRD Section 5.2)
+description: Industry-standard rank tracker - bulk keyword add, background Fetch Rankings runs, position-distribution trend, SERP features
 ---
 
 Route: `/rank-tracking`.
@@ -70,11 +70,14 @@ all RLS-protected:
   `completedAt`.
 - **`keywordRankings`** (`keyword_rankings`) - one row per rank-check
   snapshot: `id`, `trackedKeywordId`, `position` (nullable), `url`,
-  `device`, `serpFeatures` (`jsonb string[]`), `runId` (nullable FK ->
-  `rankCheckRuns`, `onDelete: "set null"`), `checkedAt`. The
-  position-distribution chart only aggregates rows with a non-null
-  `runId` - single "check now" snapshots are deliberately excluded so they
-  don't distort the trend.
+  `device`, `serpFeatures` (`jsonb string[]`), `isMock` (boolean, default
+  `false` - always `false` today since `checkKeywordRanking()` has no mock
+  path to set it true, see below; the column exists so a future mock
+  fallback, if one's ever added here, can't silently pass as real data),
+  `runId` (nullable FK -> `rankCheckRuns`, `onDelete: "set null"`),
+  `checkedAt`. The position-distribution chart only aggregates rows with a
+  non-null `runId` - single "check now" snapshots are deliberately
+  excluded so they don't distort the trend.
 
 ## SERP feature capture
 
@@ -89,21 +92,33 @@ labels for the `serpFeatures` array, while still resolving
 position/URL by matching the project's own domain among `type === "organic"`
 items. The real DataForSEO item shape has no nested per-feature detail (no
 PAA question text, no featured-snippet owner) - `serpFeatures` is
-necessarily a flat label array, not richer structured data. Falls back to
-a seeded-random mock (same convention as every other function in this
-file) when DataForSEO isn't configured or the real call fails/returns
-empty.
+necessarily a flat label array, not richer structured data. Unlike most
+other functions in this file, it has **no mock fallback**: it throws
+`DataForSeoNotConfiguredError` if DataForSEO isn't configured, and a real
+API failure propagates rather than being papered over with fabricated
+data - deliberately, since a fetched-but-fake position written into real
+rank history would be worse than a visibly failed check. Every route that
+calls it (bulk `rankCheckJob` and the single "check now" endpoint) catches
+that failure per-keyword, logs it, and skips writing a row rather than
+inserting a mock one.
 
 ## What's real vs mock today
 
 - **Add (single/bulk), untrack, list**: real. No DataForSEO involved.
 - **Fetch Rankings (bulk, background job)**: real end-to-end - job
   enqueue, worker processing, progress polling, run status. The
-  DataForSEO SERP + keyword-metrics calls inside it follow this
-  codebase's standard real/mock-fallback pattern; **not yet live-tested
-  against a funded DataForSEO account in this environment**, same honesty
-  note as Bing/Merchant Center/GBP Performance earlier in this project.
-- **Check rank now (single, synchronous)**: real, same fallback pattern.
+  DataForSEO SERP call (`checkKeywordRanking()`) and the keyword-metrics
+  refresh (`getRealKeywordMetrics()`) inside it are both **real-only, with
+  no mock fallback** - they throw or return `null`/empty on failure rather
+  than fabricating a position or metrics (`checkKeywordRanking()` used to
+  fall back to a seeded-random mock; that path was removed, and
+  `keywordRankings.isMock` is kept only as a historical marker on rows
+  written before the removal - see above); **not yet live-tested against a
+  funded DataForSEO account in this environment**, same honesty note as
+  Bing/Merchant Center/GBP Performance earlier in this project.
+- **Check rank now (single, synchronous)**: real, same real-only
+  behavior - a failed check returns a 502, it never writes a fabricated
+  snapshot.
 - **Weekly schedule**: the option is real UI, saved to a real column, but
   **not automatic** - there is no recurring job reading `scheduleInterval`
   yet. Only manual Fetch Rankings actually runs a check.
@@ -141,12 +156,15 @@ Full position history for one tracked keyword, oldest to newest.
 
 ### `POST /api/projects/:projectId/keywords/:keywordId/rankings`
 
-One-off "check this keyword now". With no `position` in the body, runs
-`checkKeywordRanking()` using the project's real `rank_tracking_settings`
-location/device, matches the project's domain in the organic results, and
-writes a snapshot with `device`/`serpFeatures` set and `runId` left `null`.
-An explicit `position`/`url` in the body is still accepted for manual
-entry/testing.
+One-off "check this keyword now". Always runs a real `checkKeywordRanking()`
+call using the project's real `rank_tracking_settings` location/device,
+matches the project's domain in the organic results, and writes a snapshot
+with `device`/`serpFeatures` set and `runId` left `null`. There is no
+manual `position`/`url` override - an earlier version of this route
+accepted one, but it was removed as an ungated escape hatch nothing in the
+UI used, and one that let any authenticated caller write a fabricated
+position straight into real rank history. A failed check returns `502`
+rather than falling back to anything.
 
 ### `GET|PATCH /api/projects/:projectId/rank-tracking/settings`
 

@@ -6,9 +6,8 @@ an AI-answer-engine (ChatGPT/Gemini/Perplexity) brand-visibility tracker,
 plus GSC/GA4 integration so recommendations are grounded in your site's
 real performance data — not just estimated SERP data.
 
-Full product spec: [seo-saas-prd-v1.md](./seo-saas-prd-v1.md). Architecture
-and rationale: [ARCHITECTURE.md](./ARCHITECTURE.md). Both are also published
-as browsable docs in `apps/docs` (see below).
+Architecture and rationale: [ARCHITECTURE.md](./ARCHITECTURE.md), also
+published as browsable docs in `apps/docs` (see below).
 
 **Status**: real signup/login, a working dashboard across three pillars —
 SEO (Page Analyzer, Keyword Research, Site Audit, Rank Tracking,
@@ -47,7 +46,7 @@ pnpm dev
 
 `apps/web` runs on `http://localhost:3000` — visit `/signup` to create your
 first account (this also creates your organization and prompts you to
-create your first project, per the PRD's onboarding flow).
+create your first project).
 
 Database setup, including the two-role RLS requirement, is documented in
 [packages/db/README.md](./packages/db/README.md) — read it before your
@@ -116,7 +115,7 @@ apps/
   web/          Next.js dashboard + API routes (Better-Auth, Stripe in hosted mode)
   worker/       pg-boss job consumer (crawls, SERP pulls, AI-visibility runs)
   mcp-server/   MCP server exposing project data to external AI tools
-  docs/         Fumadocs documentation site (this README, the PRD, architecture)
+  docs/         Fumadocs documentation site (per-feature docs, architecture)
 packages/
   db/           Drizzle ORM schema + migrations (Postgres) + RLS tenant isolation
   jobs/         Shared pg-boss job definitions (enqueue from web, process in worker)
@@ -127,14 +126,14 @@ packages/
   bing/         Bing Webmaster Tools client (single global API key, no OAuth)
   wordpress/    WordPress Application Password client (connect + verify + list posts)
   indexnow/     IndexNow protocol client (Bing/Yandex/Seznam/Naver instant-index pings)
-  shopify/      Shopify Connect + agent write-back (Phase 2)
+  shopify/      Shopify Connect + agent write-back
 docker/         Dockerfile support docs, Railway publishing steps
 ```
 
 ## Documentation site
 
-`apps/docs` (Fumadocs) publishes this README, the PRD, and ARCHITECTURE.md
-as browsable docs:
+`apps/docs` (Fumadocs) publishes per-feature docs and ARCHITECTURE.md as
+browsable docs:
 
 ```bash
 pnpm --filter @seo-tool/docs dev

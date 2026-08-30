@@ -30,7 +30,7 @@ async function streamTurn(url: string, body: unknown, onEvent: (event: ClayStrea
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-  for (;;) {
+  for (; ;) {
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
@@ -168,7 +168,7 @@ export function ClayWorkspace({ projectId, domain }: { projectId: string; domain
       {isEmpty ? (
         <>
           <div className="flex flex-1 flex-col overflow-y-auto px-4 pt-10 pb-6 sm:pt-16">
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
+            <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
               <div className="flex items-start gap-3">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Sparkles className="size-4" />

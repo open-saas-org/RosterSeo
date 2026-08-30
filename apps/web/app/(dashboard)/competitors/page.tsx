@@ -31,7 +31,7 @@ export default async function CompetitorsPage() {
   const snapshots = await getCachedSnapshots(session.user.id, project.id, locationCode);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Competitor research"
         description="Track competitor domains to compare traffic, top pages, backlink profile, and keyword gaps - this same list is what AI Visibility compares your brand against."

@@ -19,6 +19,17 @@ ROLE` statement.
 
 ## Migration history
 
+`packages/db/drizzle/` currently holds 42 migrations (`0000` through
+`0041`), one SQL file per schema change, applied in numeric order - every
+feature module in this app (Page Analyzer, Keywords, Site Audit, AI
+Visibility, Local SEO, Rank Tracking, Backlinks, Clay, Publish, Social,
+and more) shipped its tables this way, incrementally, rather than as one
+upfront schema. `packages/db/README.md`'s own migration-history table is
+the complete, current, row-by-row list - it's regenerated there as new
+migrations land, so it's kept out of this page rather than copied and
+left to drift. The early sequence below is representative of the pattern
+every migration since has followed:
+
 | # | What it does |
 |---|---|
 | 0000 | Initial schema - identity tables + core app tables |
@@ -27,7 +38,16 @@ ROLE` statement.
 | 0003 | RLS policies on the 0002 tables, including nested-relation cases |
 | 0004 | Additive INSERT-only policies for the signup flow - a brand-new org and its first membership row can't satisfy "already a member," since neither exists yet |
 | 0005 | `saved_keywords` table (the Saved Keywords watchlist) + its RLS policy, same shape as `tracked_keywords`' |
-| 0006 | Moves `google_connections` from project-scoped to organization-scoped (a Google OAuth grant belongs to the account, not one project) - drops `project_id`/`property_id`, adds `organization_id` + a `UNIQUE (organization_id, service)` constraint, recreates its RLS policy; adds `projects.gsc_property_id`/`ga4_property_id` for per-project property selection. Truncates `google_connections` first - no real data to preserve at this stage, called out explicitly rather than silently |
+| 0006 | Moves `google_connections` from project-scoped to organization-scoped (a Google OAuth grant belongs to the account, not one project) - drops `project_id`/`property_id`, adds `organization_id` + a `UNIQUE (organization_id, service)` constraint, recreates its RLS policy; adds `projects.gsc_property_id`/`ga4_property_id` for per-project property selection. Truncates `google_connections` first - no real data to preserve at this stage, called out explicitly rather than silently
+
+The pattern continues past 0006 exactly the way you'd expect from the
+four rules below: 0018 drops `saved_keywords` once it was superseded by a
+caching table, 0027 drops a self-referencing FK column Query Fan-Out
+never ended up populating, 0030-0033 each add one new feature's full
+table set (Outreach, Clay, Publish, Social) in a single migration since
+none of them have another migration's rows to bootstrap around. See
+`packages/db/README.md` for the complete list and the reasoning behind
+each one.
 
 ## The four rules
 

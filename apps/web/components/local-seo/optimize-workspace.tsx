@@ -100,7 +100,7 @@ export function OptimizeWorkspace({
   const done = recommendations.filter((r) => r.status === "done");
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <Button onClick={handleGenerate} disabled={isGenerating}>
           {isGenerating ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}

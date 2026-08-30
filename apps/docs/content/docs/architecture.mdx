@@ -3,9 +3,7 @@ title: Architecture
 description: Stack choices and why, monorepo layout, runtime process model, tenant isolation
 ---
 
-
-This supersedes PRD Section 7 (`seo-saas-prd-v1.md`), which assumed a
-closed, Vercel+Supabase-hosted SaaS. Two decisions changed that:
+Two decisions shape everything below:
 
 1. **Open-core, not SaaS-only.** Same codebase runs as a single-tenant
    self-hosted deploy (`SELF_HOSTED=true`, no billing, operator's own API
@@ -25,25 +23,17 @@ closed, Vercel+Supabase-hosted SaaS. Two decisions changed that:
 | API layer | Next.js Route Handlers, no separate Express/NestJS | No need to run a second HTTP service alongside the dashboard |
 | Database | Postgres + Drizzle ORM | Portable — works identically on Railway's managed Postgres, Docker Compose, or any Postgres host. No vendor-specific schema magic |
 | Auth | better-auth | Self-hostable (unlike Supabase Auth or Clerk), Drizzle adapter, org/session model we control |
-| Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | PRD Section 6 requirement. Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
+| Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
 | Background jobs | pg-boss, run in a separate `apps/worker` process | Postgres-native, no extra infra, matches our self-host-first goal |
 | Billing | Stripe (hosted mode only) | Off entirely when `SELF_HOSTED=true` |
-| SEO data | DataForSEO API | Per PRD — single vendor for keywords/SERP/backlinks/on-page/local |
-| AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity) | Per PRD Section 5.7 and 5.1 |
-| MCP server | `@modelcontextprotocol/sdk`, separate app in the monorepo | Per PRD Section 5.8 |
+| SEO data | DataForSEO API | Single vendor for keywords/SERP/backlinks/on-page/local |
+| AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity), plus BrightData + OpenRouter for AI-answer-engine visibility | Broadest real coverage without vendor lock-in to one LLM provider |
+| MCP server | `@modelcontextprotocol/sdk`, separate app in the monorepo | Lets a user's own AI tools query their project data directly |
 | Deploy targets | Railway (Docker, one-click template), Docker Compose (self-host), any Node host | Railway is primary per the open-source goal; Vercel remains possible since it's still Next.js, just not the default path |
 
 ## Monorepo layout
 
 See README.md — same list, kept in one place to avoid drift.
-
-## Roadmap
-
-Phased build sequence is unchanged from PRD Section 9 (Month 1: auth +
-multi-project + page analyzer; Month 2: crawler + competitor research;
-Month 3: GSC/GA4 + local SEO; Month 4: AI-visibility + MCP server + polish;
-Phase 2: Shopify Connect). What changed is *how* each phase is built, not
-the sequence.
 
 ## Runtime process model
 
@@ -92,5 +82,5 @@ the policies check, rather than the bare `db` export.
 
 ## Open decisions
 
-- Product name/branding (PRD Section 12) — repo currently uses the
-  placeholder package scope `@seo-tool/*`.
+- Product name/branding — repo currently uses the placeholder package
+  scope `@seo-tool/*`.

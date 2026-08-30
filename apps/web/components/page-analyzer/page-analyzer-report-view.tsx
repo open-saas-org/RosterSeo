@@ -64,7 +64,7 @@ export function PageAnalyzerReportView({
   const running = isLoading || data?.report?.status === "running";
 
   return (
-    <div className="flex flex-col gap-6 print:gap-4">
+    <div className="flex flex-col gap-4 print:gap-4">
       <Link href="/page-analyzer" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "w-fit gap-1.5 print:hidden")}>
         <ArrowLeft className="size-3.5" />
         Back to Page Analyzer
@@ -105,7 +105,7 @@ export function PageAnalyzerReportView({
 
 function RunningState({ url, targetKeyword, stale }: { url?: string; targetKeyword?: string; stale: boolean }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {stale ? (
         <Alert>
           <AlertTriangle />
@@ -171,7 +171,7 @@ function ReportContent({
   const mediumIssues = report.findings.filter((f) => f.impact === "Medium").length;
 
   return (
-    <div className="flex flex-col gap-6 print:gap-4">
+    <div className="flex flex-col gap-4 print:gap-4">
       <ReportExportBar report={report} projectId={projectId} gscPropertyId={gscPropertyId} />
 
       <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
@@ -217,8 +217,8 @@ function ReportContent({
               <TabsTrigger value="ai">AI guidance</TabsTrigger>
             </TabsList>
           </div>
-          <div className="flex flex-col gap-6 p-4">
-            <TabsContent value="overview" className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 p-4">
+            <TabsContent value="overview" className="flex flex-col gap-4">
               {report.pageType?.type === "product" ? (
                 <ProductSnapshot comparisonRows={report.comparisonRows} merchantMetrics={report.merchantMetrics} />
               ) : null}

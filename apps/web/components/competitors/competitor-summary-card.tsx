@@ -140,7 +140,7 @@ export function CompetitorSummaryCard({
           <Alert variant="destructive">
             <AlertTitle className="flex items-center gap-1.5">
               <TriangleAlert className="size-4" />
-              Couldn't scan {competitor.domain}
+              Couldn&apos;t scan {competitor.domain}
             </AlertTitle>
             <AlertDescription>
               <p>{competitor.error ?? "Something went wrong fetching this competitor's data."}</p>

@@ -10,7 +10,7 @@ import { StatGridSkeleton, ListSkeleton } from "@/components/ui/loading-skeleton
 // page's exact layout.
 export default function DashboardLoading() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-7 w-48" />
         <Skeleton className="h-4 w-96" />

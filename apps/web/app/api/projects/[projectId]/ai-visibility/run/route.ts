@@ -37,10 +37,11 @@ type RunRequestBody = {
 
 function parseTargetsOverride(input: unknown): AiVisibilityTarget[] | null {
   if (!Array.isArray(input)) return null;
-  const parsed = input.filter(
-    (t): t is AiVisibilityTarget =>
-      !!t && typeof t === "object" && typeof (t as any).provider === "string" && typeof (t as any).model === "string",
-  );
+  const parsed = input.filter((t): t is AiVisibilityTarget => {
+    if (!t || typeof t !== "object") return false;
+    const record = t as Record<string, unknown>;
+    return typeof record.provider === "string" && typeof record.model === "string";
+  });
   return parsed.length > 0 ? parsed : null;
 }
 
