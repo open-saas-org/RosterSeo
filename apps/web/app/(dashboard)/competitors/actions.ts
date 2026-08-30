@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
-import { competitorSnapshotCache, withUserContext } from "@seo-tool/db";
+import { competitorSnapshotCache, withUserContext } from "@rosterseo/db";
 import {
   getBacklinksOverview,
   getDomainOverview,
@@ -11,7 +11,7 @@ import {
   type BacklinksOverview,
   type DomainOverview,
   type KeywordMetrics,
-} from "@seo-tool/dataforseo";
+} from "@rosterseo/dataforseo";
 import { isValidDomain, normalizeDomain } from "@/components/competitors/domain-utils";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";

@@ -52,7 +52,7 @@ import {
   type CitationRow,
   type DomainStat,
   type UrlStat,
-} from "@seo-tool/ai-visibility";
+} from "@rosterseo/ai-visibility";
 
 type PromptTags = { id: string; tags: string[] };
 type ModelOption = { value: string; label: string };

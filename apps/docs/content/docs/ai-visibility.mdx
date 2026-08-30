@@ -7,7 +7,7 @@ description: Track and improve how often your brand shows up in AI answer engine
 
 This module lets a project define **tracked prompts** — things a
 prospective customer might ask an AI assistant, e.g. `"best SEO rank
-tracking tool for small agencies"` or `"SEO Tool vs Ahrefs"` — and
+tracking tool for small agencies"` or `"RosterSEO vs Ahrefs"` — and
 periodically samples those prompts across multiple AI providers to see how
 often, where, and how positively the brand gets mentioned in the answer.
 
@@ -126,7 +126,7 @@ version should enqueue this as a `pg-boss` job on `apps/worker` instead,
 with the page polling for status — noted here as a deliberate
 simplification, not an oversight.
 
-## Package: `@seo-tool/ai-visibility`
+## Package: `@rosterseo/ai-visibility`
 
 - **`providers/`** — the registry above (`getProvider(id)`, `getAvailableProviders()`, `getAllProviders()`, `DEFAULT_DIRECT_API_PROVIDER_IDS`, `PROVIDER_COST_ESTIMATES_USD` — coarse, hand-maintained per-run cost hints, never presented as a real bill).
 - **`client.ts`** — `sampleEntities(promptText, brandDomain, competitorDomains, target: AiVisibilityTarget, sampleIndex?)` — **one** real call via the target's provider, parsed for a mention of the brand AND every competitor domain from the same response text. `samplePrompt(...)` is a brand-only convenience wrapper (Brand Lookup). `runVisibilityCheckDetailed({ prompts, brandDomain, competitorDomains?, targets?, samplesPerProvider? })` is the real primitive the run route persists rows from; `toBrandOnlyRunResult(detailed)` strips it to the brand-only shape the Visibility page renders. `defaultTargets()` returns BrightData's 5 real scraped surfaces alone (`chatgpt`, `gemini`, `perplexity`, `copilot`, `google-ai-overview`, all with `webSearch: true`) — the fallback set when a project has no custom `aiVisibilityTargets` saved; OpenRouter and the 4 direct-API providers only run when explicitly enabled in Settings → Providers.

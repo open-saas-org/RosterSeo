@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { siteAudits, withUserContext } from "@seo-tool/db";
-import { siteAuditJob } from "@seo-tool/jobs";
+import { siteAudits, withUserContext } from "@rosterseo/db";
+import { siteAuditJob } from "@rosterseo/jobs";
 
 const MIN_MAX_PAGES = 10;
 // A hard safety ceiling, not a real feature limit - see
@@ -12,7 +12,7 @@ const MAX_MAX_PAGES = 100_000;
 const DEFAULT_MAX_PAGES = MAX_MAX_PAGES;
 
 // Real shared logic behind POST /api/projects/:projectId/site-audit -
-// extracted so Clay's start_site_audit tool (apps/web/lib/clay/tools/write.ts)
+// extracted so Cappy's start_site_audit tool (apps/web/lib/cappy/tools/write.ts)
 // enqueues the exact same real background job (apps/worker's audit-runner.ts)
 // the Site Audit page's "Launch audit" button does.
 export async function startSiteAudit(

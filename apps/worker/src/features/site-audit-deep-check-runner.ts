@@ -1,6 +1,6 @@
-import { siteAudits, siteAuditPages, siteAuditIssues, siteAuditLinks, googleConnections, projects, withUserContext } from "@seo-tool/db";
+import { siteAudits, siteAuditPages, siteAuditIssues, siteAuditLinks, googleConnections, projects, withUserContext } from "@rosterseo/db";
 import { and, eq } from "drizzle-orm";
-import { GoogleReauthRequiredError, refreshAccessToken, fetchGscExactWindow } from "@seo-tool/google";
+import { GoogleReauthRequiredError, refreshAccessToken, fetchGscExactWindow } from "@rosterseo/google";
 import type { IssueSeverity } from "./audit-runner";
 
 interface IssueRow {

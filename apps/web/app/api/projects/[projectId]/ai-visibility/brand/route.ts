@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { projects, withUserContext } from "@seo-tool/db";
+import { projects, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { normalizeDomain } from "@/components/competitors/domain-utils";
 

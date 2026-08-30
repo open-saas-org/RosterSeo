@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { localBusinessProfiles, localSeoRecommendations, withUserContext } from "@seo-tool/db";
+import { localBusinessProfiles, localSeoRecommendations, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { OptimizeWorkspace } from "@/components/local-seo/optimize-workspace";
 import { getCurrentProject } from "@/lib/current-project";

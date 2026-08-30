@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { emailConnections, outreachTargets, withUserContext } from "@seo-tool/db";
+import { emailConnections, outreachTargets, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { OutreachWorkspace } from "@/components/outreach/outreach-workspace";
 import { getCurrentProject } from "@/lib/current-project";

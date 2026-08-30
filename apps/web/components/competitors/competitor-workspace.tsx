@@ -14,7 +14,7 @@ import type { TrackedCompetitor } from "@/components/competitors/types";
 // route (app/api/projects/[projectId]/competitors/route.ts) - the page
 // loads the initial list server-side and add/remove below POST/DELETE
 // against that route. Domain *stats* (traffic, backlinks, keyword ideas)
-// are a separate concern, fetched straight from @seo-tool/dataforseo via a
+// are a separate concern, fetched straight from @rosterseo/dataforseo via a
 // Server Action - see app/(dashboard)/competitors/actions.ts.
 export function CompetitorWorkspace({
   projectId,

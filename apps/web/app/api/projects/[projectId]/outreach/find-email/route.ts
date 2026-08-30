@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findContactEmail } from "@seo-tool/crawler";
+import { findContactEmail } from "@rosterseo/crawler";
 import { normalizeDomain, isValidDomain } from "@/components/competitors/domain-utils";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 

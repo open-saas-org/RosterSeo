@@ -2,7 +2,7 @@ import "./instrument";
 import "./spend-logging";
 
 import * as Sentry from "@sentry/node";
-import { pingJob, siteAuditJob, siteAuditDeepCheckJob, localGridScanJob, localGridScanFanoutJob, rankCheckJob, outreachSendJob, blogPublishJob, socialPublishJob } from "@seo-tool/jobs";
+import { pingJob, siteAuditJob, siteAuditDeepCheckJob, localGridScanJob, localGridScanFanoutJob, rankCheckJob, outreachSendJob, blogPublishJob, socialPublishJob } from "@rosterseo/jobs";
 import { runSiteAuditBackground } from "./features/audit-runner";
 import { runSiteAuditDeepCheck } from "./features/site-audit-deep-check-runner";
 import { runProjectGridScan, runWeeklyFanout } from "./features/grid-scan-runner";

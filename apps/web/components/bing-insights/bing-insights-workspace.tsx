@@ -8,7 +8,7 @@ import { MetricCard } from "@/components/metric-card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { TrafficChart } from "@/components/charts/traffic-chart";
 import { DataTable, createDataTableColumns, type DataTableColumnDef } from "@/components/data-table";
-import type { BingPerformanceRow } from "@seo-tool/bing";
+import type { BingPerformanceRow } from "@rosterseo/bing";
 import { summarizeBingRows, type BingInsightsMetrics } from "@/components/bing-insights/bing-insights-metrics";
 
 const DAY_OPTIONS = [

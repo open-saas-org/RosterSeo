@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { localBusinessProfiles, withUserContext } from "@seo-tool/db";
+import { localBusinessProfiles, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { BusinessProfileWorkspace } from "@/components/local-seo/business-profile-workspace";
 import { GbpPerformanceSection } from "@/components/local-seo/gbp-performance-section";

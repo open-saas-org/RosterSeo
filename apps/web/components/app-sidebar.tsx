@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ProjectSwitcher, type SwitcherProject } from "@/components/project-switcher";
 import { SidebarModeTabs } from "@/components/sidebar-mode-tabs";
-import { ClaySidebarNav } from "@/components/clay/clay-sidebar-nav";
+import { CappySidebarNav } from "@/components/cappy/cappy-sidebar-nav";
 import { NavUser } from "@/components/nav-user";
 import { navPillars, type NavPillar } from "@/lib/nav";
 
@@ -53,20 +54,28 @@ export function AppSidebar({
   activeProjectId: string;
 }) {
   const pathname = usePathname();
-  const isChat = pathname.startsWith("/clay");
+  const isChat = pathname.startsWith("/cappy");
   const activePillarId = getActivePillarId(pathname);
   const activePillar = navPillars.find((p) => p.id === activePillarId)!;
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
+        <div className="flex items-center gap-2 px-2 pt-1 pb-0.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Globe className="size-3.5" />
+          </div>
+          <span className="truncate text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+            RosterSEO
+          </span>
+        </div>
         <ProjectSwitcher projects={projects} archivedProjects={archivedProjects} />
         <SidebarModeTabs />
       </SidebarHeader>
       <SidebarContent>
         {isChat ? (
           <Suspense fallback={null}>
-            <ClaySidebarNav projectId={activeProjectId} />
+            <CappySidebarNav projectId={activeProjectId} />
           </Suspense>
         ) : (
           <>

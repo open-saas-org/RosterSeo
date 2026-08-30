@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
 import { BrandLookupResultCard } from "@/components/brand-lookup/brand-lookup-result-card";
-import { AI_VISIBILITY_PROVIDERS, type AiVisibilityProvider } from "@seo-tool/ai-visibility";
+import { AI_VISIBILITY_PROVIDERS, type AiVisibilityProvider } from "@rosterseo/ai-visibility";
 import { lookupBrandAction, type BrandLookupResult } from "@/app/(dashboard)/brand-lookup/actions";
 
 export function BrandLookupWorkspace({

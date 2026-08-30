@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { wordpressConnections, withUserContext } from "@seo-tool/db";
-import { verifyWordPressConnection, listRecentPosts } from "@seo-tool/wordpress";
+import { wordpressConnections, withUserContext } from "@rosterseo/db";
+import { verifyWordPressConnection, listRecentPosts } from "@rosterseo/wordpress";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET    /api/projects/:projectId/wordpress - connection status + real

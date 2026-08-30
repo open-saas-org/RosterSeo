@@ -24,7 +24,7 @@ Unlike GSC/GA4/GBP/Merchant Center, Bing Webmaster Tools has no per-project
 OAuth connection — `BING_WEBMASTER_API_KEY` is one key for the whole
 self-hosted deploy (get it from Bing Webmaster Tools → Settings → API
 access), same shape as `GOOGLE_PAGESPEED_API_KEY`. `isBingConfigured()`
-(`@seo-tool/bing`) gates every real call; the page shows an `EmptyState`
+(`@rosterseo/bing`) gates every real call; the page shows an `EmptyState`
 plus a destructive `Alert` when it's unset.
 
 Once configured, each project independently picks **which verified Bing
@@ -35,7 +35,7 @@ site** it reports on via `BingSitePicker`
 ## What's real today
 
 - **`listBingSites()`** and **`getBingRankAndTrafficStats(siteUrl, startDate, endDate)`**
-  (`@seo-tool/bing`, `packages/bing/src/client.ts`) — real calls against
+  (`@rosterseo/bing`, `packages/bing/src/client.ts`) — real calls against
   `https://ssl.bing.com/webmaster/api.svc/json/{Method}`
   (`GetUserSites` / `GetRankAndTrafficStats`). Bing's real method takes no
   date-range params and returns its own available window server-side, so

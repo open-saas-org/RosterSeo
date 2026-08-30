@@ -1,11 +1,11 @@
-import { insertSpendLog } from "@seo-tool/db";
-import { setDataForSeoSpendLogger } from "@seo-tool/dataforseo";
-import { setAiVisibilitySpendLogger } from "@seo-tool/ai-visibility";
+import { insertSpendLog } from "@rosterseo/db";
+import { setDataForSeoSpendLogger } from "@rosterseo/dataforseo";
+import { setAiVisibilitySpendLogger } from "@rosterseo/ai-visibility";
 
 // Wires packages/dataforseo's and packages/ai-visibility's DB-agnostic
 // spend-logger hooks to real persistence, once, at server startup (called
 // from instrumentation.ts's register()). Both packages stay free of a
-// @seo-tool/db dependency - see packages/db/src/spend-logger.ts's own
+// @rosterseo/db dependency - see packages/db/src/spend-logger.ts's own
 // comment for why - this is the one place apps/web actually connects them.
 let wired = false;
 

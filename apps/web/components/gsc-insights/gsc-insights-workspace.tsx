@@ -9,7 +9,7 @@ import { FilterSelect } from "@/components/ui/filter-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrafficChart } from "@/components/charts/traffic-chart";
 import { DataTable, createDataTableColumns, type DataTableColumnDef } from "@/components/data-table";
-import type { SearchConsoleRow } from "@seo-tool/google";
+import type { SearchConsoleRow } from "@rosterseo/google";
 import { summarizeSearchConsoleRows, type GscInsightsMetrics } from "@/components/gsc-insights/gsc-insights-metrics";
 import {
   aggregateByPage,

@@ -1,5 +1,5 @@
 # Builds apps/web for production. Run from the repo root:
-#   docker build -t seo-tool-web .
+#   docker build -t rosterseo-web .
 FROM node:22-slim AS base
 RUN corepack enable
 WORKDIR /repo
@@ -38,14 +38,14 @@ COPY --from=deps /repo/node_modules ./node_modules
 COPY --from=deps /repo/apps/web/node_modules ./apps/web/node_modules
 COPY --from=deps /repo/packages ./packages
 COPY . .
-RUN pnpm --filter @seo-tool/web build
+RUN pnpm --filter @rosterseo/web build
 # Bundles packages/db's real migration script (drizzle-orm's migrator, no
 # CLI/dev-tool dependency) into one self-contained ESM file with only
 # Node's own built-ins left external - see packages/db/package.json's
 # "build" script. This is what makes `railway.toml`'s releaseCommand able
 # to run real migrations from the lean runner stage below, which otherwise
 # ships none of the source/tooling needed to run `pnpm db:migrate` directly.
-RUN pnpm --filter @seo-tool/db build
+RUN pnpm --filter @rosterseo/db build
 
 FROM base AS runner
 ENV NODE_ENV=production
@@ -68,7 +68,7 @@ COPY docker/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 EXPOSE 3000
 # Default: migrate, then serve (see docker/docker-entrypoint.sh) - this is
-# what makes `docker run -e DATABASE_URL=... seo-tool-web` (or a
+# what makes `docker run -e DATABASE_URL=... rosterseo-web` (or a
 # docker-compose/Fly.io/Render/plain-VPS deploy with no separate
 # release-phase step) come up against a fully migrated schema on its own,
 # no manual `pnpm db:migrate` required. Railway does NOT use this path -

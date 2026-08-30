@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, asc, eq, gte, inArray } from "drizzle-orm";
-import { keywordRankings, rankCheckRuns, withUserContext } from "@seo-tool/db";
+import { keywordRankings, rankCheckRuns, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/projects/:projectId/rank-tracking/trend?days=30|90|all - the

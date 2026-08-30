@@ -38,25 +38,25 @@ in this pipeline.
 
 | Signal | Source |
 |---|---|
-| On-page crawl (title, meta description, H1s, word count, images/alt text, internal/external links, canonical, noindex, real HTTP status/redirects) | `fetchAndParse()` in `@seo-tool/crawler` - real `fetch()` + `cheerio` parse, shared with [Site Audit](/docs/site-audit) so both features agree on what "missing alt text" etc. mean |
-| Page type (homepage/product/category/article/standard) | `detectPageType()` in `@seo-tool/crawler` - rule-based, never an AI guess (see below) |
+| On-page crawl (title, meta description, H1s, word count, images/alt text, internal/external links, canonical, noindex, real HTTP status/redirects) | `fetchAndParse()` in `@rosterseo/crawler` - real `fetch()` + `cheerio` parse, shared with [Site Audit](/docs/site-audit) so both features agree on what "missing alt text" etc. mean |
+| Page type (homepage/product/category/article/standard) | `detectPageType()` in `@rosterseo/crawler` - rule-based, never an AI guess (see below) |
 | On-page product data (price, currency, rating, review count, availability, brand) | `ProductJsonLd`, parsed from the page's own `schema.org/Product` JSON-LD by `fetchAndParse()` - present for the target and any competitor whose page declares one |
-| Core Web Vitals (LCP/CLS/INP) | Real Google PageSpeed Insights (`fetchPageSpeedMetrics`, `@seo-tool/google/pagespeed`) - target page only, not the 10 competitors, to keep report latency bounded (a real Lighthouse run takes 10-20s) |
+| Core Web Vitals (LCP/CLS/INP) | Real Google PageSpeed Insights (`fetchPageSpeedMetrics`, `@rosterseo/google/pagespeed`) - target page only, not the 10 competitors, to keep report latency bounded (a real Lighthouse run takes 10-20s) |
 | Top-10 SERP competitors | Real DataForSEO `getRealSerpResults()` (`POST /v3/serp/google/organic/live/advanced`) |
 | Keyword volume, difficulty, CPC, 12-month trend, search intent | Real DataForSEO `getRealKeywordMetrics()` (`POST /v3/dataforseo_labs/google/keyword_overview/live`) |
 | Competitor domain authority / traffic / "how beatable" | Real DataForSEO domain + backlinks lookups via `resolveDomainSnapshot()` (`apps/web/lib/domain-snapshot.ts`), the same 7-day cache the [Competitors](/docs/competitors) page reads and writes |
 | Search Console / Analytics traffic for the target page | Real GSC/GA4 calls, last 28 days, when the project has those connected |
 | Merchant Center performance for the target product | Real Google Merchant API cross-reference, when the page is a product page and Merchant Center is connected |
-| Ranking guidance, AI-visibility guidance, keyword opportunities, suggested AI prompts | Real, structured LLM call via `generatePageAnalysisAi()` in `@seo-tool/ai-visibility` (see below) |
+| Ranking guidance, AI-visibility guidance, keyword opportunities, suggested AI prompts | Real, structured LLM call via `generatePageAnalysisAi()` in `@rosterseo/ai-visibility` (see below) |
 
 Both DataForSEO functions used here (`getRealSerpResults`, `getRealKeywordMetrics`,
-in `@seo-tool/dataforseo`) return an honest empty/`null` result - never
+in `@rosterseo/dataforseo`) return an honest empty/`null` result - never
 fabricated data - when `DATAFORSEO_LOGIN`/`DATAFORSEO_PASSWORD` aren't
 configured or a real call fails: a `null` SERP result becomes an empty
 competitor set (never invented `competitor-###.com` domains), and a
 `null` keyword-metrics result renders as an explicit "data not found"
 state rather than a zeroed-out metric. Neither function has a mock
-fallback - this is the convention across the whole `@seo-tool/dataforseo`
+fallback - this is the convention across the whole `@rosterseo/dataforseo`
 package, not something specific to Page Analyzer.
 
 ### DataForSEO location handling

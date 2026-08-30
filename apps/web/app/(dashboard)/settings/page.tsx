@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { Settings } from "lucide-react";
-import { organizationMembers, organizations, withUserContext } from "@seo-tool/db";
+import { organizationMembers, organizations, withUserContext } from "@rosterseo/db";
 import { auth } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

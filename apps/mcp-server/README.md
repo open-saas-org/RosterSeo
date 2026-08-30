@@ -1,4 +1,4 @@
-# @seo-tool/mcp-server
+# @rosterseo/mcp-server
 
 MCP server exposing project data and real live SEO lookups to external AI
 tools (Claude Desktop, other MCP clients), per PRD Section 5.8.
@@ -11,7 +11,7 @@ the app's `/ai-mcp` page).
 
 ## Auth
 
-Every tool call requires a real `SEO_TOOL_API_KEY` env var - generate one
+Every tool call requires a real `ROSTERSEO_API_KEY` env var - generate one
 from the app's **AI & MCP** settings page (shown once at creation, only its
 hash is stored). The key resolves to the account that generated it; every
 DB-backed tool runs inside that account's `withUserContext(...)` (the same
@@ -28,8 +28,8 @@ read/write a specific project.
 ## Running
 
 ```bash
-# from repo root, with SEO_TOOL_API_KEY set (shell env or ../../.env)
-pnpm --filter @seo-tool/mcp-server dev
+# from repo root, with ROSTERSEO_API_KEY set (shell env or ../../.env)
+pnpm --filter @rosterseo/mcp-server dev
 ```
 
 Or point a Claude Desktop config at it - see the app's AI & MCP page for

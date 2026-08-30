@@ -1,4 +1,4 @@
-# Contributing to SEO Tool
+# Contributing to RosterSEO
 
 Thanks for considering a contribution. This is a real, working monorepo —
 issues and PRs against real bugs, real missing features, and real
@@ -37,7 +37,7 @@ pnpm test
 ```
 
 All three must pass. If you touched a specific package/app, you can scope
-any of these with `pnpm --filter @seo-tool/<name> <script>` for a faster
+any of these with `pnpm --filter @rosterseo/<name> <script>` for a faster
 loop while iterating.
 
 ## Code conventions

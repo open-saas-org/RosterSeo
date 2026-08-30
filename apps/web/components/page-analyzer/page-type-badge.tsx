@@ -1,7 +1,7 @@
 import { House, ShoppingBag, LayoutGrid, FileText, File, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { PageType, PageTypeSignal } from "@seo-tool/crawler";
+import type { PageType, PageTypeSignal } from "@rosterseo/crawler";
 
 const PAGE_TYPE_META: Record<PageType, { label: string; icon: LucideIcon }> = {
   homepage: { label: "Homepage", icon: House },
@@ -11,7 +11,7 @@ const PAGE_TYPE_META: Record<PageType, { label: string; icon: LucideIcon }> = {
   standard: { label: "Standard page", icon: File },
 };
 
-// Real, rule-based detection (detectPageType, @seo-tool/crawler) - the
+// Real, rule-based detection (detectPageType, @rosterseo/crawler) - the
 // tooltip surfaces exactly which real signal decided it (JSON-LD/URL/
 // content), so this never reads as an unexplained AI guess.
 export function PageTypeBadge({ signal }: { signal: PageTypeSignal }) {

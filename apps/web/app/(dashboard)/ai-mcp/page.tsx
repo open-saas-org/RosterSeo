@@ -4,20 +4,20 @@ import { PageHeader } from "@/components/page-header";
 import { CopyCommandButton } from "@/components/ai-mcp/copy-command-button";
 import { McpKeyManager } from "@/components/ai-mcp/mcp-key-manager";
 
-const RUN_COMMAND = "pnpm --filter @seo-tool/mcp-server dev";
+const RUN_COMMAND = "pnpm --filter @rosterseo/mcp-server dev";
 
 const CLAUDE_DESKTOP_CONFIG = `{
   "mcpServers": {
-    "seo-tool": {
+    "rosterseo": {
       "command": "pnpm",
       "args": [
         "--filter",
-        "@seo-tool/mcp-server",
+        "@rosterseo/mcp-server",
         "dev"
       ],
       "env": {
-        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/seo_tool",
-        "SEO_TOOL_API_KEY": "paste your generated key here"
+        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/rosterseo",
+        "ROSTERSEO_API_KEY": "paste your generated key here"
       }
     }
   }
@@ -116,7 +116,7 @@ export default function AiMcpPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="AI & MCP"
-        description="Connect external AI tools (Claude Desktop, other MCP clients) to your SEO Tool data over the Model Context Protocol."
+        description="Connect external AI tools (Claude Desktop, other MCP clients) to your RosterSEO data over the Model Context Protocol."
       />
 
       <McpKeyManager />
@@ -148,9 +148,9 @@ export default function AiMcpPage() {
         <CardHeader>
           <CardTitle>How to connect Claude Desktop</CardTitle>
           <CardDescription>
-            SEO Tool ships an MCP server (<code>@seo-tool/mcp-server</code>) that talks over stdio transport.
+            RosterSEO ships an MCP server (<code>@rosterseo/mcp-server</code>) that talks over stdio transport.
             Generate an API key above, then add the following to your <code>claude_desktop_config.json</code>{" "}
-            (replacing the placeholder <code>SEO_TOOL_API_KEY</code> value with your real key):
+            (replacing the placeholder <code>ROSTERSEO_API_KEY</code> value with your real key):
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -163,7 +163,7 @@ export default function AiMcpPage() {
             </div>
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            Alternatively, test it directly from the repo root using (set <code>SEO_TOOL_API_KEY</code> in your
+            Alternatively, test it directly from the repo root using (set <code>ROSTERSEO_API_KEY</code> in your
             shell or <code>.env</code> first):
           </p>
           <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
@@ -171,7 +171,7 @@ export default function AiMcpPage() {
             <CopyCommandButton command={RUN_COMMAND} />
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Every tool call is scoped to whichever account the <code>SEO_TOOL_API_KEY</code> belongs to - it can
+            Every tool call is scoped to whichever account the <code>ROSTERSEO_API_KEY</code> belongs to - it can
             only ever read or act on projects that account has access to, enforced the same way as every browser
             request in this app.
           </p>

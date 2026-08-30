@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { siteAudits, siteAuditIssues, siteAuditPages, withUserContext } from "@seo-tool/db";
+import { siteAudits, siteAuditIssues, siteAuditPages, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { startDeepCheck } from "@/lib/site-audit/start-deep-check";
 

@@ -5,7 +5,7 @@ import {
   samplePrompt,
   type AiVisibilityProvider,
   type PromptSampleResult,
-} from "@seo-tool/ai-visibility";
+} from "@rosterseo/ai-visibility";
 
 // Brand Lookup is a one-off, ad-hoc check - distinct from AI Visibility's
 // ongoing tracked-prompt monitoring (apps/web/app/(dashboard)/ai-visibility/).

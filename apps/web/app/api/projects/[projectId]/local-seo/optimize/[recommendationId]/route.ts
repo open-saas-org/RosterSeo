@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { localSeoRecommendations, withUserContext } from "@seo-tool/db";
+import { localSeoRecommendations, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // PATCH /api/projects/:projectId/local-seo/optimize/:recommendationId

@@ -38,7 +38,7 @@ export async function registerMastodonApp(instanceUrl: string, redirectUri: stri
   const res = await fetch(`${instanceUrl.replace(/\/+$/, "")}/api/v1/apps`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_name: "SEO Tool Publish", redirect_uris: redirectUri, scopes: "read write", website: redirectUri }),
+    body: JSON.stringify({ client_name: "RosterSEO Publish", redirect_uris: redirectUri, scopes: "read write", website: redirectUri }),
   });
   if (!res.ok) throw new Error(`Couldn't register with that Mastodon instance (HTTP ${res.status})`);
   const data = (await res.json()) as { client_id: string; client_secret: string };

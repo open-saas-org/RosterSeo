@@ -1,4 +1,4 @@
-# @seo-tool/db
+# @rosterseo/db
 
 Drizzle schema, migrations, and the RLS-based tenant isolation described in
 ARCHITECTURE.md.
@@ -29,19 +29,19 @@ tenant isolation against.
 ### Local setup (non-Docker)
 
 ```sql
-CREATE ROLE seo_tool_app WITH LOGIN PASSWORD '<pick one>' NOSUPERUSER NOBYPASSRLS;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO seo_tool_app;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO seo_tool_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO seo_tool_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO seo_tool_app;
+CREATE ROLE rosterseo_app WITH LOGIN PASSWORD '<pick one>' NOSUPERUSER NOBYPASSRLS;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rosterseo_app;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO rosterseo_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO rosterseo_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO rosterseo_app;
 -- apps/worker's pg-boss needs to create its own `pgboss` schema on first
 -- start. This doesn't touch RLS - CREATE lets it make new objects, not
 -- read rows through existing policies.
-GRANT CREATE ON DATABASE seo_tool TO seo_tool_app;
+GRANT CREATE ON DATABASE rosterseo TO rosterseo_app;
 ```
 
 Run migrations as your regular (superuser) role via `DATABASE_MIGRATE_URL`,
-then point `DATABASE_URL` at `seo_tool_app` for `pnpm dev`.
+then point `DATABASE_URL` at `rosterseo_app` for `pnpm dev`.
 
 ### Docker / Railway
 
@@ -91,7 +91,7 @@ by user rather than by org.
 | 0028 | `0028_slow_eddie_brock.sql` | `backlinks_cache` table - same 7-day-fresh cache-per-lookup shape as `keyword_metrics_cache` (0019), so a repeat Backlinks domain lookup skips DataForSEO instead of re-paying the API cost every time |
 | 0029 | `0029_messy_havok.sql` | `provider_spend_log` table - real (or clearly-flagged-estimated) per-call cost tracking for DataForSEO/BrightData/the AI Visibility LLM providers, instance-wide (see the table's own comment for why no `project_id`) |
 | 0030 | `0030_premium_bullseye.sql` | Backlink Outreach: `email_connections` (project-scoped SMTP/Gmail-OAuth sender identities) + `outreach_targets` (one row per outreach target, draft, and send status) + `backlinks_cache.top_backlinks` (real individual backlink rows alongside the existing aggregate columns) |
-| 0031 | `0031_late_gauntlet.sql` | Clay (in-app AI agent): `clay_conversations` + `clay_messages` (per-project, per-user chat history and tool-call state) + `clay_project_notes` (LLM-maintained per-project memory summary, plain Postgres, no vector search) + `projects.clay_provider`/`clay_model` (which of the 3 tool-calling-capable providers this project's assistant uses) |
+| 0031 | `0031_late_gauntlet.sql` | In-app AI agent (originally named Clay, renamed to Cappy in 0042): `clay_conversations` + `clay_messages` (per-project, per-user chat history and tool-call state) + `clay_project_notes` (LLM-maintained per-project memory summary, plain Postgres, no vector search) + `projects.clay_provider`/`clay_model` (which of the 3 tool-calling-capable providers this project's assistant uses) |
 | 0032 | `0032_slimy_odin.sql` | Publish (multi-platform blog publishing): `blog_connections` (project-scoped, one row per connected blog platform account, `credentials` as a jsonb blob since there are 9+ platforms with different auth shapes) + `blog_posts` (canonical Markdown post) + `blog_post_targets` (one row per platform a post targets, AI-respun/editable variant + independent send status per platform) |
 | 0033 | `0033_last_grey_gargoyle.sql` | Social (multi-platform social publishing): `social_connections` + `social_posts` (short-form text, not Markdown) + `social_post_targets` - same shape as 0032's blog tables, applied to social platforms - plus `mastodon_apps` (instance-wide, deliberately NOT RLS-protected, same exception as `mcp_api_keys` - caches the per-instance OAuth app Mastodon's API requires operators to register dynamically) |
 | 0034 | `0034_wealthy_vivisector.sql` | `site_audit_links` - the crawl's real link graph (source URL -> target URL, internal or external), captured at zero extra HTTP cost since every internal target already gets crawled anyway. Backs three new Site Audit checks: internal/external broken links and orphaned-page detection (an anti-join - a page nothing else links to) |
@@ -99,12 +99,16 @@ by user rather than by org.
 | 0036 | `0036_thin_golden_guardian.sql` | AI Visibility parity work: `ai_visibility_results.raw_output` (the full raw provider payload behind each parsed row, so future mention/sentiment/citation-parsing improvements can be re-applied to history) + `projects.ai_visibility_aliases`/`ai_visibility_additional_domains` and `project_competitors.aliases`/`additional_domains` (alternate names and extra owned domains, fed into mention-detection and citation classification so sub-brands/regional domains don't get missed or miscategorized) |
 | 0037 | `0037_thin_sabretooth.sql` | Site Audit technical-table columns on `site_audit_pages`: `canonical_url`/`meta_robots` (already extracted by the crawler, previously discarded before this) + `crawl_depth` (real BFS link-distance, new tracking in crawler.ts) + `action`/`notes` (manual per-page triage the user sets while working through issues) |
 | 0038 | `0038_quiet_galactus.sql` | `site_audit_pages.h2_texts` - first 2 real H2 headings per page, captured unconditionally (cheap - a couple more Cheerio selector calls on HTML already parsed) for the Pages table's Content columns |
+| 0039 | `0039_faulty_thunderbolts.sql` | `competitor_snapshot_cache` table - the read-through DataForSEO domain-overview/backlinks-overview cache Page Analyzer's competitor-strength sizing and the Competitors page both share (see `apps/web/lib/domain-snapshot.ts`) |
+| 0040 | `0040_careless_karma.sql` | `competitor_snapshot_cache.previous_*` columns (`estimated_monthly_traffic`/`organic_keywords`/`total_backlinks`/`referring_domains`/`domain_rating`) - prior-snapshot values so a re-fetch can show real period-over-period trend, not just the latest number |
+| 0041 | `0041_unusual_gargoyle.sql` | `ai_visibility_report_shares` table - one row per shareable AI Visibility report link (per-project unique token) |
+| 0042 | `0042_rename_clay_to_cappy.sql` | Renames the in-app AI agent's tables/columns from `clay_*` to `cappy_*` (`clay_conversations`→`cappy_conversations`, `clay_messages`→`cappy_messages`, `clay_project_notes`→`cappy_project_notes`, `projects.clay_provider`/`clay_model`→`cappy_provider`/`cappy_model`), plus every constraint name, as part of the SEO Tool → RosterSEO rebrand (Clay → Cappy) - a pure rename, no data loss |
 
 ## Adding a migration
 
 ```bash
 # schema.ts change -> auto-generated migration
-pnpm --filter @seo-tool/db generate
+pnpm --filter @rosterseo/db generate
 
 # hand-written SQL (RLS policies, data backfills, etc.) -> empty file to fill in
 cd packages/db && npx drizzle-kit generate --custom --name=<description>
@@ -156,10 +160,10 @@ This is the mistake that produced 0004. Testing a new RLS policy (or
 anything touching tenant data) **as the Postgres superuser proves
 nothing** - superusers bypass RLS unconditionally, so a broken policy and a
 working one look identical from that connection. Always test as
-`seo_tool_app` (or your local equivalent):
+`rosterseo_app` (or your local equivalent):
 
 ```bash
-PGPASSWORD=<pw> psql -h localhost -U seo_tool_app -d seo_tool
+PGPASSWORD=<pw> psql -h localhost -U rosterseo_app -d rosterseo
 ```
 
 and actually exercise the policy - insert/select/update the specific rows
@@ -174,7 +178,7 @@ startup code. If migrations ran on every container boot, scaling to
 multiple instances (or a crash-loop) could run the same migration
 concurrently from several processes at once. On Railway, wire this as a
 release/pre-deploy command (or run it manually via
-`docker compose run --rm web pnpm --filter @seo-tool/db migrate` for
+`docker compose run --rm web pnpm --filter @rosterseo/db migrate` for
 self-hosters) using the elevated `DATABASE_MIGRATE_URL` role, separate
 from the app's own runtime connection.
 

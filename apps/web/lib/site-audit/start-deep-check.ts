@@ -1,5 +1,5 @@
-import { siteAudits, withUserContext } from "@seo-tool/db";
-import { siteAuditDeepCheckJob } from "@seo-tool/jobs";
+import { siteAudits, withUserContext } from "@rosterseo/db";
+import { siteAuditDeepCheckJob } from "@rosterseo/jobs";
 import { eq } from "drizzle-orm";
 
 // Real shared logic behind POST /api/projects/:projectId/site-audit/:auditId/deep-check.

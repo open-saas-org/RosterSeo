@@ -11,7 +11,7 @@ import {
   getXAuthorizeUrl,
   isSocialOAuthConfigured,
   type SocialOAuthPlatform,
-} from "@seo-tool/social";
+} from "@rosterseo/social";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 import { getOrCreateMastodonApp } from "@/lib/social/mastodon-app";

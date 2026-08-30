@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@seo-tool/db";
+import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { SocialPostReview } from "@/components/social/social-post-review";
 import type { SocialPostTargetView, SocialPostView } from "@/components/social/types";

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { resolveLocationCode } from "@seo-tool/dataforseo";
-import { projects, rankTrackingSettings, withUserContext } from "@seo-tool/db";
+import { resolveLocationCode } from "@rosterseo/dataforseo";
+import { projects, rankTrackingSettings, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET   /api/projects/:projectId/rank-tracking/settings - the project-wide

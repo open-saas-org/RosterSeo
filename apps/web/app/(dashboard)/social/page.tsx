@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { socialConnections, withUserContext } from "@seo-tool/db";
-import { SOCIAL_PLATFORMS } from "@seo-tool/social";
+import { socialConnections, withUserContext } from "@rosterseo/db";
+import { SOCIAL_PLATFORMS } from "@rosterseo/social";
 import { PageHeader } from "@/components/page-header";
 import { SocialComposer } from "@/components/social/social-composer";
 import { getCurrentProject } from "@/lib/current-project";

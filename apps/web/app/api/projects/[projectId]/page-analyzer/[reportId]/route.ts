@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
-import { withUserContext } from "@seo-tool/db";
+import { withUserContext } from "@rosterseo/db";
 import { eq } from "drizzle-orm";
 
 // GET /api/projects/:projectId/page-analyzer/:reportId

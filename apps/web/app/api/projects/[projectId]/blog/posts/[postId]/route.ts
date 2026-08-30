@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@seo-tool/db";
+import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 
 type RouteParams = { projectId: string; postId: string };

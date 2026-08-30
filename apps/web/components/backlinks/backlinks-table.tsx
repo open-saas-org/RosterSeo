@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import { BacklinkQualityBadge } from "@/components/backlinks/backlink-quality-badge";
-import type { BacklinkItem } from "@seo-tool/dataforseo";
+import type { BacklinkItem } from "@rosterseo/dataforseo";
 
 type LinkTypeFilter = "all" | "dofollow" | "nofollow";
 type QualityFilter = "all" | "good" | "warning" | "spam";

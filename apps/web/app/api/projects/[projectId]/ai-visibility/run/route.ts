@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@seo-tool/db";
+import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@rosterseo/db";
 import {
   calculateVisibilityScore,
   defaultTargets,
   runVisibilityCheckDetailed,
   toBrandOnlyRunResult,
   type AiVisibilityTarget,
-} from "@seo-tool/ai-visibility";
+} from "@rosterseo/ai-visibility";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // POST /api/projects/:projectId/ai-visibility/run - samples every tracked

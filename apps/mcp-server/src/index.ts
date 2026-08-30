@@ -24,7 +24,7 @@ import {
   localGridScans,
   localGridScanPoints,
   insertSpendLog,
-} from "@seo-tool/db";
+} from "@rosterseo/db";
 import {
   getKeywordIdeas,
   getRelatedKeywords,
@@ -34,8 +34,8 @@ import {
   getBacklinksOverview,
   getDomainOverview,
   setDataForSeoSpendLogger,
-} from "@seo-tool/dataforseo";
-import { generateIndexNowKey, submitUrlsToIndexNow } from "@seo-tool/indexnow";
+} from "@rosterseo/dataforseo";
+import { generateIndexNowKey, submitUrlsToIndexNow } from "@rosterseo/indexnow";
 
 // Same DB-agnostic spend-logger wiring as apps/web/lib/spend-logging.ts -
 // this server's own real DataForSEO calls (research_keywords, get_keyword_metrics,
@@ -44,11 +44,11 @@ import { generateIndexNowKey, submitUrlsToIndexNow } from "@seo-tool/indexnow";
 setDataForSeoSpendLogger((event) => {
   insertSpendLog({ provider: "dataforseo", operation: event.operation, costUsd: event.costUsd, isEstimate: false });
 });
-import { getBingRankAndTrafficStats } from "@seo-tool/bing";
+import { getBingRankAndTrafficStats } from "@rosterseo/bing";
 
 // ============================================================================
 // Auth: every tool call is scoped to exactly one real user, resolved once
-// from SEO_TOOL_API_KEY (generated on the app's AI & MCP settings page -
+// from ROSTERSEO_API_KEY (generated on the app's AI & MCP settings page -
 // hashed there, hashed here, compared, never stored/transmitted in the
 // clear except at generation time). From there every DB read/write runs
 // inside withUserContext(userId, ...), the same RLS-backed helper every
@@ -56,10 +56,10 @@ import { getBingRankAndTrafficStats } from "@seo-tool/bing";
 // belonging to organizations that user is actually a member of.
 // ============================================================================
 
-const rawApiKey = process.env.SEO_TOOL_API_KEY;
+const rawApiKey = process.env.ROSTERSEO_API_KEY;
 if (!rawApiKey) {
   console.error(
-    "[seo-tool-mcp] SEO_TOOL_API_KEY is not set. Generate one from the app's AI & MCP page and set it in your MCP client config.",
+    "[rosterseo-mcp] ROSTERSEO_API_KEY is not set. Generate one from the app's AI & MCP page and set it in your MCP client config.",
   );
   process.exit(1);
 }
@@ -87,7 +87,7 @@ async function resolveUserId(): Promise<string> {
     .limit(1);
   if (!row || row.revokedAt) {
     cachedUserId = null;
-    throw new Error("Invalid or revoked SEO_TOOL_API_KEY - generate a new one from the app's AI & MCP page.");
+    throw new Error("Invalid or revoked ROSTERSEO_API_KEY - generate a new one from the app's AI & MCP page.");
   }
   cachedUserId = row.userId;
   cachedAt = Date.now();
@@ -170,7 +170,7 @@ const TOOLS: Tool[] = [
   { name: "submit_urls_to_indexnow", description: "Notify Bing/Yandex/Seznam/Naver via IndexNow that a project's URLs changed, so they get re-crawled sooner. All URLs must share one host.", inputSchema: { type: "object", additionalProperties: false, properties: { ...projectIdProp, urls: { type: "array", items: { type: "string" }, description: "Real absolute URLs, all on the same host" } }, required: ["projectId", "urls"] } },
 ];
 
-const server = new Server({ name: "seo-tool-mcp", version: "0.2.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "rosterseo-mcp", version: "0.2.0" }, { capabilities: { tools: {} } });
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
@@ -451,7 +451,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const appUrl = process.env.APP_URL?.trim();
         if (!appUrl) {
           throw new Error(
-            "APP_URL is not set - this server can't build a keyLocation IndexNow can verify without knowing its own public URL. Set APP_URL in your environment (e.g. https://your-seo-tool-domain.com).",
+            "APP_URL is not set - this server can't build a keyLocation IndexNow can verify without knowing its own public URL. Set APP_URL in your environment (e.g. https://your-rosterseo-domain.com).",
           );
         }
         const keyLocation = new URL(`/api/indexnow/${key}`, appUrl).toString();

@@ -14,7 +14,7 @@ export type SpendLogInput = {
 // Deliberately generic/untyped against packages/dataforseo's or
 // packages/ai-visibility's own event shapes - packages/db can't import
 // either of those without a circular dependency (both would need
-// @seo-tool/db to log spend in the first place). Each app wires its own
+// @rosterseo/db to log spend in the first place). Each app wires its own
 // small adapter (see apps/web/instrumentation.ts, apps/worker/src/spend-logging.ts,
 // apps/mcp-server/src/spend-logging.ts) that calls this with the right shape.
 //

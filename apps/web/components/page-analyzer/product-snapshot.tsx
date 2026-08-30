@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { MetricCard } from "@/components/metric-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { ProductJsonLd } from "@seo-tool/crawler";
+import type { ProductJsonLd } from "@rosterseo/crawler";
 import type { CompetitorComparisonRow, PageAnalyzerMerchantMetrics } from "@/components/page-analyzer/analysis";
 
 const MAX_COMPETITOR_COLUMNS = 3;

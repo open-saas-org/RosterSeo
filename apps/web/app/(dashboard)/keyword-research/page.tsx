@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
-import { resolveLocationCode } from "@seo-tool/dataforseo";
-import { keywordResearchSearches, trackedKeywords, withUserContext } from "@seo-tool/db";
+import { resolveLocationCode } from "@rosterseo/dataforseo";
+import { keywordResearchSearches, trackedKeywords, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { KeywordResearchWorkspace } from "@/components/keywords/keyword-research-workspace";
 import { getCurrentProject } from "@/lib/current-project";

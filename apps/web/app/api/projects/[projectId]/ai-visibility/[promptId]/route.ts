@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { aiVisibilityPrompts, withUserContext } from "@seo-tool/db";
+import { aiVisibilityPrompts, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // DELETE /api/projects/:projectId/ai-visibility/:promptId - stop tracking a

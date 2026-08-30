@@ -7,8 +7,8 @@ import {
   getGA4OrganicTrend,
   getGA4TopLandingPages,
   isGoogleOAuthConfigured,
-} from "@seo-tool/google";
-import { googleConnections, withUserContext } from "@seo-tool/db";
+} from "@rosterseo/google";
+import { googleConnections, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,7 +21,7 @@ import { getDateRange } from "@/lib/date-range";
 import { PropertyPicker } from "@/components/integrations/property-picker";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GaInsightsWorkspace } from "@/components/ga-insights/ga-insights-workspace";
-import type { GA4CountryRow, GA4DeviceRow, GA4LandingPageRow, GA4OrganicTrendRow } from "@seo-tool/google";
+import type { GA4CountryRow, GA4DeviceRow, GA4LandingPageRow, GA4OrganicTrendRow } from "@rosterseo/google";
 
 const DEFAULT_DAYS = 28;
 

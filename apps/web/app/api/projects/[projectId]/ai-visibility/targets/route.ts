@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { projects, withUserContext } from "@seo-tool/db";
+import { projects, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET   /api/projects/:projectId/ai-visibility/targets - the project's
 // configured AI Visibility targets (Settings > Providers), or [] if unset
 // (POST .../run then falls back to every configured direct-API provider -
-// see defaultTargets() in @seo-tool/ai-visibility).
+// see defaultTargets() in @rosterseo/ai-visibility).
 // PATCH /api/projects/:projectId/ai-visibility/targets - replaces the full
 // list. Real credentials stay global env vars; this is purely a per-project
 // "which of the globally-configured providers/models to sample from" pick.

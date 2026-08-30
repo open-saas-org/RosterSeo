@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
-import { getGA4OrganicTrend, getMerchantProductPerformance, isGoogleOAuthConfigured } from "@seo-tool/google";
-import { isBingConfigured, getBingRankAndTrafficStats } from "@seo-tool/bing";
+import { getGA4OrganicTrend, getMerchantProductPerformance, isGoogleOAuthConfigured } from "@rosterseo/google";
+import { isBingConfigured, getBingRankAndTrafficStats } from "@rosterseo/bing";
 import {
   aiVisibilityPrompts,
   aiVisibilityResults,
@@ -10,8 +10,8 @@ import {
   siteAuditIssues,
   siteAudits,
   withUserContext,
-} from "@seo-tool/db";
-import { calculateVisibilityScore } from "@seo-tool/ai-visibility";
+} from "@rosterseo/db";
+import { calculateVisibilityScore } from "@rosterseo/ai-visibility";
 import { Globe, Key, Users, Link as LinkIcon } from "lucide-react";
 import { MetricCard } from "@/components/metric-card";
 import { SearchPerformanceCard } from "@/components/dashboard/search-performance-card";
@@ -31,7 +31,7 @@ import { summarizeSearchConsoleRows, type GscInsightsMetrics } from "@/component
 import { summarizeGaOrganicTrend, type GaInsightsMetrics } from "@/components/ga-insights/ga-insights-metrics";
 import { summarizeBingRows, type BingInsightsMetrics } from "@/components/bing-insights/bing-insights-metrics";
 import { summarizeMerchantRows, type MerchantInsightsMetrics } from "@/components/merchant-insights/merchant-insights-metrics";
-import type { GA4OrganicTrendRow } from "@seo-tool/google";
+import type { GA4OrganicTrendRow } from "@rosterseo/google";
 
 const WINDOW_DAYS = 28;
 

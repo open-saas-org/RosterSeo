@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PromptTrendChart } from "@/components/ai-visibility/prompt-trend-chart";
 import { VisibilitySparkline } from "@/components/ai-visibility/visibility-sparkline";
 import { AiVisibilityFilterBar } from "@/components/ai-visibility/ai-visibility-filter-bar";
-import { fillLastValueCarriedForward, type RawDailyValues } from "@seo-tool/ai-visibility";
+import { fillLastValueCarriedForward, type RawDailyValues } from "@rosterseo/ai-visibility";
 import { cn } from "@/lib/utils";
 
 export type RawStat = { date: string; provider: string; model: string; entityKey: string; mentioned: number; total: number };

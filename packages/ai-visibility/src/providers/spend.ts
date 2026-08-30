@@ -2,7 +2,7 @@ import type { TokenUsage } from "./types";
 import { PROVIDER_COST_ESTIMATES_USD } from "./constants";
 
 // Same DB-agnostic logger-hook pattern as packages/dataforseo/src/spend.ts -
-// this package never imports @seo-tool/db directly; whichever app makes
+// this package never imports @rosterseo/db directly; whichever app makes
 // the real provider call (apps/web, apps/worker) wires setAiVisibilitySpendLogger
 // once at startup to persist into provider_spend_log.
 
@@ -25,7 +25,7 @@ type SpendLogger = (event: AiVisibilitySpendEvent) => void;
 // this module), which is exactly why provider_spend_log stayed empty
 // despite real AI Visibility spend happening. globalThis is genuinely
 // shared across every module instance in the same Node.js process.
-const GLOBAL_KEY = Symbol.for("seo-tool.ai-visibility.spendLogger");
+const GLOBAL_KEY = Symbol.for("rosterseo.ai-visibility.spendLogger");
 
 function getLogger(): SpendLogger | null {
   return (globalThis as Record<symbol, unknown>)[GLOBAL_KEY] as SpendLogger | undefined ?? null;

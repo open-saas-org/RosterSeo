@@ -19,7 +19,7 @@ import type { SearchConsoleRow } from "./types";
 //
 // Lives here (not apps/web) so both the web app and the worker (Site
 // Audit's cannibalization check) import the exact same implementation -
-// no Next.js-specific dependency, just @seo-tool/google + date math.
+// no Next.js-specific dependency, just @rosterseo/google + date math.
 const WIDE_WINDOW_BUFFER_DAYS = 10;
 
 function isoDate(d: Date): string {

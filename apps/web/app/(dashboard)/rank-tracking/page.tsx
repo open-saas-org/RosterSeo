@@ -1,6 +1,6 @@
 import { desc, eq, inArray } from "drizzle-orm";
-import { resolveLocationCode } from "@seo-tool/dataforseo";
-import { keywordRankings, rankCheckRuns, rankTrackingSettings, trackedKeywords, withUserContext } from "@seo-tool/db";
+import { resolveLocationCode } from "@rosterseo/dataforseo";
+import { keywordRankings, rankCheckRuns, rankTrackingSettings, trackedKeywords, withUserContext } from "@rosterseo/db";
 import { RankTrackingWorkspace } from "@/components/rank-tracking/rank-tracking-workspace";
 import { getCurrentProject } from "@/lib/current-project";
 import type { RankTrackingSettings, TrackedKeyword } from "@/components/keywords/rank-tracking-types";

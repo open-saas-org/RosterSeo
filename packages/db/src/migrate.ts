@@ -60,7 +60,7 @@ async function main() {
   const db = drizzle(pool);
   // Absolute (MIGRATIONS_DIR, computed above from this file's own real
   // location), not the relative "./drizzle" this used to pass - that only
-  // ever worked by accident, because `pnpm --filter @seo-tool/db migrate`
+  // ever worked by accident, because `pnpm --filter @rosterseo/db migrate`
   // happens to run with cwd already set to this package's own directory.
   // Any other real invocation - the bundled dist/migrate.mjs run from the
   // Docker image's WORKDIR (railway.toml's releaseCommand), or simply

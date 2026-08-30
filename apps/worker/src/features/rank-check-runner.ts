@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
-import { checkKeywordRanking, getRealKeywordMetrics, type KeywordMetrics } from "@seo-tool/dataforseo";
-import { keywordRankings, projects, rankCheckRuns, rankTrackingSettings, trackedKeywords, withUserContext } from "@seo-tool/db";
+import { checkKeywordRanking, getRealKeywordMetrics, type KeywordMetrics } from "@rosterseo/dataforseo";
+import { keywordRankings, projects, rankCheckRuns, rankTrackingSettings, trackedKeywords, withUserContext } from "@rosterseo/db";
 
 // Mirrors apps/web/components/competitors/domain-utils.ts's normalizeDomain
 // - duplicated rather than imported since apps/worker can't reach into

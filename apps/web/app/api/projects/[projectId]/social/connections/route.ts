@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { socialConnections, withUserContext } from "@seo-tool/db";
+import { socialConnections, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { connectSocial } from "@/lib/social/connect-social";
 

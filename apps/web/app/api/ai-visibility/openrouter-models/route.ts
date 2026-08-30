@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listOpenRouterModels } from "@seo-tool/ai-visibility";
+import { listOpenRouterModels } from "@rosterseo/ai-visibility";
 import { auth } from "@/lib/auth";
 
 // GET /api/ai-visibility/openrouter-models - OpenRouter's real, public

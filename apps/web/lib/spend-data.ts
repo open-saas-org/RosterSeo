@@ -1,5 +1,5 @@
 import { gte, sql } from "drizzle-orm";
-import { db, providerSpendLog } from "@seo-tool/db";
+import { db, providerSpendLog } from "@rosterseo/db";
 
 const TREND_WINDOW_DAYS = 30;
 

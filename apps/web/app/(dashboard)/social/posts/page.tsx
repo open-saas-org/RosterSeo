@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { socialPosts, withUserContext } from "@seo-tool/db";
+import { socialPosts, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { SocialPostsList } from "@/components/social/social-posts-list";
 import type { SocialPostView } from "@/components/social/types";

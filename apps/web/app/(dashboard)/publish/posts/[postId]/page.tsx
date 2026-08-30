@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@seo-tool/db";
+import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { PublishPostReview } from "@/components/publish/publish-post-review";
 import type { BlogPostTargetView, BlogPostView } from "@/components/publish/types";

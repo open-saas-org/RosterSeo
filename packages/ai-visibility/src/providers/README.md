@@ -36,11 +36,11 @@ A 4th capability, `chat({ model, systemPrompt, messages, tools, maxTokens })`
 (defined in `agentic.ts`), is real multi-turn tool-calling - the only
 providers whose REST API actually supports function calling: `openai`,
 `anthropic`, `openrouter`. `google`, `perplexity`, and `brightdata` don't
-implement it. This is Clay's (the in-app AI assistant,
-`apps/web/lib/clay/*`) one and only entry point into this package - `run`/
+implement it. This is Cappy's (the in-app AI assistant,
+`apps/web/lib/cappy/*`) one and only entry point into this package - `run`/
 `runStructuredResearch` are single-shot, `chat` is the real agent loop.
-`agentic.ts` also holds the format converters between Clay's
-provider-agnostic `AgenticMessage[]`/`ClayToolDef[]` shapes and each
+`agentic.ts` also holds the format converters between Cappy's
+provider-agnostic `AgenticMessage[]`/`CappyToolDef[]` shapes and each
 provider's real wire format - OpenAI and OpenRouter share one identical
 `tools`/`tool_calls` shape (`toOpenAiCompatibleTools`/`Messages`), Anthropic
 has its own distinct `tool_use`/`tool_result` block format

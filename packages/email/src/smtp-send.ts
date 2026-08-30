@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 // credentials) - nodemailer is free, open-source, and works against any
 // standard SMTP server, no vendor API/cost involved. The universal
 // fallback for Backlink Outreach connections that aren't Gmail OAuth
-// (see @seo-tool/google's gmail-send.ts for that path).
+// (see @rosterseo/google's gmail-send.ts for that path).
 
 export interface SmtpConnection {
   host: string;

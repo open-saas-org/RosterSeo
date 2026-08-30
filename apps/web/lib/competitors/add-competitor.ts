@@ -1,9 +1,9 @@
 import { and, eq } from "drizzle-orm";
-import { projectCompetitors, withUserContext } from "@seo-tool/db";
+import { projectCompetitors, withUserContext } from "@rosterseo/db";
 import { isValidDomain, normalizeDomain } from "@/components/competitors/domain-utils";
 
 // Real shared logic behind POST /api/projects/:projectId/competitors -
-// extracted so Clay's add_competitor tool (apps/web/lib/clay/tools/write.ts)
+// extracted so Cappy's add_competitor tool (apps/web/lib/cappy/tools/write.ts)
 // calls the exact same real insert the Competitors page already does.
 export async function addCompetitor(userId: string, projectId: string, rawDomain: string, rawName?: string) {
   const domain = normalizeDomain(rawDomain);

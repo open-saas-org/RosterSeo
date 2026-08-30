@@ -4,7 +4,7 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@seo-tool/web", "dev"],
+      "runtimeArgs": ["--filter", "@rosterseo/web", "dev"],
       "port": 3000
     }
   ]

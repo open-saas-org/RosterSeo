@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 // Docs app isn't linked from anywhere else in apps/web yet (grepped for
 // existing links - there are none). README.md documents it as
-// `pnpm --filter @seo-tool/docs dev` running on http://localhost:3001,
+// `pnpm --filter @rosterseo/docs dev` running on http://localhost:3001,
 // so that's the URL used here rather than inventing a production one.
 const DOCS_URL = "http://localhost:3001";
 
@@ -43,7 +43,7 @@ export default function HelpPage() {
               Open docs site
             </a>
             <p className="mt-1 text-xs text-muted-foreground">
-              Runs locally via <code>pnpm --filter @seo-tool/docs dev</code> (port 3001).
+              Runs locally via <code>pnpm --filter @rosterseo/docs dev</code> (port 3001).
             </p>
           </CardContent>
         </Card>

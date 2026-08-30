@@ -8,10 +8,10 @@ Route: `/ai-mcp`.
 ## What it does
 
 The AI & MCP page manages access to `apps/mcp-server`, a standalone MCP
-server (`@seo-tool/mcp-server`) that exposes real project data and live SEO
+server (`@rosterseo/mcp-server`) that exposes real project data and live SEO
 lookups to any Model Context Protocol client (Claude Desktop, or others).
 The page does two real things: `McpKeyManager` generates and revokes actual
-`SEO_TOOL_API_KEY` values (backed by the `mcp_api_keys` table), and the rest
+`ROSTERSEO_API_KEY` values (backed by the `mcp_api_keys` table), and the rest
 of the page documents how to point a client at the server and lists every
 tool currently registered on it, grouped by module, transcribed from the
 server's own `TOOLS` array.
@@ -22,11 +22,11 @@ server's own `TOOLS` array.
 launch a local server subprocess. Run it with:
 
 ```bash
-pnpm --filter @seo-tool/mcp-server dev
+pnpm --filter @rosterseo/mcp-server dev
 ```
 
 That's `tsx watch` over `apps/mcp-server/src/index.ts`, reading the same
-`DATABASE_URL` as the rest of the app, plus a real `SEO_TOOL_API_KEY`
+`DATABASE_URL` as the rest of the app, plus a real `ROSTERSEO_API_KEY`
 generated from this page (`McpKeyManager` → `POST /api/mcp-keys`). The key
 is a high-entropy random token (`generateMcpApiKey()` in
 `apps/web/lib/mcp-keys.ts`: a `seotool_` prefix + 24 random bytes,
@@ -40,12 +40,12 @@ generated key in its `env`:
 ```json
 {
   "mcpServers": {
-    "seo-tool": {
+    "rosterseo": {
       "command": "pnpm",
-      "args": ["--filter", "@seo-tool/mcp-server", "dev"],
+      "args": ["--filter", "@rosterseo/mcp-server", "dev"],
       "env": {
-        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/seo_tool",
-        "SEO_TOOL_API_KEY": "paste your generated key here"
+        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/rosterseo",
+        "ROSTERSEO_API_KEY": "paste your generated key here"
       }
     }
   }
@@ -55,14 +55,14 @@ generated key in its `env`:
 ## Auth
 
 Every tool call is scoped to exactly one real user, resolved once from
-`SEO_TOOL_API_KEY` (`resolveUserId()` in `apps/mcp-server/src/index.ts`):
+`ROSTERSEO_API_KEY` (`resolveUserId()` in `apps/mcp-server/src/index.ts`):
 the server hashes the incoming key, looks it up in `mcp_api_keys` by
 `keyHash`, and refuses to proceed if there's no match or the row has a
 `revokedAt` set. The resolved user ID is cached for 30 seconds
 (`AUTH_CACHE_TTL_MS`) so a long-lived stdio session doesn't re-hit Postgres
 on every call, while keeping revocation effective within seconds rather
 than "never until the process restarts." The server also refuses to start
-at all — `process.exit(1)` — if `SEO_TOOL_API_KEY` isn't set in its
+at all — `process.exit(1)` — if `ROSTERSEO_API_KEY` isn't set in its
 environment.
 
 Every DB-backed tool runs through `asCaller()`, which wraps the real
@@ -103,12 +103,12 @@ actual data. There is no mock or stub response anywhere in
 
 Most of these are plain project-scoped reads/writes (tracked keywords,
 rankings, audits, competitors, AI-visibility prompts/results, page-analyzer
-reports, local grid scans) straight out of `@seo-tool/db`. Five are live,
+reports, local grid scans) straight out of `@rosterseo/db`. Five are live,
 non-project-scoped external calls — still gated behind a valid key via
 `resolveUserId()`, but not run inside `withUserContext()` since they don't
 touch a specific project's rows: `research_keywords`, `get_keyword_metrics`,
 and `get_serp_results` call the real DataForSEO helpers from
-`@seo-tool/dataforseo` (`getKeywordIdeas`/`getRelatedKeywords`/
+`@rosterseo/dataforseo` (`getKeywordIdeas`/`getRelatedKeywords`/
 `getKeywordSuggestions`, `getRealKeywordMetrics`, `getSerpResults`);
 `get_backlinks_overview` and `get_domain_overview` do the same
 (`getBacklinksOverview`, `getDomainOverview`). All five real DataForSEO
@@ -116,9 +116,9 @@ calls made through this server are logged into `provider_spend_log` via the
 same `setDataForSeoSpendLogger` wiring `apps/web/lib/spend-logging.ts`
 uses, so MCP-driven usage shows up in cost tracking alongside every other
 real caller. `get_bing_performance` calls the real
-`getBingRankAndTrafficStats()` from `@seo-tool/bing` for a project's
+`getBingRankAndTrafficStats()` from `@rosterseo/bing` for a project's
 connected Bing site. `submit_urls_to_indexnow` calls the real
-`submitUrlsToIndexNow()` from `@seo-tool/indexnow`, and requires `APP_URL`
+`submitUrlsToIndexNow()` from `@rosterseo/indexnow`, and requires `APP_URL`
 to be set — unlike the browser-facing app, this server has no inbound HTTP
 request to derive an origin from, so it fails loudly rather than building
 a `keyLocation` IndexNow could never actually verify.

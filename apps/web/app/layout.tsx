@@ -10,7 +10,7 @@ import { QueryProvider } from "@/components/query-provider";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "SEO Tool",
+  title: "RosterSEO",
   description: "Open-source SEO + AI visibility platform",
 };
 

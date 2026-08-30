@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { emailConnections, withUserContext } from "@seo-tool/db";
-import { verifySmtpConnection } from "@seo-tool/email";
+import { emailConnections, withUserContext } from "@rosterseo/db";
+import { verifySmtpConnection } from "@rosterseo/email";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 
 // Connected outreach senders for a project - SMTP connections are created

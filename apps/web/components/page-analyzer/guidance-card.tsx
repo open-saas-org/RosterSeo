@@ -5,8 +5,8 @@ import { Sparkles, Search, Bot, Target, MessageSquareText, Check, Loader2, Alert
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { PageAnalysisRecommendation, SuggestedPrompt } from "@seo-tool/ai-visibility";
-import type { KeywordMetrics } from "@seo-tool/dataforseo";
+import type { PageAnalysisRecommendation, SuggestedPrompt } from "@rosterseo/ai-visibility";
+import type { KeywordMetrics } from "@rosterseo/dataforseo";
 import type { PageAnalysisAiSuggestions } from "@/components/page-analyzer/analysis";
 
 const PRIORITY_VARIANT: Record<string, "destructive" | "warning" | "success"> = {

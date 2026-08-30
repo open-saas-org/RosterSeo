@@ -44,7 +44,7 @@ export interface PageAnalysisAiInput {
   keywordSummary: string;
   competitorSummary: string;
   keywordUsageSummary: string;
-  // Real, rule-based page-type detection (detectPageType, @seo-tool/crawler)
+  // Real, rule-based page-type detection (detectPageType, @rosterseo/crawler)
   // - e.g. "Page type: product (high confidence - JSON-LD declares @type
   // \"Product\")". Lets the model tailor advice (product pricing/reviews
   // vs. article depth vs. category structure) instead of giving generic

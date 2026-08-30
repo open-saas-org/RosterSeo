@@ -33,7 +33,7 @@ the org's GSC connection is `connected`, `needs_reconnect`, or
 `not_connected`. The page shows its data view only when **all** of these
 are true:
 
-- `isGoogleOAuthConfigured()` (from `@seo-tool/google`) is `true` —
+- `isGoogleOAuthConfigured()` (from `@rosterseo/google`) is `true` —
   `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` are set.
 - The organization's `google_connections` row for `service: "gsc"` has
   `status: "connected"` — a real, explicit `needs_reconnect` flag, not an
@@ -61,7 +61,7 @@ flag, independent of the row's `needs_reconnect` value.
 
 - **`getSearchConsolePerformance(accessToken, siteUrl, startDate, endDate, rowLimit?)`**
   and **`getSearchConsoleQueryPageBreakdown(accessToken, siteUrl, startDate, endDate, rowLimit?)`**
-  (`@seo-tool/google`, `packages/google/src/data.ts`) are both called for
+  (`@rosterseo/google`, `packages/google/src/data.ts`) are both called for
   real, for whichever date range is selected. `getSearchConsolePerformance`
   requests only the `date` dimension (the daily trend + metric cards);
   `getSearchConsoleQueryPageBreakdown` requests the `["query", "page"]`

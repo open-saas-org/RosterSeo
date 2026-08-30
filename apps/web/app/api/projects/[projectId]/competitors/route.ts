@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { projectCompetitors, withUserContext } from "@seo-tool/db";
+import { projectCompetitors, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { addCompetitor } from "@/lib/competitors/add-competitor";
 import { isValidDomain, normalizeDomain } from "@/components/competitors/domain-utils";
@@ -9,7 +9,7 @@ import { isValidDomain, normalizeDomain } from "@/components/competitors/domain-
 // the summary table on the /competitors page). The page loads the initial
 // list server-side and add/remove in competitor-workspace.tsx POST/DELETE
 // against this route directly. Domain *stats* (traffic, backlinks, keyword
-// ideas) are a separate concern, fetched straight from @seo-tool/dataforseo
+// ideas) are a separate concern, fetched straight from @rosterseo/dataforseo
 // via a Server Action - see app/(dashboard)/competitors/actions.ts.
 
 export const GET = withAuth<{ projectId: string }>(async (_req, ctx, session) => {

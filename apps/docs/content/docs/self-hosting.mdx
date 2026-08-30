@@ -45,13 +45,13 @@ and run it anywhere" path for a VPS, Fly.io, Render, or any other
 Docker-based host that isn't Railway:
 
 ```bash
-docker build -t seo-tool-web .
+docker build -t rosterseo-web .
 docker run -p 3000:3000 \
-  -e DATABASE_URL="postgres://user:pass@your-postgres-host:5432/seo_tool" \
+  -e DATABASE_URL="postgres://user:pass@your-postgres-host:5432/rosterseo" \
   -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
   -e BETTER_AUTH_URL="http://localhost:3000" \
   -e NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000" \
-  seo-tool-web
+  rosterseo-web
 ```
 
 Same automatic migration-on-start behavior as Compose — the image migrates
@@ -68,12 +68,12 @@ or Postgres row-level security (the tenant-isolation mechanism) is skipped
 entirely — no error, it just quietly returns every tenant's rows.
 
 ```sql
-CREATE ROLE seo_tool_app WITH LOGIN PASSWORD '<pick one>' NOSUPERUSER NOBYPASSRLS;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO seo_tool_app;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO seo_tool_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO seo_tool_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO seo_tool_app;
-GRANT CREATE ON DATABASE seo_tool TO seo_tool_app;
+CREATE ROLE rosterseo_app WITH LOGIN PASSWORD '<pick one>' NOSUPERUSER NOBYPASSRLS;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rosterseo_app;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO rosterseo_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO rosterseo_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO rosterseo_app;
+GRANT CREATE ON DATABASE rosterseo TO rosterseo_app;
 ```
 
 Set `DATABASE_URL` to this restricted role, and `DATABASE_MIGRATE_URL` to

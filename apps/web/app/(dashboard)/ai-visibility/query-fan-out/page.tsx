@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@seo-tool/db";
-import { getModelDisplayLabel } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@rosterseo/db";
+import { getModelDisplayLabel } from "@rosterseo/ai-visibility";
 import { PageHeader } from "@/components/page-header";
 import { QueryFanOutDashboard } from "@/components/ai-visibility/query-fan-out-dashboard";
 import { getCurrentProject } from "@/lib/current-project";

@@ -13,14 +13,14 @@ export const devtoAdapter: BlogAdapter = {
   platform: "devto",
   async verify(credentials) {
     const res = await fetch("https://dev.to/api/articles/me", {
-      headers: { "api-key": credentials.apiKey!, "User-Agent": "seo-tool-publish" },
+      headers: { "api-key": credentials.apiKey!, "User-Agent": "rosterseo-publish" },
     });
     if (!res.ok) throw new Error(res.status === 401 ? "Dev.to rejected that API key" : `Dev.to returned HTTP ${res.status}`);
   },
   async publish(credentials, _siteIdentifier, post) {
     const res = await fetch("https://dev.to/api/articles", {
       method: "POST",
-      headers: { "api-key": credentials.apiKey!, "Content-Type": "application/json", "User-Agent": "seo-tool-publish" },
+      headers: { "api-key": credentials.apiKey!, "Content-Type": "application/json", "User-Agent": "rosterseo-publish" },
       body: JSON.stringify({ article: { title: post.title, body_markdown: post.markdown, published: true, tags: post.tags.slice(0, 4) } }),
     });
     if (!res.ok) throw new Error(`Dev.to returned HTTP ${res.status}`);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkKeywordRanking, DataForSeoNotConfiguredError } from "@seo-tool/dataforseo";
+import { checkKeywordRanking, DataForSeoNotConfiguredError } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/projects/:projectId/keyword-research/serp?keyword=...&locationCode=...

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@seo-tool/db";
-import { getSocialAdapter } from "@seo-tool/social";
+import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
+import { getSocialAdapter } from "@rosterseo/social";
 
 // Same rollup shape as blog-publish-runner.ts's rollUpPostStatus.
 async function rollUpPostStatus(userId: string, socialPostId: string) {

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { Calculator, Loader2, Save } from "lucide-react";
-import { PROVIDER_COST_ESTIMATES_USD } from "@seo-tool/ai-visibility";
+import { PROVIDER_COST_ESTIMATES_USD } from "@rosterseo/ai-visibility";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";

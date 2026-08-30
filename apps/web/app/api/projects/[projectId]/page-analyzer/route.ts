@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { desc, eq } from "drizzle-orm";
-import { pageAnalyzerReports, googleConnections, withUserContext } from "@seo-tool/db";
-import { isGoogleOAuthConfigured } from "@seo-tool/google";
-import { isDataForSeoConfigured, resolveLocationCode } from "@seo-tool/dataforseo";
+import { pageAnalyzerReports, googleConnections, withUserContext } from "@rosterseo/db";
+import { isGoogleOAuthConfigured } from "@rosterseo/google";
+import { isDataForSeoConfigured, resolveLocationCode } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { toConnectionStatus } from "@/lib/google-connection-status";
 import { getValidAccessToken } from "@/lib/google-token";

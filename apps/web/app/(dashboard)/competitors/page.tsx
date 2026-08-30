@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
-import { projectCompetitors, withUserContext } from "@seo-tool/db";
-import { resolveLocationCode } from "@seo-tool/dataforseo";
+import { projectCompetitors, withUserContext } from "@rosterseo/db";
+import { resolveLocationCode } from "@rosterseo/dataforseo";
 import { PageHeader } from "@/components/page-header";
 import { CompetitorWorkspace } from "@/components/competitors/competitor-workspace";
 import { getCurrentProject } from "@/lib/current-project";

@@ -28,7 +28,7 @@ function StepIndicator({ step, className }: { step: 1 | 2; className?: string })
   );
 }
 
-// Local shape, deliberately not imported from @seo-tool/ai-visibility - this
+// Local shape, deliberately not imported from @rosterseo/ai-visibility - this
 // is a client component, and importing only the type keeps this file fully
 // decoupled from that package's server-only provider code.
 type OnboardingResearch = {
@@ -251,7 +251,7 @@ function OnboardingPageInner() {
         <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <Globe className="size-4" />
         </div>
-        SEO Tool
+        RosterSEO
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

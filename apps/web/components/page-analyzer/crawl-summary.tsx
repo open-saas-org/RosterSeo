@@ -2,9 +2,9 @@ import { AlignLeft, Check, Clock3, Image as ImageIcon, Link2, ListTree, Trending
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { CrawledPageResult } from "@seo-tool/crawler";
-import type { KeywordMetrics } from "@seo-tool/dataforseo";
-import type { PageSpeedMetrics } from "@seo-tool/google/pagespeed";
+import type { CrawledPageResult } from "@rosterseo/crawler";
+import type { KeywordMetrics } from "@rosterseo/dataforseo";
+import type { PageSpeedMetrics } from "@rosterseo/google/pagespeed";
 import type { KeywordUsageCheck } from "@/components/page-analyzer/analysis";
 
 function Stat({

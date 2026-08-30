@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { outreachTargets, withUserContext } from "@seo-tool/db";
+import { outreachTargets, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 
 type RouteParams = { projectId: string; outreachId: string };

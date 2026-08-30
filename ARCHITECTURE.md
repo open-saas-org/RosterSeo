@@ -113,7 +113,7 @@ This project deliberately doesn't run Redis. To maintain self-host simplicity an
 ## Open decisions
 
 - Product name/branding — repo currently uses the placeholder package
-  scope `@seo-tool/*`.
+  scope `@rosterseo/*`.
 - Team invites / multi-member organizations — schema supports it
   (`organization_members` is already a many-to-many join), but there's no
   invite flow yet. Every signup gets a single-member org.

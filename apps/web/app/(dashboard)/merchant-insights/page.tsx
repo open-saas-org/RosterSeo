@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Store, Plug } from "lucide-react";
 import { eq } from "drizzle-orm";
-import { isGoogleOAuthConfigured, getMerchantProductPerformance, type MerchantPerformanceRow } from "@seo-tool/google";
-import { googleConnections, withUserContext } from "@seo-tool/db";
+import { isGoogleOAuthConfigured, getMerchantProductPerformance, type MerchantPerformanceRow } from "@rosterseo/google";
+import { googleConnections, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

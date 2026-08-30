@@ -2,7 +2,7 @@
 // half-split approach as gsc-insights-metrics.ts's summarizeSearchConsoleRows,
 // just over BingPerformanceRow[] instead of SearchConsoleRow[].
 
-import type { BingPerformanceRow } from "@seo-tool/bing";
+import type { BingPerformanceRow } from "@rosterseo/bing";
 
 export interface BingInsightsMetrics {
   totalClicks: number;

@@ -1,5 +1,5 @@
-import { socialConnections, withUserContext } from "@seo-tool/db";
-import { getSocialAdapter, getSocialPlatformDef } from "@seo-tool/social";
+import { socialConnections, withUserContext } from "@rosterseo/db";
+import { getSocialAdapter, getSocialPlatformDef } from "@rosterseo/social";
 
 // Real shared logic behind POST /api/projects/:projectId/social/connections -
 // the manual-credential path (used directly for Bluesky, which has no

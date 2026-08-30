@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { googleConnections, localBusinessProfiles, withUserContext } from "@seo-tool/db";
-import { getLocationPerformance, GoogleBusinessProfileNotApprovedError } from "@seo-tool/google";
+import { googleConnections, localBusinessProfiles, withUserContext } from "@rosterseo/db";
+import { getLocationPerformance, GoogleBusinessProfileNotApprovedError } from "@rosterseo/google";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { getValidAccessToken } from "@/lib/google-token";
 

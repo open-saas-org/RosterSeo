@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
-import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@seo-tool/db";
-import { respinSocialPost } from "@seo-tool/ai-visibility";
-import { getSocialPlatformDef } from "@seo-tool/social";
+import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
+import { respinSocialPost } from "@rosterseo/ai-visibility";
+import { getSocialPlatformDef } from "@rosterseo/social";
 
 // Real shared logic behind POST .../social/posts/[postId]/targets/[targetId]/respin -
 // AI-adapts the master post for one specific platform, respecting that

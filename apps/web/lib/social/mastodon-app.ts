@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db, mastodonApps } from "@seo-tool/db";
-import { registerMastodonApp } from "@seo-tool/social";
+import { db, mastodonApps } from "@rosterseo/db";
+import { registerMastodonApp } from "@rosterseo/social";
 
 // mastodon_apps is instance-wide, not project-scoped (see its own schema
 // comment) - a plain db call, not withUserContext, matching the same

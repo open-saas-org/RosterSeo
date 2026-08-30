@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { Sentiment } from "@seo-tool/ai-visibility";
+import type { Sentiment } from "@rosterseo/ai-visibility";
 
 const VARIANT: Record<Sentiment, "default" | "secondary" | "destructive"> = {
   positive: "default",

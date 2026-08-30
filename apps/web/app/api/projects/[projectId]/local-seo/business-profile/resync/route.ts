@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { localBusinessProfiles, withUserContext } from "@seo-tool/db";
-import { getBusinessListingDetails } from "@seo-tool/dataforseo";
+import { localBusinessProfiles, withUserContext } from "@rosterseo/db";
+import { getBusinessListingDetails } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // POST /api/projects/:projectId/local-seo/business-profile/resync

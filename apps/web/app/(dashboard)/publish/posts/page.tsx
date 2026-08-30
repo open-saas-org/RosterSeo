@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { blogPosts, withUserContext } from "@seo-tool/db";
+import { blogPosts, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { PublishPostsList } from "@/components/publish/publish-posts-list";
 import type { BlogPostView } from "@/components/publish/types";

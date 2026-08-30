@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@seo-tool/db";
-import { respinBlogPost } from "@seo-tool/ai-visibility";
+import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@rosterseo/db";
+import { respinBlogPost } from "@rosterseo/ai-visibility";
 
 // Real shared logic behind POST .../blog/posts/[postId]/targets/[targetId]/respin -
 // AI-adapts the master post for one specific platform, overwriting that

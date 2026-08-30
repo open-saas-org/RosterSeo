@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isNotNull, isNull } from "drizzle-orm";
-import { projects, withUserContext } from "@seo-tool/db";
+import { projects, withUserContext } from "@rosterseo/db";
 import { auth } from "@/lib/auth";
 import { ACTIVE_PROJECT_COOKIE } from "@/lib/project-cookie";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -34,7 +34,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   // Same cookie + fallback logic as lib/current-project.ts, resolved inline
   // here (rather than a second DB round-trip) since projectRows is already
-  // fetched above - AppSidebar needs it to know which project's Clay
+  // fetched above - AppSidebar needs it to know which project's Cappy
   // threads to list when it's in Chat mode.
   const cookieStore = await cookies();
   const activeProjectId = cookieStore.get(ACTIVE_PROJECT_COOKIE)?.value;

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { googleConnections, withUserContext } from "@seo-tool/db";
-import { GoogleReauthRequiredError, refreshAccessToken } from "@seo-tool/google";
+import { googleConnections, withUserContext } from "@rosterseo/db";
+import { GoogleReauthRequiredError, refreshAccessToken } from "@rosterseo/google";
 
 // Refresh a bit before actual expiry, not right at it - avoids a request
 // racing Google's clock and getting a 401 mid-call.

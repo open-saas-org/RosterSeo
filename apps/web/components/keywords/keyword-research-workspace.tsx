@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Search } from "lucide-react";
-import type { KeywordMetrics } from "@seo-tool/dataforseo";
+import type { KeywordMetrics } from "@rosterseo/dataforseo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

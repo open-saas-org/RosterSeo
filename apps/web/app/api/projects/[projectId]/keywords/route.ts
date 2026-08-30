@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { keywordRankings, trackedKeywords, withUserContext } from "@seo-tool/db";
+import { keywordRankings, trackedKeywords, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { addTrackedKeyword } from "@/lib/keywords/add-tracked-keyword";
 

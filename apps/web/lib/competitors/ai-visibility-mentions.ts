@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@seo-tool/db";
-import { calculateVisibilityScore } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@rosterseo/db";
+import { calculateVisibilityScore } from "@rosterseo/ai-visibility";
 
 // Same lookback window as the dashboard's own AI Visibility card.
 const AI_VISIBILITY_WINDOW_DAYS = 28;

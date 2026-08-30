@@ -1,6 +1,6 @@
-import { insertSpendLog } from "@seo-tool/db";
-import { setDataForSeoSpendLogger } from "@seo-tool/dataforseo";
-import { setAiVisibilitySpendLogger } from "@seo-tool/ai-visibility";
+import { insertSpendLog } from "@rosterseo/db";
+import { setDataForSeoSpendLogger } from "@rosterseo/dataforseo";
+import { setAiVisibilitySpendLogger } from "@rosterseo/ai-visibility";
 
 // Same wiring as apps/web/lib/spend-logging.ts, for this process's own real
 // dataforseo/ai-visibility calls (rank-check-runner, grid-scan-runner,

@@ -78,7 +78,7 @@ custom-app access token) — not a store/product integration.
 `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` are empty by
 default (see `.env.example`), so this can't complete a real OAuth round
 trip until an operator registers a Google Cloud OAuth client and sets
-both. Every layer below — the `@seo-tool/google` package, the three route
+both. Every layer below — the `@rosterseo/google` package, the three route
 handlers, and the DB writes — is real, working code against the
 `googleapis` SDK, not mocked; it starts working the moment credentials are
 added. `isGoogleOAuthConfigured()` gates all of it so the UI shows an
@@ -135,7 +135,7 @@ route.
    button lives on a project-scoped page) — it is **not** what the
    connection ends up keyed by. That route checks project access, then
    redirects to a real Google consent URL built by `getGoogleAuthUrl()` in
-   `@seo-tool/google`. `state` is `base64url(JSON.stringify({ projectId, service }))`, same as before — the callback re-derives the
+   `@rosterseo/google`. `state` is `base64url(JSON.stringify({ projectId, service }))`, same as before — the callback re-derives the
    organization from that project.
 2. **Consent** — the user grants (or declines) access on Google's own
    page, scoped to exactly one of:
@@ -180,7 +180,7 @@ route.
    filtering out `siteUnverifiedUser`), `listGA4Properties()` (Analytics
    Admin API `accountSummaries.list`, flattened to one property per row),
    or `listMerchantAccounts()` (Merchant API Accounts sub-API
-   `accounts.list`) — all in `@seo-tool/google`. A stale/invalid token
+   `accounts.list`) — all in `@rosterseo/google`. A stale/invalid token
    surfaces as an HTTP 502 with `error: "needs_reconnect"` in the body,
    rather than an opaque failure. GBP isn't listed here — it has no
    per-project property to pick; its account/location listing lives as
@@ -256,7 +256,7 @@ caller ever sees a stale one. This is what makes a connection survive dev
 server restarts and long-running sessions without the user re-doing OAuth
 consent — see the package section below.
 
-## `@seo-tool/google` package
+## `@rosterseo/google` package
 
 - `isGoogleOAuthConfigured(): boolean`
 - `getGoogleAuthUrl(projectId, service): string`
@@ -360,7 +360,7 @@ covers the connection itself.
 - **Auth**: one global `BING_WEBMASTER_API_KEY` for the whole self-hosted
   deploy (Bing Webmaster Tools → Settings → API access) — a single
   workspace-level key, same shape as `GOOGLE_PAGESPEED_API_KEY`, not
-  per-project OAuth. `isBingConfigured()` (`@seo-tool/bing`) gates it.
+  per-project OAuth. `isBingConfigured()` (`@rosterseo/bing`) gates it.
 - **`packages/bing`** (mirrors `packages/dataforseo`'s scaffolding —
   `main`/`types` point straight at `src/index.ts`, no build step):
   `listBingSites()` (`GetUserSites`) and

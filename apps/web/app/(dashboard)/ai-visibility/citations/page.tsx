@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray, isNotNull, isNull } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@seo-tool/db";
-import { classifyUrl, normalizeUrl, getModelDisplayLabel } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@rosterseo/db";
+import { classifyUrl, normalizeUrl, getModelDisplayLabel } from "@rosterseo/ai-visibility";
 import { PageHeader } from "@/components/page-header";
 import { CitationsDashboard } from "@/components/ai-visibility/citations-dashboard";
 import { getCurrentProject } from "@/lib/current-project";

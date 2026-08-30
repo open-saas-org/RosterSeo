@@ -5,7 +5,7 @@ import { generateDraftForOutreachTarget } from "@/lib/outreach/generate-outreach
 type RouteParams = { projectId: string; outreachId: string };
 
 // POST - (re)generates the AI draft for one target via OpenRouter (see
-// @seo-tool/ai-visibility's generateOutreachEmail for the OpenRouter-only,
+// @rosterseo/ai-visibility's generateOutreachEmail for the OpenRouter-only,
 // "not_configured" vs "failed" distinction this follows). Overwrites any
 // existing subject/body - callers only hit this from a real "Generate" /
 // "Regenerate" button, never automatically, so an intentional overwrite is

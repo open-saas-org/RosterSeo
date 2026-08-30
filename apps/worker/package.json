@@ -1,5 +1,5 @@
 {
-  "name": "@seo-tool/worker",
+  "name": "@rosterseo/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,15 +11,15 @@
   },
   "dependencies": {
     "@sentry/node": "10.70.0",
-    "@seo-tool/ai-visibility": "workspace:*",
-    "@seo-tool/crawler": "workspace:*",
-    "@seo-tool/dataforseo": "workspace:*",
-    "@seo-tool/db": "workspace:*",
-    "@seo-tool/email": "workspace:*",
-    "@seo-tool/google": "workspace:*",
-    "@seo-tool/jobs": "workspace:*",
-    "@seo-tool/publishing": "workspace:*",
-    "@seo-tool/social": "workspace:*",
+    "@rosterseo/ai-visibility": "workspace:*",
+    "@rosterseo/crawler": "workspace:*",
+    "@rosterseo/dataforseo": "workspace:*",
+    "@rosterseo/db": "workspace:*",
+    "@rosterseo/email": "workspace:*",
+    "@rosterseo/google": "workspace:*",
+    "@rosterseo/jobs": "workspace:*",
+    "@rosterseo/publishing": "workspace:*",
+    "@rosterseo/social": "workspace:*",
     "drizzle-orm": "^0.38.0"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { siteAuditIssues, siteAuditPages, withUserContext } from "@seo-tool/db";
-import { fetchAndParse, deriveIssues } from "@seo-tool/crawler";
+import { siteAuditIssues, siteAuditPages, withUserContext } from "@rosterseo/db";
+import { fetchAndParse, deriveIssues } from "@rosterseo/crawler";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 
 type RouteParams = { projectId: string; auditId: string; pageId: string };

@@ -79,7 +79,7 @@ Migration `0013` drops the old GBP-coupled shape and replaces it:
 All four tables are RLS-protected, same `tenant_isolation` shape as the
 rest of the app.
 
-## `@seo-tool/dataforseo` changes
+## `@rosterseo/dataforseo` changes
 
 - **`getBusinessListingDetails(query, locationCode)`** — the real listing
   pull described above. No mock fallback (same reasoning as
@@ -98,7 +98,7 @@ rest of the app.
   Maps scrapes, not cached lookups, and routinely run past the previous
   20s limit.
 
-## `@seo-tool/ai-visibility` changes
+## `@rosterseo/ai-visibility` changes
 
 New `generateLocalSeoStrategy({ profile, gridSummary, topCompetitors })` —
 one real, on-demand LLM call (manual trigger only) returning a JSON array

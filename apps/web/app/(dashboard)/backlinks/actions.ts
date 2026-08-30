@@ -2,8 +2,8 @@
 
 import { headers } from "next/headers";
 import { eq, and } from "drizzle-orm";
-import { backlinksCache, withUserContext } from "@seo-tool/db";
-import { getBacklinksList, getBacklinksOverview, type BacklinkItem, type BacklinksOverview } from "@seo-tool/dataforseo";
+import { backlinksCache, withUserContext } from "@rosterseo/db";
+import { getBacklinksList, getBacklinksOverview, type BacklinkItem, type BacklinksOverview } from "@rosterseo/dataforseo";
 import { isValidDomain, normalizeDomain } from "@/components/competitors/domain-utils";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";

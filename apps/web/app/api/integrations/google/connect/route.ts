@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGoogleAuthUrl, isGoogleOAuthConfigured } from "@seo-tool/google";
+import { getGoogleAuthUrl, isGoogleOAuthConfigured } from "@rosterseo/google";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 

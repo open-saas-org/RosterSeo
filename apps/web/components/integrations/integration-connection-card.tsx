@@ -42,7 +42,7 @@ export function IntegrationConnectionCard({
   icon: ReactNode;
   status: GoogleConnectionStatus;
   connectedAt: string | null;
-  /** Whether GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET are set - see isGoogleOAuthConfigured() in @seo-tool/google. */
+  /** Whether GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET are set - see isGoogleOAuthConfigured() in @rosterseo/google. */
   configured: boolean;
   /** PropertyPicker, rendered when connected but this project hasn't picked a property yet - the connection itself has no property, that's a per-project choice. */
   children?: ReactNode;

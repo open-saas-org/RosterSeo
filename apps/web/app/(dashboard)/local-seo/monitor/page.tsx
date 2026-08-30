@@ -1,5 +1,5 @@
 import { desc, eq, inArray, sql } from "drizzle-orm";
-import { localBusinessProfiles, localGridScanPoints, localGridScans, withUserContext } from "@seo-tool/db";
+import { localBusinessProfiles, localGridScanPoints, localGridScans, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { MonitorWorkspace } from "@/components/local-seo/monitor-workspace";
 import { getCurrentProject } from "@/lib/current-project";

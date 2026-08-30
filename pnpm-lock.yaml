@@ -81,16 +81,16 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.0
         version: 1.30.0(supports-color@8.1.1)(zod@3.25.76)
-      '@seo-tool/bing':
+      '@rosterseo/bing':
         specifier: workspace:*
         version: link:../../packages/bing
-      '@seo-tool/dataforseo':
+      '@rosterseo/dataforseo':
         specifier: workspace:*
         version: link:../../packages/dataforseo
-      '@seo-tool/db':
+      '@rosterseo/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@seo-tool/indexnow':
+      '@rosterseo/indexnow':
         specifier: workspace:*
         version: link:../../packages/indexnow
       drizzle-orm:
@@ -115,45 +115,45 @@ importers:
       '@base-ui/react':
         specifier: ^1.7.0
         version: 1.7.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@rosterseo/ai-visibility':
+        specifier: workspace:*
+        version: link:../../packages/ai-visibility
+      '@rosterseo/bing':
+        specifier: workspace:*
+        version: link:../../packages/bing
+      '@rosterseo/crawler':
+        specifier: workspace:*
+        version: link:../../packages/crawler
+      '@rosterseo/dataforseo':
+        specifier: workspace:*
+        version: link:../../packages/dataforseo
+      '@rosterseo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@rosterseo/email':
+        specifier: workspace:*
+        version: link:../../packages/email
+      '@rosterseo/google':
+        specifier: workspace:*
+        version: link:../../packages/google
+      '@rosterseo/indexnow':
+        specifier: workspace:*
+        version: link:../../packages/indexnow
+      '@rosterseo/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
+      '@rosterseo/publishing':
+        specifier: workspace:*
+        version: link:../../packages/publishing
+      '@rosterseo/social':
+        specifier: workspace:*
+        version: link:../../packages/social
+      '@rosterseo/wordpress':
+        specifier: workspace:*
+        version: link:../../packages/wordpress
       '@sentry/nextjs':
         specifier: 10.70.0
         version: 10.70.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(next@15.5.23(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(supports-color@8.1.1)(webpack@5.109.2(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.26))
-      '@seo-tool/ai-visibility':
-        specifier: workspace:*
-        version: link:../../packages/ai-visibility
-      '@seo-tool/bing':
-        specifier: workspace:*
-        version: link:../../packages/bing
-      '@seo-tool/crawler':
-        specifier: workspace:*
-        version: link:../../packages/crawler
-      '@seo-tool/dataforseo':
-        specifier: workspace:*
-        version: link:../../packages/dataforseo
-      '@seo-tool/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@seo-tool/email':
-        specifier: workspace:*
-        version: link:../../packages/email
-      '@seo-tool/google':
-        specifier: workspace:*
-        version: link:../../packages/google
-      '@seo-tool/indexnow':
-        specifier: workspace:*
-        version: link:../../packages/indexnow
-      '@seo-tool/jobs':
-        specifier: workspace:*
-        version: link:../../packages/jobs
-      '@seo-tool/publishing':
-        specifier: workspace:*
-        version: link:../../packages/publishing
-      '@seo-tool/social':
-        specifier: workspace:*
-        version: link:../../packages/social
-      '@seo-tool/wordpress':
-        specifier: workspace:*
-        version: link:../../packages/wordpress
       '@tanstack/react-query':
         specifier: ^5.62.2
         version: 5.101.4(react@19.2.8)
@@ -266,36 +266,36 @@ importers:
 
   apps/worker:
     dependencies:
+      '@rosterseo/ai-visibility':
+        specifier: workspace:*
+        version: link:../../packages/ai-visibility
+      '@rosterseo/crawler':
+        specifier: workspace:*
+        version: link:../../packages/crawler
+      '@rosterseo/dataforseo':
+        specifier: workspace:*
+        version: link:../../packages/dataforseo
+      '@rosterseo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@rosterseo/email':
+        specifier: workspace:*
+        version: link:../../packages/email
+      '@rosterseo/google':
+        specifier: workspace:*
+        version: link:../../packages/google
+      '@rosterseo/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
+      '@rosterseo/publishing':
+        specifier: workspace:*
+        version: link:../../packages/publishing
+      '@rosterseo/social':
+        specifier: workspace:*
+        version: link:../../packages/social
       '@sentry/node':
         specifier: 10.70.0
         version: 10.70.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@8.1.1)
-      '@seo-tool/ai-visibility':
-        specifier: workspace:*
-        version: link:../../packages/ai-visibility
-      '@seo-tool/crawler':
-        specifier: workspace:*
-        version: link:../../packages/crawler
-      '@seo-tool/dataforseo':
-        specifier: workspace:*
-        version: link:../../packages/dataforseo
-      '@seo-tool/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@seo-tool/email':
-        specifier: workspace:*
-        version: link:../../packages/email
-      '@seo-tool/google':
-        specifier: workspace:*
-        version: link:../../packages/google
-      '@seo-tool/jobs':
-        specifier: workspace:*
-        version: link:../../packages/jobs
-      '@seo-tool/publishing':
-        specifier: workspace:*
-        version: link:../../packages/publishing
-      '@seo-tool/social':
-        specifier: workspace:*
-        version: link:../../packages/social
       drizzle-orm:
         specifier: ^0.38.0
         version: 0.38.4(@opentelemetry/api@1.9.1)(@types/pg@8.21.0)(@types/react@19.2.18)(kysely@0.29.4)(pg@8.23.0)(react@19.2.8)
@@ -459,7 +459,7 @@ importers:
 
   packages/publishing:
     dependencies:
-      '@seo-tool/wordpress':
+      '@rosterseo/wordpress':
         specifier: workspace:*
         version: link:../wordpress
       marked:

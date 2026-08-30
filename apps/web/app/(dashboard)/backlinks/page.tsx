@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { backlinksCache, withUserContext } from "@seo-tool/db";
+import { backlinksCache, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { BacklinksWorkspace } from "@/components/backlinks/backlinks-workspace";
 import { getCurrentProject } from "@/lib/current-project";

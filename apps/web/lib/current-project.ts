@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isNull } from "drizzle-orm";
-import { projects, withUserContext } from "@seo-tool/db";
+import { projects, withUserContext } from "@rosterseo/db";
 import { auth } from "@/lib/auth";
 import { ACTIVE_PROJECT_COOKIE } from "@/lib/project-cookie";
 

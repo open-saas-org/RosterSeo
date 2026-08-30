@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { competitorSnapshotCache, withUserContext } from "@seo-tool/db";
-import { getBacklinksOverview, getDomainOverview, type BacklinksOverview, type DomainOverview } from "@seo-tool/dataforseo";
+import { competitorSnapshotCache, withUserContext } from "@rosterseo/db";
+import { getBacklinksOverview, getDomainOverview, type BacklinksOverview, type DomainOverview } from "@rosterseo/dataforseo";
 
 export type DomainSnapshot = {
   domain: string;

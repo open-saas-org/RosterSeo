@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { BarChart3, Plug } from "lucide-react";
-import { isGoogleOAuthConfigured } from "@seo-tool/google";
-import { googleConnections, withUserContext } from "@seo-tool/db";
+import { isGoogleOAuthConfigured } from "@rosterseo/google";
+import { googleConnections, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,7 +15,7 @@ import { fetchGscExactWindow } from "@/lib/gsc-fetch";
 import { PropertyPicker } from "@/components/integrations/property-picker";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GscInsightsWorkspace } from "@/components/gsc-insights/gsc-insights-workspace";
-import type { SearchConsoleRow } from "@seo-tool/google";
+import type { SearchConsoleRow } from "@rosterseo/google";
 
 const DEFAULT_DAYS = 28;
 

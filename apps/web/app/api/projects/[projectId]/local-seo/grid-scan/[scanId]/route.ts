@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { localGridScanPoints, localGridScans, withUserContext } from "@seo-tool/db";
+import { localGridScanPoints, localGridScans, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/projects/:projectId/local-seo/grid-scan/:scanId

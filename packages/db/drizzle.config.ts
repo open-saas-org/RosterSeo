@@ -11,6 +11,6 @@ export default defineConfig({
     url:
       process.env.DATABASE_MIGRATE_URL ??
       process.env.DATABASE_URL ??
-      "postgres://postgres:postgres@localhost:5432/seo_tool",
+      "postgres://postgres:postgres@localhost:5432/rosterseo",
   },
 });

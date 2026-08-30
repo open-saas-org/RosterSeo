@@ -18,7 +18,7 @@ persists the run so it can be tracked over time.
    every same-origin `<a href>` it discovers — not just the sitemap. A basic
    `robots.txt` subset (`User-agent: *` / `Disallow`) is respected, and
    every fetched URL passes a real SSRF guard (`assertPublicHost`,
-   `@seo-tool/crawler`) before the request goes out, rejecting anything
+   `@rosterseo/crawler`) before the request goes out, rejecting anything
    that resolves to a private/loopback/link-local address.
 3. Tracks two distinct, real counters as the crawl runs: **pages discovered**
    (the frontier size — every same-origin URL seen so far) and **pages
@@ -204,7 +204,7 @@ knowledge (pure fetch + parse, driven by callbacks).
 
 `apps/worker/src/features/audit-runner.ts` — owns all DB access and
 business logic: calls `crawlSite()`, derives per-page issues via the
-shared `deriveIssues()` (`@seo-tool/crawler`), persists pages/issues/progress
+shared `deriveIssues()` (`@rosterseo/crawler`), persists pages/issues/progress
 after each crawled page, captures the real link graph, runs the cross-page
 duplicate-title check once the crawl finishes, and computes the health
 score.
@@ -240,6 +240,6 @@ audit), `SiteAuditDeepCheck`, and `SiteAuditPageDetail`, all in
 
 Shared types (`IssueSeverity`, `SiteAuditIssue`) live in
 `apps/web/components/site-audit/audit-engine.ts` — the actual
-crawl/issue-derivation logic lives in `@seo-tool/crawler` (`deriveIssues()`)
+crawl/issue-derivation logic lives in `@rosterseo/crawler` (`deriveIssues()`)
 and the worker, reused by the per-page recrawl API route too, so there's
 one real implementation rather than copies that could drift apart.

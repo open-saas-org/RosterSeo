@@ -1,4 +1,4 @@
-import { getAllProviders } from "@seo-tool/ai-visibility";
+import { getAllProviders } from "@rosterseo/ai-visibility";
 import { PageHeader } from "@/components/page-header";
 import { ProvidersSettingsWorkspace } from "@/components/ai-visibility/providers-settings-workspace";
 import { getCurrentProject } from "@/lib/current-project";

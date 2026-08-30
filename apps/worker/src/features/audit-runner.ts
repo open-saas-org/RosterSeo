@@ -1,12 +1,12 @@
-import { siteAudits, siteAuditPages, siteAuditIssues, siteAuditLinks, withUserContext } from "@seo-tool/db";
+import { siteAudits, siteAuditPages, siteAuditIssues, siteAuditLinks, withUserContext } from "@rosterseo/db";
 import { count, eq } from "drizzle-orm";
-import { fetchPageSpeedMetrics } from "@seo-tool/google/pagespeed";
-import { assertPublicHost, deriveIssues } from "@seo-tool/crawler";
+import { fetchPageSpeedMetrics } from "@rosterseo/google/pagespeed";
+import { assertPublicHost, deriveIssues } from "@rosterseo/crawler";
 import { crawlSite } from "./crawler";
 import { insertLinkRows, type LinkRow } from "./site-audit-deep-check-runner";
 
-export type { IssueSeverity } from "@seo-tool/crawler";
-import type { IssueSeverity } from "@seo-tool/crawler";
+export type { IssueSeverity } from "@rosterseo/crawler";
+import type { IssueSeverity } from "@rosterseo/crawler";
 
 interface IssueRow {
   auditId: string;

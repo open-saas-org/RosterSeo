@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { trackedKeywords, withUserContext } from "@seo-tool/db";
+import { trackedKeywords, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // DELETE /api/projects/:projectId/keywords/:keywordId - untrack a keyword.

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { getKeywordIdeas, getKeywordSuggestions, getRealKeywordMetrics, getRelatedKeywords, type KeywordMetrics } from "@seo-tool/dataforseo";
-import { keywordMetricsCache, keywordResearchSearches, withUserContext } from "@seo-tool/db";
+import { getKeywordIdeas, getKeywordSuggestions, getRealKeywordMetrics, getRelatedKeywords, type KeywordMetrics } from "@rosterseo/dataforseo";
+import { keywordMetricsCache, keywordResearchSearches, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import type { SourcedKeywordMetrics } from "@/components/keywords/keyword-research-types";
 

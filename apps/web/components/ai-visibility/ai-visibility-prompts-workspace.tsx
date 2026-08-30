@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ListSkeleton } from "@/components/ui/loading-skeletons";
 import { DataTable, createDataTableColumns, type DataTableColumnDef } from "@/components/data-table";
 import { cn } from "@/lib/utils";
-import { isBrandedPrompt } from "@seo-tool/ai-visibility";
+import { isBrandedPrompt } from "@rosterseo/ai-visibility";
 
 type TrackedPrompt = {
   id: string;
@@ -29,7 +29,7 @@ const columnHelper = createDataTableColumns<TrackedPrompt>();
 
 // Kept in sync with MAX_PROMPTS (apps/web/lib/ai-visibility/track-prompt.ts,
 // enforced server-side in both the single-add and bulk-import routes). Not
-// imported directly - that module pulls in @seo-tool/db, which isn't safe
+// imported directly - that module pulls in @rosterseo/db, which isn't safe
 // to bundle into a client component.
 const MAX_PROMPTS = 100;
 

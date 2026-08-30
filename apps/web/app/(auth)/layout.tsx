@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <Globe className="size-4" />
         </div>
-        SEO Tool
+        RosterSEO
       </div>
       <div className="w-full max-w-sm">{children}</div>
     </div>

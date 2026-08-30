@@ -57,7 +57,7 @@ export const projects = pgTable("projects", {
   aiVisibilityAdditionalDomains: jsonb("ai_visibility_additional_domains").$type<string[]>(),
   // Which of the globally env-configured AI Visibility providers/models this
   // project actually samples from - null/empty means "fall back to
-  // defaultTargets()" (@seo-tool/ai-visibility - BrightData + OpenRouter by
+  // defaultTargets()" (@rosterseo/ai-visibility - BrightData + OpenRouter by
   // default). A settings-level toggle list, not a separate table - provider
   // credentials themselves stay global env vars (this is a self-hosted,
   // single-operator tool; see the removed credit-metering system for the
@@ -71,15 +71,15 @@ export const projects = pgTable("projects", {
   // Self-generated IndexNow protocol key (lazily created on first submit) -
   // no OAuth/account needed, just a random key hosted at a known URL.
   indexnowKey: text("indexnow_key"),
-  // Which provider/model Clay (the in-app AI assistant, see clayConversations
+  // Which provider/model Cappy (the in-app AI assistant, see cappyConversations
   // below) uses for this project - "openai" | "anthropic" | "openrouter",
   // the only 3 real tool-calling-capable providers (see
   // packages/ai-visibility/src/providers/agentic.ts). Null falls back to
-  // "openrouter" in apps/web/lib/clay/agent-loop.ts. Same
+  // "openrouter" in apps/web/lib/cappy/agent-loop.ts. Same
   // per-project-setting-over-global-credentials shape as aiVisibilityTargets
   // above - credentials stay global env vars, this just picks which one.
-  clayProvider: text("clay_provider"),
-  clayModel: text("clay_model"),
+  cappyProvider: text("cappy_provider"),
+  cappyModel: text("cappy_model"),
   // Soft-delete: set instead of a real DELETE when the user picks "delete
   // but keep the data" from Project Settings, so the project (and every
   // cascading child row) can be restored later. Every query that lists
@@ -123,7 +123,7 @@ export const trackedKeywords = pgTable("tracked_keywords", {
   // wide setting (see rank_tracking_settings below), matching how a real
   // rank tracker's config (not each keyword) carries location/device.
   location: text("location"),
-  // Cached from a real getKeywordMetrics() (@seo-tool/dataforseo) Labs call
+  // Cached from a real getKeywordMetrics() (@rosterseo/dataforseo) Labs call
   // at Fetch-Rankings time - null until the first real fetch runs. Caching
   // here is what stops the page from calling DataForSEO live on every
   // render (the bug the rank tracking rebuild fixed).
@@ -226,7 +226,7 @@ export const backlinksCache = pgTable(
     referringDomains: integer("referring_domains").notNull().default(0),
     domainRating: integer("domain_rating").notNull().default(0),
     // Up to ~200 real individual backlink rows (domainFrom/urlFrom/anchor/
-    // dofollow/spamScore/etc, see @seo-tool/dataforseo's BacklinkItem) from
+    // dofollow/spamScore/etc, see @rosterseo/dataforseo's BacklinkItem) from
     // the same lookup that filled the aggregate columns above - powers the
     // Backlinks page's real per-row list + quality filters, and is where
     // "Add to Outreach" picks a row from. Cached alongside the aggregate
@@ -336,7 +336,7 @@ export const keywordRankings = pgTable("keyword_rankings", {
   device: text("device"), // desktop | mobile
   serpFeatures: jsonb("serp_features").$type<string[]>(),
   // True when DataForSEO was unconfigured or the real SERP call failed and
-  // checkKeywordRanking() (@seo-tool/dataforseo) fell back to deterministic
+  // checkKeywordRanking() (@rosterseo/dataforseo) fell back to deterministic
   // demo data for this row - real, load-bearing signal, not decoration.
   // Without it a fabricated position is indistinguishable from a real one
   // anywhere this row is read (trend chart, position-distribution chart,
@@ -721,15 +721,15 @@ export const outreachTargets = pgTable("outreach_targets", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// --- Clay (in-app AI agent assistant) ---
+// --- Cappy (in-app AI agent assistant) ---
 // One thread of conversation, always scoped to exactly one project AND the
-// user who started it - an org member's Clay chats are never shown to
+// user who started it - an org member's Cappy chats are never shown to
 // another org member by default (RLS below still only enforces the org
 // tenant boundary like every other table; the user_id scoping is an
-// application-layer filter applied in every query in apps/web/lib/clay/*,
+// application-layer filter applied in every query in apps/web/lib/cappy/*,
 // same pattern mcp_api_keys already uses for its own explicit user_id
 // filtering - see that table's own comment for why).
-export const clayConversations = pgTable("clay_conversations", {
+export const cappyConversations = pgTable("cappy_conversations", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id")
     .notNull()
@@ -747,11 +747,11 @@ export const clayConversations = pgTable("clay_conversations", {
 // are embedded back into the same assistant row's toolCalls[] entry
 // (result/status), not a separate "tool" role row - keeps a flat
 // one-row-per-turn list that's trivial to render as a transcript.
-export const clayMessages = pgTable("clay_messages", {
+export const cappyMessages = pgTable("cappy_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   conversationId: uuid("conversation_id")
     .notNull()
-    .references(() => clayConversations.id, { onDelete: "cascade" }),
+    .references(() => cappyConversations.id, { onDelete: "cascade" }),
   // Denormalized from conversationId rather than joined through it - every
   // project-scoped table in this project carries its own project_id for
   // RLS (packages/db/README.md), not a join-through-parent policy.
@@ -760,20 +760,20 @@ export const clayMessages = pgTable("clay_messages", {
     .references(() => projects.id, { onDelete: "cascade" }),
   role: text("role").notNull(), // "user" | "assistant"
   content: text("content"), // visible text; null for a pure tool-call turn
-  // ClayToolCall[] | null (see the exported type below). This is the only
+  // CappyToolCall[] | null (see the exported type below). This is the only
   // column ever UPDATEd after insert (when a pending_confirmation call is
   // approved/denied) - every other column on every row is append-only.
-  toolCalls: jsonb("tool_calls").$type<ClayToolCall[]>(),
+  toolCalls: jsonb("tool_calls").$type<CappyToolCall[]>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// One row per project: Clay's LLM-maintained standing summary, refreshed
+// One row per project: Cappy's LLM-maintained standing summary, refreshed
 // either automatically (every N new messages, see
-// apps/web/lib/clay/project-notes.ts) or immediately via the agent's own
+// apps/web/lib/cappy/project-notes.ts) or immediately via the agent's own
 // update_project_notes tool call. Plain Postgres, no embeddings/vector
 // search - kept short enough to paste into every system prompt whole (see
 // this plan's Context note on why pgvector was rejected).
-export const clayProjectNotes = pgTable("clay_project_notes", {
+export const cappyProjectNotes = pgTable("cappy_project_notes", {
   projectId: uuid("project_id")
     .primaryKey()
     .references(() => projects.id, { onDelete: "cascade" }),
@@ -782,7 +782,7 @@ export const clayProjectNotes = pgTable("clay_project_notes", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type ClayToolCall = {
+export type CappyToolCall = {
   id: string;
   name: string;
   arguments: Record<string, unknown>;
@@ -792,11 +792,11 @@ export type ClayToolCall = {
   error?: string;
 };
 
-export const clayConversationsRelations = relations(clayConversations, ({ many }) => ({
-  messages: many(clayMessages),
+export const cappyConversationsRelations = relations(cappyConversations, ({ many }) => ({
+  messages: many(cappyMessages),
 }));
-export const clayMessagesRelations = relations(clayMessages, ({ one }) => ({
-  conversation: one(clayConversations, { fields: [clayMessages.conversationId], references: [clayConversations.id] }),
+export const cappyMessagesRelations = relations(cappyMessages, ({ one }) => ({
+  conversation: one(cappyConversations, { fields: [cappyMessages.conversationId], references: [cappyConversations.id] }),
 }));
 
 // Geo-grid rank tracking: one row per real scan (a keyword checked across a
@@ -1021,7 +1021,7 @@ export const blogPosts = pgTable("blog_posts", {
 // user never clicks "respin." projectId is denormalized (not just reachable
 // via blogPostId -> blogPosts.projectId) so its RLS policy can check it
 // directly instead of joining through the parent - same choice
-// clay_messages made for the same reason.
+// cappy_messages made for the same reason.
 export const blogPostTargets = pgTable("blog_post_targets", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id")

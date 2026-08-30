@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { analyzeBrand } from "@seo-tool/ai-visibility";
+import { analyzeBrand } from "@rosterseo/ai-visibility";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // POST /api/projects/:projectId/ai-visibility/onboarding-research - one

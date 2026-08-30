@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { socialConnections, withUserContext } from "@seo-tool/db";
+import { socialConnections, withUserContext } from "@rosterseo/db";
 import {
   decodeState,
   exchangeLinkedInCode,
@@ -13,7 +13,7 @@ import {
   isSocialOAuthConfigured,
   type ConnectableAccount,
   type SocialOAuthPlatform,
-} from "@seo-tool/social";
+} from "@rosterseo/social";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 import { getOrCreateMastodonApp } from "@/lib/social/mastodon-app";
@@ -23,7 +23,7 @@ type State = { projectId: string; platform: SocialOAuthPlatform; instanceUrl?: s
 // GET /api/integrations/social/callback?code=...&state=...
 //
 // Dispatches to the right platform's exchange function (see
-// @seo-tool/social's oauth.ts), then upserts one social_connections row per
+// @rosterseo/social's oauth.ts), then upserts one social_connections row per
 // real connectable account returned - zero further manual entry, matching
 // Publish's blog OAuth callback. Matches on
 // (projectId, platform, accountIdentifier) so reconnecting refreshes the

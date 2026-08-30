@@ -1,5 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
-import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@seo-tool/db";
+import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@rosterseo/db";
 
 // Real shared logic behind POST /api/projects/:projectId/blog/posts -
 // inserts the canonical post plus one blogPostTargets row per selected

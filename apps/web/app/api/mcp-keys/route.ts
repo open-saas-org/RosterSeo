@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq, isNull } from "drizzle-orm";
-import { mcpApiKeys, withUserContext } from "@seo-tool/db";
+import { mcpApiKeys, withUserContext } from "@rosterseo/db";
 import { auth } from "@/lib/auth";
 import { generateMcpApiKey } from "@/lib/mcp-keys";
 

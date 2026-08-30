@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@seo-tool/db";
-import { classifyUrl, getModelDisplayLabel, normalizeUrl } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@rosterseo/db";
+import { classifyUrl, getModelDisplayLabel, normalizeUrl } from "@rosterseo/ai-visibility";
 import { getCurrentProject } from "@/lib/current-project";
 import { PromptDetail } from "@/components/ai-visibility/prompt-detail";
 

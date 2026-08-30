@@ -1,12 +1,12 @@
-import { fetchAndParse, normalizeUrl, assertPublicHost, type CrawledPageResult } from "@seo-tool/crawler";
+import { fetchAndParse, normalizeUrl, assertPublicHost, type CrawledPageResult } from "@rosterseo/crawler";
 
 // BFS/robots.txt/frontier logic for Site Audit's multi-page crawl. The
 // single-page fetch+parse itself (fetchAndParse/normalizeUrl) lives in
-// @seo-tool/crawler, shared with Page Analyzer's single-page real crawl -
+// @rosterseo/crawler, shared with Page Analyzer's single-page real crawl -
 // see that package for why.
 export type { CrawledPageResult };
 
-const USER_AGENT = "SEOToolBot/1.0 (+https://github.com/seo-tool; site audit crawler)";
+const USER_AGENT = "RosterSEOBot/1.0 (+https://github.com/open-saas-org/seo; site audit crawler)";
 const DEFAULT_CONCURRENCY = 5;
 
 // Hard wall-clock cap on the whole crawl, not just a per-page timeout.

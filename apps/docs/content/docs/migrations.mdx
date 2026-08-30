@@ -19,10 +19,10 @@ ROLE` statement.
 
 ## Migration history
 
-`packages/db/drizzle/` currently holds 42 migrations (`0000` through
-`0041`), one SQL file per schema change, applied in numeric order - every
+`packages/db/drizzle/` currently holds 43 migrations (`0000` through
+`0042`), one SQL file per schema change, applied in numeric order - every
 feature module in this app (Page Analyzer, Keywords, Site Audit, AI
-Visibility, Local SEO, Rank Tracking, Backlinks, Clay, Publish, Social,
+Visibility, Local SEO, Rank Tracking, Backlinks, Cappy, Publish, Social,
 and more) shipped its tables this way, incrementally, rather than as one
 upfront schema. `packages/db/README.md`'s own migration-history table is
 the complete, current, row-by-row list - it's regenerated there as new
@@ -44,7 +44,7 @@ The pattern continues past 0006 exactly the way you'd expect from the
 four rules below: 0018 drops `saved_keywords` once it was superseded by a
 caching table, 0027 drops a self-referencing FK column Query Fan-Out
 never ended up populating, 0030-0033 each add one new feature's full
-table set (Outreach, Clay, Publish, Social) in a single migration since
+table set (Outreach, Cappy, Publish, Social) in a single migration since
 none of them have another migration's rows to bootstrap around. See
 `packages/db/README.md` for the complete list and the reasoning behind
 each one.

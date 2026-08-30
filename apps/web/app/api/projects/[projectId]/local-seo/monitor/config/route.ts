@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { localBusinessProfiles, withUserContext } from "@seo-tool/db";
+import { localBusinessProfiles, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // PATCH /api/projects/:projectId/local-seo/monitor/config

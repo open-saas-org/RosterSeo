@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { asc, eq } from "drizzle-orm";
-import { keywordRankings, rankTrackingSettings, trackedKeywords, withUserContext } from "@seo-tool/db";
-import { checkKeywordRanking, DataForSeoNotConfiguredError, resolveLocationCode } from "@seo-tool/dataforseo";
+import { keywordRankings, rankTrackingSettings, trackedKeywords, withUserContext } from "@rosterseo/db";
+import { checkKeywordRanking, DataForSeoNotConfiguredError, resolveLocationCode } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { normalizeDomain } from "@/components/competitors/domain-utils";
 

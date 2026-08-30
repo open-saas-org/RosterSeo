@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { blogConnections, withUserContext } from "@seo-tool/db";
-import { decodeBlogOAuthState, exchangeBlogOAuthCode, isBlogOAuthConfigured, listBlogOAuthSites } from "@seo-tool/publishing";
+import { blogConnections, withUserContext } from "@rosterseo/db";
+import { decodeBlogOAuthState, exchangeBlogOAuthCode, isBlogOAuthConfigured, listBlogOAuthSites } from "@rosterseo/publishing";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 

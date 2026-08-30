@@ -11,7 +11,7 @@ import { MetricCard } from "@/components/metric-card";
 import { EmptyState } from "@/components/empty-state";
 import { AiVisibilityFilterBar } from "@/components/ai-visibility/ai-visibility-filter-bar";
 import { cn } from "@/lib/utils";
-import { computeFanoutAnalysis, type FanoutAnalysis, type FanoutInputRow, type FanoutQueryStat, type FanoutWordStat } from "@seo-tool/ai-visibility";
+import { computeFanoutAnalysis, type FanoutAnalysis, type FanoutInputRow, type FanoutQueryStat, type FanoutWordStat } from "@rosterseo/ai-visibility";
 
 type PromptTags = { id: string; tags: string[] };
 type ModelOption = { value: string; label: string };

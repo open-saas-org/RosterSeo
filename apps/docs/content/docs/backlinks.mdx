@@ -20,7 +20,7 @@ surfaced as its own standalone module for a quick one-off check.
 
 ## What's real today
 
-- **The overview lookup**: real, no mock fallback. `@seo-tool/dataforseo`'s
+- **The overview lookup**: real, no mock fallback. `@rosterseo/dataforseo`'s
   `getBacklinksOverview(domain)` calls DataForSEO's `backlinks/summary/live`
   and throws `DataForSeoNotConfiguredError` when `DATAFORSEO_LOGIN` /
   `DATAFORSEO_PASSWORD` aren't set (`isDataForSeoConfigured()`) — there is no
@@ -31,7 +31,7 @@ surfaced as its own standalone module for a quick one-off check.
   badge — a lookup only ever succeeds with real data or fails with a
   visible error.
 - **The individual backlinks list**: also real, not a stub.
-  `@seo-tool/dataforseo`'s `getBacklinksList(domain)` calls DataForSEO's
+  `@rosterseo/dataforseo`'s `getBacklinksList(domain)` calls DataForSEO's
   `backlinks/backlinks/live` for up to 200 real referring links per domain
   (source domain/URL, anchor text, dofollow/nofollow, domain-from rank, spam
   score, first-seen/last-seen dates, new/lost flags), rendered in a

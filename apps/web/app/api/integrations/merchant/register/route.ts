@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { googleConnections, withUserContext } from "@seo-tool/db";
-import { registerMerchantApiDeveloper } from "@seo-tool/google";
+import { googleConnections, withUserContext } from "@rosterseo/db";
+import { registerMerchantApiDeveloper } from "@rosterseo/google";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 import { getValidAccessToken } from "@/lib/google-token";

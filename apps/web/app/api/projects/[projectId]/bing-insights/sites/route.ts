@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isBingConfigured, listBingSites } from "@seo-tool/bing";
+import { isBingConfigured, listBingSites } from "@rosterseo/bing";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/projects/:projectId/bing-insights/sites - real GetUserSites call

@@ -21,4 +21,4 @@ export type KeywordCountryOption = {
 // is a real ordering, not just a label.
 export type KeywordResultSource = "related" | "suggestion" | "idea";
 
-export type SourcedKeywordMetrics = import("@seo-tool/dataforseo").KeywordMetrics & { source: KeywordResultSource };
+export type SourcedKeywordMetrics = import("@rosterseo/dataforseo").KeywordMetrics & { source: KeywordResultSource };

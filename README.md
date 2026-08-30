@@ -1,4 +1,4 @@
-# SEO Tool
+# RosterSEO
 
 Open-source SEO + AI-search-visibility platform. Combines a Screaming
 Frog–style crawler/auditor, a keyword/SERP/competitor research suite, and
@@ -71,13 +71,13 @@ and run it anywhere" path for a VPS, Fly.io, Render, or any other
 Docker-based host that isn't Railway:
 
 ```bash
-docker build -t seo-tool-web .
+docker build -t rosterseo-web .
 docker run -p 3000:3000 \
-  -e DATABASE_URL="postgres://user:pass@your-postgres-host:5432/seo_tool" \
+  -e DATABASE_URL="postgres://user:pass@your-postgres-host:5432/rosterseo" \
   -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
   -e BETTER_AUTH_URL="http://localhost:3000" \
   -e NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000" \
-  seo-tool-web
+  rosterseo-web
 ```
 
 Same automatic migration-on-start behavior — the image migrates the
@@ -136,7 +136,7 @@ docker/         Dockerfile support docs, Railway publishing steps
 browsable docs:
 
 ```bash
-pnpm --filter @seo-tool/docs dev
+pnpm --filter @rosterseo/docs dev
 ```
 
 Runs on `http://localhost:3001`.

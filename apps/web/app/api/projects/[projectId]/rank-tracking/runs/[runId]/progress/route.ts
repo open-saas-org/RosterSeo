@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { rankCheckRuns, withUserContext } from "@seo-tool/db";
+import { rankCheckRuns, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/projects/:projectId/rank-tracking/runs/:runId/progress - what

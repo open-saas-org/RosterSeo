@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { desc, eq, inArray } from "drizzle-orm";
-import { aiVisibilityOpportunityReports, aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@seo-tool/db";
+import { aiVisibilityOpportunityReports, aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@rosterseo/db";
 import {
   calculateVisibilityScore,
   classifyUrl,
@@ -13,7 +13,7 @@ import {
   type OpportunityDigest,
   type OpportunityDigestPrompt,
   type OpportunitiesReport,
-} from "@seo-tool/ai-visibility";
+} from "@rosterseo/ai-visibility";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET  /api/projects/:projectId/ai-visibility/opportunities - the latest

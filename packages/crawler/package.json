@@ -1,5 +1,5 @@
 {
-  "name": "@seo-tool/crawler",
+  "name": "@rosterseo/crawler",
   "version": "0.0.0",
   "private": true,
   "type": "module",

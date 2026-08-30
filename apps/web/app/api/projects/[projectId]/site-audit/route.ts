@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { startSiteAudit } from "@/lib/site-audit/start-site-audit";
 
-import { withUserContext } from "@seo-tool/db";
+import { withUserContext } from "@rosterseo/db";
 import { eq, desc } from "drizzle-orm";
 
 export const POST = withAuth(async (req, { params }, session) => {

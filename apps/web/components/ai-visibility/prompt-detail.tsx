@@ -13,7 +13,7 @@ import { CitationsDashboard } from "@/components/ai-visibility/citations-dashboa
 import { QueryFanOutDashboard } from "@/components/ai-visibility/query-fan-out-dashboard";
 import { AI_VISIBILITY_DAY_OPTIONS, DAY_OPTION_LABELS } from "@/components/ai-visibility/ai-visibility-filter-bar";
 import { computePromptChartData, type Entity, type PromptData, type RawStat } from "@/components/ai-visibility/visibility-dashboard";
-import type { CitationRow, FanoutInputRow } from "@seo-tool/ai-visibility";
+import type { CitationRow, FanoutInputRow } from "@rosterseo/ai-visibility";
 
 type ModelOption = { value: string; label: string };
 

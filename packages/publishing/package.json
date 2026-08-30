@@ -1,5 +1,5 @@
 {
-  "name": "@seo-tool/publishing",
+  "name": "@rosterseo/publishing",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@seo-tool/wordpress": "workspace:*",
+    "@rosterseo/wordpress": "workspace:*",
     "marked": "^14.1.0"
   },
   "devDependencies": {

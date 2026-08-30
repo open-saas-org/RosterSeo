@@ -3,7 +3,7 @@
 // pure aggregation math over real rows, reused wherever GSC data needs a
 // clicks/impressions/CTR/position summary with period-over-period deltas.
 
-import type { SearchConsoleRow } from "@seo-tool/google";
+import type { SearchConsoleRow } from "@rosterseo/google";
 
 export interface GscInsightsMetrics {
   totalClicks: number;

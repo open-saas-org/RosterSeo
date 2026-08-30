@@ -5,30 +5,30 @@
 // the API route need identically, so it's kept here rather than duplicated.
 //
 // Fully real pipeline: fetchAndParse (real fetch + cheerio, shared with
-// Site Audit via @seo-tool/crawler), real DataForSEO SERP + keyword data,
+// Site Audit via @rosterseo/crawler), real DataForSEO SERP + keyword data,
 // real Google PageSpeed Core Web Vitals for the target page, and real LLM
 // guidance (when a provider is configured) - no mock data anywhere in this
 // file.
-import { fetchAndParse, detectPageType, type CrawledPageResult, type PageTypeSignal, type ProductJsonLd } from "@seo-tool/crawler";
+import { fetchAndParse, detectPageType, type CrawledPageResult, type PageTypeSignal, type ProductJsonLd } from "@rosterseo/crawler";
 import {
   getRealKeywordMetrics,
   getRealSerpResults,
   type KeywordMetrics,
   type SerpResult,
-} from "@seo-tool/dataforseo";
+} from "@rosterseo/dataforseo";
 import {
   getSearchConsolePageMetrics,
   getGA4PageMetrics,
   getMerchantProductPerformanceForProduct,
   type SearchConsolePageMetrics,
   type GA4PageMetrics,
-} from "@seo-tool/google";
-import { fetchPageSpeedMetrics, type PageSpeedMetrics } from "@seo-tool/google/pagespeed";
+} from "@rosterseo/google";
+import { fetchPageSpeedMetrics, type PageSpeedMetrics } from "@rosterseo/google/pagespeed";
 import {
   generatePageAnalysisAi,
   type PageAnalysisRecommendation,
   type SuggestedPrompt,
-} from "@seo-tool/ai-visibility";
+} from "@rosterseo/ai-visibility";
 import type { DomainSnapshot } from "@/lib/domain-snapshot";
 
 export type FindingImpact = "High" | "Medium" | "Low";
@@ -100,7 +100,7 @@ export type PageMetricsStatus = "connected" | "not_connected" | "no_data" | "err
 export type PageAnalyzerGscMetrics = { status: PageMetricsStatus } & Partial<SearchConsolePageMetrics>;
 export type PageAnalyzerGa4Metrics = { status: PageMetricsStatus } & Partial<GA4PageMetrics>;
 // Real per-product Merchant Center performance (getMerchantProductPerformanceForProduct,
-// @seo-tool/google), matched by the page's own declared product name -
+// @rosterseo/google), matched by the page's own declared product name -
 // "not_connected" covers both "no Merchant Center connected" and "this
 // isn't a product page" (the caller never attempts the lookup in the
 // latter case), never fabricated either way.
@@ -116,7 +116,7 @@ export type PageAnalyzerResult = {
   targetKeyword: string;
   targetLocation: string | null;
   crawl: CrawledPageResult;
-  // Real, rule-based (detectPageType, @seo-tool/crawler) - never an AI
+  // Real, rule-based (detectPageType, @rosterseo/crawler) - never an AI
   // guess. Optional: reports generated before this field existed have
   // none - render an honest "unknown" state, never guess retroactively.
   pageType?: PageTypeSignal;

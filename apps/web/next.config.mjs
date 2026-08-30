@@ -9,11 +9,11 @@ const nextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../.."),
   transpilePackages: [
-    "@seo-tool/db",
-    "@seo-tool/jobs",
-    "@seo-tool/dataforseo",
-    "@seo-tool/ai-visibility",
-    "@seo-tool/google",
+    "@rosterseo/db",
+    "@rosterseo/jobs",
+    "@rosterseo/dataforseo",
+    "@rosterseo/ai-visibility",
+    "@rosterseo/google",
   ],
   images: {
     // next/image rejects local SVGs by default (they can embed <script>).

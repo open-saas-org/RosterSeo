@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@seo-tool/db";
-import { getModelDisplayLabel } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@rosterseo/db";
+import { getModelDisplayLabel } from "@rosterseo/ai-visibility";
 import { PageHeader } from "@/components/page-header";
 import { ShareOfVoiceDashboard } from "@/components/ai-visibility/share-of-voice-dashboard";
 import { getCurrentProject } from "@/lib/current-project";

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { blogPostTargets, withUserContext } from "@seo-tool/db";
+import { blogPostTargets, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { respinBlogPostTarget } from "@/lib/publish/respin-target";
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { projects, withUserContext } from "@seo-tool/db";
-import { isBingConfigured, getBingRankAndTrafficStats } from "@seo-tool/bing";
+import { projects, withUserContext } from "@rosterseo/db";
+import { isBingConfigured, getBingRankAndTrafficStats } from "@rosterseo/bing";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { getDateRange } from "@/lib/date-range";
 

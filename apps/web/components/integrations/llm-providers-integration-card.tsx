@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Bot } from "lucide-react";
-import { getAllProviders } from "@seo-tool/ai-visibility";
+import { getAllProviders } from "@rosterseo/ai-visibility";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";

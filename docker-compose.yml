@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: seo_tool
+      POSTGRES_DB: rosterseo
     ports:
       - "5432:5432"
     volumes:
@@ -30,12 +30,12 @@ services:
     environment:
       # Restricted role - see packages/db/README.md for why RLS depends on
       # this NOT being the postgres superuser.
-      DATABASE_URL: postgres://seo_tool_app:seo_tool_dev@postgres:5432/seo_tool
+      DATABASE_URL: postgres://rosterseo_app:rosterseo_dev@postgres:5432/rosterseo
       # Elevated role, migrations only - the image's own entrypoint
       # (docker/docker-entrypoint.sh) runs migrations automatically against
       # this on every `docker compose up`/container start, before the web
       # server starts. Nothing to run manually.
-      DATABASE_MIGRATE_URL: postgres://postgres:postgres@postgres:5432/seo_tool
+      DATABASE_MIGRATE_URL: postgres://postgres:postgres@postgres:5432/rosterseo
     ports:
       - "3000:3000"
 
@@ -51,11 +51,11 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgres://seo_tool_app:seo_tool_dev@postgres:5432/seo_tool
+      DATABASE_URL: postgres://rosterseo_app:rosterseo_dev@postgres:5432/rosterseo
     # Runs via tsx rather than a compiled dist/ build - the Dockerfile's
     # `build` stage only builds apps/web today. Fine functionally, just not
     # the leanest possible image; worth a dedicated worker build step later.
-    command: ["pnpm", "--filter", "@seo-tool/worker", "dev"]
+    command: ["pnpm", "--filter", "@rosterseo/worker", "dev"]
 
 volumes:
   postgres_data:

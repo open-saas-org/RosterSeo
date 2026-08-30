@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@seo-tool/db";
-import { getBlogAdapter, markdownToHtml } from "@seo-tool/publishing";
+import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@rosterseo/db";
+import { getBlogAdapter, markdownToHtml } from "@rosterseo/publishing";
 
 // Rolls the parent blogPosts row's own status up once every one of its
 // targets has left "pending"/"queued"/"publishing" - published if all

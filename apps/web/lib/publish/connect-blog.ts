@@ -1,5 +1,5 @@
-import { blogConnections, withUserContext } from "@seo-tool/db";
-import { getBlogAdapter, getBlogPlatformDef } from "@seo-tool/publishing";
+import { blogConnections, withUserContext } from "@rosterseo/db";
+import { getBlogAdapter, getBlogPlatformDef } from "@rosterseo/publishing";
 
 // Real shared logic behind POST /api/projects/:projectId/blog/connections -
 // verifies against the real platform (a live API call, same "verification

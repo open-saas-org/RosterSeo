@@ -9,7 +9,7 @@ import { FilterSelect } from "@/components/ui/filter-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrganicSessionsChart } from "@/components/charts/organic-sessions-chart";
 import { DataTable, createDataTableColumns, type DataTableColumnDef } from "@/components/data-table";
-import type { GA4CountryRow, GA4DeviceRow, GA4LandingPageRow, GA4OrganicTrendRow } from "@seo-tool/google";
+import type { GA4CountryRow, GA4DeviceRow, GA4LandingPageRow, GA4OrganicTrendRow } from "@rosterseo/google";
 import { summarizeGaOrganicTrend, type GaInsightsMetrics } from "@/components/ga-insights/ga-insights-metrics";
 
 const DAY_OPTIONS = [

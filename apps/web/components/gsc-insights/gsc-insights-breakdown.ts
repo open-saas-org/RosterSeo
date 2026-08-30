@@ -6,7 +6,7 @@
 // query it single-dimensioned - a plain average would understate how much
 // a low-impression outlier page skews the number.
 
-import type { SearchConsoleRow } from "@seo-tool/google";
+import type { SearchConsoleRow } from "@rosterseo/google";
 
 export interface QueryAggregateRow {
   query: string;

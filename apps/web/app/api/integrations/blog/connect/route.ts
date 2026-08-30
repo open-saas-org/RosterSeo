@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { getBlogOAuthUrl, isBlogOAuthConfigured, type BlogOAuthPlatform } from "@seo-tool/publishing";
+import { getBlogOAuthUrl, isBlogOAuthConfigured, type BlogOAuthPlatform } from "@rosterseo/publishing";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 

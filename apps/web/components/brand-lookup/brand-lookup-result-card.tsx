@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProviderBadge } from "@/components/ai-visibility/provider-badge";
 import { SentimentBadge } from "@/components/ai-visibility/sentiment-badge";
-import type { AiVisibilityProvider, PromptSampleResult } from "@seo-tool/ai-visibility";
+import type { AiVisibilityProvider, PromptSampleResult } from "@rosterseo/ai-visibility";
 
 // Simple pass/fail-style verdict per provider for a single ad-hoc sample -
 // deliberately lighter-weight than the mention-rate breakdown table in AI

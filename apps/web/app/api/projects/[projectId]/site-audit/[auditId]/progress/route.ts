@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
-import { siteAudits, siteAuditPages, withUserContext } from "@seo-tool/db";
+import { siteAudits, siteAuditPages, withUserContext } from "@rosterseo/db";
 import { eq, desc } from "drizzle-orm";
 
 export const GET = withAuth(async (req, { params }, session) => {

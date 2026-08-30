@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { desc, eq, inArray, sql } from "drizzle-orm";
-import { localBusinessProfiles, localGridScanPoints, localGridScans, withUserContext } from "@seo-tool/db";
-import { DataForSeoNotConfiguredError, generateGridPoints, runGridScanPoints } from "@seo-tool/dataforseo";
+import { localBusinessProfiles, localGridScanPoints, localGridScans, withUserContext } from "@rosterseo/db";
+import { DataForSeoNotConfiguredError, generateGridPoints, runGridScanPoints } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // POST /api/projects/:projectId/local-seo/grid-scan
 // Real geo-grid rank check: a keyword checked against DataForSEO's local
 // pack at every point in an NxN grid around a center (real
 // location_coordinate calls, via the shared runGridScanPoints - see
-// @seo-tool/dataforseo). Takes no body: reads keyword/gridSize/radiusKm
+// @rosterseo/dataforseo). Takes no body: reads keyword/gridSize/radiusKm
 // from the project's saved local_business_profiles row (Monitor's config
 // row, PATCHed via .../monitor/config) so this exact same real
 // orchestration is what the weekly scheduled scan (apps/worker) uses too.

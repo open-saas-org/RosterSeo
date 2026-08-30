@@ -1,6 +1,6 @@
 // Real per-call cost tracking for the Spend page (apps/web's /spend route).
 // This package stays DB-agnostic on purpose (see packages/db's README on
-// why only apps, never packages, depend on @seo-tool/db) - instead of
+// why only apps, never packages, depend on @rosterseo/db) - instead of
 // importing a database client directly, it exposes a settable logger hook
 // that whichever app actually makes real calls (apps/web, apps/worker,
 // apps/mcp-server) wires up once at startup to persist into
@@ -25,7 +25,7 @@ type SpendLogger = (event: DataForSeoSpendEvent) => void;
 // genuinely shared across every module instance in the same Node.js
 // process, so the logger reference lives there instead of a closure-local
 // variable that a second module instance can't see.
-const GLOBAL_KEY = Symbol.for("seo-tool.dataforseo.spendLogger");
+const GLOBAL_KEY = Symbol.for("rosterseo.dataforseo.spendLogger");
 
 function getLogger(): SpendLogger | null {
   return (globalThis as Record<symbol, unknown>)[GLOBAL_KEY] as SpendLogger | undefined ?? null;

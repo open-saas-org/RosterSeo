@@ -12,7 +12,7 @@ import { MetricCard } from "@/components/metric-card";
 import { EmptyState } from "@/components/empty-state";
 import { createDataTableColumns, DataTable, type DataTableColumnDef } from "@/components/data-table";
 import { CompetitorEditPanel } from "@/components/competitors/competitor-edit-panel";
-import type { KeywordMetrics } from "@seo-tool/dataforseo";
+import type { KeywordMetrics } from "@rosterseo/dataforseo";
 import type { TrackedCompetitor } from "@/components/competitors/types";
 
 type TopPage = { url: string; traffic: number };

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { desc, eq } from "drizzle-orm";
-import { localBusinessProfiles, localGridScanPoints, localGridScans, localSeoRecommendations, withUserContext } from "@seo-tool/db";
-import { getLocalPackResultsAtCoordinate } from "@seo-tool/dataforseo";
-import { generateLocalSeoStrategy } from "@seo-tool/ai-visibility";
+import { localBusinessProfiles, localGridScanPoints, localGridScans, localSeoRecommendations, withUserContext } from "@rosterseo/db";
+import { getLocalPackResultsAtCoordinate } from "@rosterseo/dataforseo";
+import { generateLocalSeoStrategy } from "@rosterseo/ai-visibility";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET  /api/projects/:projectId/local-seo/optimize - the saved checklist

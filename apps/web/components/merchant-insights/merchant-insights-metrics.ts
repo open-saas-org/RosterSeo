@@ -2,7 +2,7 @@
 // half-split approach as gsc-insights-metrics.ts's summarizeSearchConsoleRows,
 // over MerchantPerformanceRow[] instead.
 
-import type { MerchantPerformanceRow } from "@seo-tool/google";
+import type { MerchantPerformanceRow } from "@rosterseo/google";
 
 export interface MerchantInsightsMetrics {
   totalClicks: number;

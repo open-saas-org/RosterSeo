@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listLocationCountries, listLocationStates, listLocationCities } from "@seo-tool/dataforseo";
+import { listLocationCountries, listLocationStates, listLocationCities } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/projects/:projectId/local-seo/business-profile/geo?level=country

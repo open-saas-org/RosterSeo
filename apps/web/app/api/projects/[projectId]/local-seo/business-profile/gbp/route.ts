@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { googleConnections, localBusinessProfiles, withUserContext } from "@seo-tool/db";
+import { googleConnections, localBusinessProfiles, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { toConnectionStatus } from "@/lib/google-connection-status";
 

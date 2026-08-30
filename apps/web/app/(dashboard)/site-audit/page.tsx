@@ -1,5 +1,5 @@
 import { eq, desc } from "drizzle-orm";
-import { siteAudits, withUserContext } from "@seo-tool/db";
+import { siteAudits, withUserContext } from "@rosterseo/db";
 import { getCurrentProject } from "@/lib/current-project";
 import { SiteAuditView } from "@/components/site-audit/site-audit-view";
 import { SiteAuditDetail } from "@/components/site-audit/site-audit-detail";

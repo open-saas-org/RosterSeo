@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchMapsBusinesses, DataForSeoNotConfiguredError } from "@seo-tool/dataforseo";
+import { searchMapsBusinesses, DataForSeoNotConfiguredError } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/projects/:projectId/local-seo/business-profile/search?query=...&locationCode=...

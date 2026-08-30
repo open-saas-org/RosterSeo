@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { and, eq, gte, inArray } from "drizzle-orm";
 import { Activity, ArrowRight, Clock, Eye, ListTree, Megaphone, RefreshCw, Tag, Tags } from "lucide-react";
-import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@seo-tool/db";
-import { calculateVisibilityScore, isBrandedPrompt } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@rosterseo/db";
+import { calculateVisibilityScore, isBrandedPrompt } from "@rosterseo/ai-visibility";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { AiVisibilityTrendAreaChart } from "@/components/ai-visibility/ai-visibility-trend-area-chart";

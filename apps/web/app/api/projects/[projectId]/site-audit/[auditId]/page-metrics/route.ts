@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { googleConnections, projects, withUserContext } from "@seo-tool/db";
-import { fetchGscExactWindow, getGA4TopLandingPages } from "@seo-tool/google";
+import { googleConnections, projects, withUserContext } from "@rosterseo/db";
+import { fetchGscExactWindow, getGA4TopLandingPages } from "@rosterseo/google";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { getValidAccessToken } from "@/lib/google-token";
 

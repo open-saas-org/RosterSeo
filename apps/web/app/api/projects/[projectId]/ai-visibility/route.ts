@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { desc, eq, inArray } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@seo-tool/db";
-import { calculateVisibilityScore } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityResults, withUserContext } from "@rosterseo/db";
+import { calculateVisibilityScore } from "@rosterseo/ai-visibility";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { trackAiVisibilityPrompt } from "@/lib/ai-visibility/track-prompt";
 

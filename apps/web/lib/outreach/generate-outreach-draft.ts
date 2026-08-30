@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
-import { outreachTargets, withUserContext } from "@seo-tool/db";
-import { generateOutreachEmail } from "@seo-tool/ai-visibility";
+import { outreachTargets, withUserContext } from "@rosterseo/db";
+import { generateOutreachEmail } from "@rosterseo/ai-visibility";
 
 // Real shared logic behind POST .../outreach/[outreachId]/draft -
-// extracted so Clay's generate_outreach_draft tool
-// (apps/web/lib/clay/tools/write.ts) runs the exact same real OpenRouter
+// extracted so Cappy's generate_outreach_draft tool
+// (apps/web/lib/cappy/tools/write.ts) runs the exact same real OpenRouter
 // call + overwrite the Outreach page's "Generate with AI" button does.
 export async function generateDraftForOutreachTarget(
   userId: string,

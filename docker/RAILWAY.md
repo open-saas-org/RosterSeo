@@ -36,7 +36,7 @@ Nothing to run by hand.
 ## RLS and the restricted database role
 
 Locally (`docker compose up`, see `docker/postgres-init.sql`) the app
-connects as a restricted `seo_tool_app` role (`NOSUPERUSER NOBYPASSRLS`)
+connects as a restricted `rosterseo_app` role (`NOSUPERUSER NOBYPASSRLS`)
 for real runtime traffic, and a separate elevated role only for running
 migrations - `packages/db/README.md` explains why this split is what makes
 Row-Level-Security policies actually apply instead of silently being

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Globe } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListSkeleton } from "@/components/ui/loading-skeletons";
-import type { SerpResult } from "@seo-tool/dataforseo";
+import type { SerpResult } from "@rosterseo/dataforseo";
 
 // Real top-10 organic SERP for whichever keyword is currently selected in
 // the results table - fetched on demand per selection (not bundled into

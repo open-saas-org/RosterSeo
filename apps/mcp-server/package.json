@@ -1,5 +1,5 @@
 {
-  "name": "@seo-tool/mcp-server",
+  "name": "@rosterseo/mcp-server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@seo-tool/bing": "workspace:*",
-    "@seo-tool/dataforseo": "workspace:*",
-    "@seo-tool/db": "workspace:*",
-    "@seo-tool/indexnow": "workspace:*",
+    "@rosterseo/bing": "workspace:*",
+    "@rosterseo/dataforseo": "workspace:*",
+    "@rosterseo/db": "workspace:*",
+    "@rosterseo/indexnow": "workspace:*",
     "drizzle-orm": "^0.38.0",
     "zod": "^3.24.0"
   },

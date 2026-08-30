@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { googleConnections, projects, withUserContext } from "@seo-tool/db";
-import { isGoogleOAuthConfigured } from "@seo-tool/google";
+import { googleConnections, projects, withUserContext } from "@rosterseo/db";
+import { isGoogleOAuthConfigured } from "@rosterseo/google";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { toConnectionStatus } from "@/lib/google-connection-status";
 

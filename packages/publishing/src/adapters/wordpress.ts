@@ -1,4 +1,4 @@
-import { verifyWordPressConnection, createPost } from "@seo-tool/wordpress";
+import { verifyWordPressConnection, createPost } from "@rosterseo/wordpress";
 import type { BlogAdapter } from "../types";
 
 // Thin wrapper around packages/wordpress's real client - no logic

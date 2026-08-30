@@ -1,9 +1,9 @@
 import { eq } from "drizzle-orm";
 import Image from "next/image";
-import { isGoogleOAuthConfigured } from "@seo-tool/google";
-import { googleConnections, blogConnections, socialConnections, withUserContext } from "@seo-tool/db";
-import { BLOG_PLATFORMS } from "@seo-tool/publishing";
-import { SOCIAL_PLATFORMS } from "@seo-tool/social";
+import { isGoogleOAuthConfigured } from "@rosterseo/google";
+import { googleConnections, blogConnections, socialConnections, withUserContext } from "@rosterseo/db";
+import { BLOG_PLATFORMS } from "@rosterseo/publishing";
+import { SOCIAL_PLATFORMS } from "@rosterseo/social";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { IntegrationConnectionCard } from "@/components/integrations/integration-connection-card";
@@ -13,7 +13,7 @@ import { LlmProvidersIntegrationCard } from "@/components/integrations/llm-provi
 import { BingIntegrationCard } from "@/components/integrations/bing-integration-card";
 import { IndexNowIntegrationCard } from "@/components/integrations/indexnow-integration-card";
 import { PlatformStatusGrid } from "@/components/integrations/platform-status-grid";
-import { isBingConfigured } from "@seo-tool/bing";
+import { isBingConfigured } from "@rosterseo/bing";
 import { getCurrentProject } from "@/lib/current-project";
 import { toConnectionStatus } from "@/lib/google-connection-status";
 

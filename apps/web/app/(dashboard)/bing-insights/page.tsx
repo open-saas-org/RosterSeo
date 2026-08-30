@@ -1,6 +1,6 @@
 import { Compass, Plug } from "lucide-react";
 import Link from "next/link";
-import { isBingConfigured, getBingRankAndTrafficStats, type BingPerformanceRow } from "@seo-tool/bing";
+import { isBingConfigured, getBingRankAndTrafficStats, type BingPerformanceRow } from "@rosterseo/bing";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

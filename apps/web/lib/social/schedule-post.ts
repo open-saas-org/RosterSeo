@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { socialPostTargets, socialPosts, withUserContext } from "@seo-tool/db";
-import { socialPublishJob } from "@seo-tool/jobs";
+import { socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
+import { socialPublishJob } from "@rosterseo/jobs";
 
 // Real shared logic behind POST .../social/posts/[postId]/publish - same
 // "publish now vs schedule is just whether startAfter is set" shape as

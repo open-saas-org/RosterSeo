@@ -169,7 +169,7 @@ export const navPillars: NavPillar[] = [
 // in one click, not three levels deep in the sidebar. Styled the same as
 // every other top-bar item (no special accent) - one color combination
 // throughout the app, not a different one for AI-related destinations.
-// Clay (the AI assistant) and Settings are icon-only (a hover tooltip still
+// Cappy (the AI assistant) and Settings are icon-only (a hover tooltip still
 // names each) since their icons read on their own and this keeps the always-
 // visible assistant entry from crowding the rest of the bar; everything
 // else keeps its label.

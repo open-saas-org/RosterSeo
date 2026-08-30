@@ -1,7 +1,7 @@
 import { and, eq, gte } from "drizzle-orm";
-import { emailConnections, outreachTargets, withUserContext } from "@seo-tool/db";
-import { GoogleReauthRequiredError, refreshAccessToken, sendGmail } from "@seo-tool/google";
-import { sendSmtpMail } from "@seo-tool/email";
+import { emailConnections, outreachTargets, withUserContext } from "@rosterseo/db";
+import { GoogleReauthRequiredError, refreshAccessToken, sendGmail } from "@rosterseo/google";
+import { sendSmtpMail } from "@rosterseo/email";
 
 // Refresh a bit before actual expiry, not right at it - same buffer/reasoning
 // as apps/web/lib/google-token.ts, duplicated (not imported) since apps/worker

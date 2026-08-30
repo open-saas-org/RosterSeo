@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ProviderBadge, ProviderIcon } from "@/components/ai-visibility/provider-badge";
 import { AI_VISIBILITY_CATALOG, DEFAULT_OPENROUTER_MODEL, targetKey } from "@/lib/ai-visibility-catalog";
-import { getModelDisplayLabel } from "@seo-tool/ai-visibility";
+import { getModelDisplayLabel } from "@rosterseo/ai-visibility";
 
 type SelectableTarget = { provider: string; model: string; label: string; webSearch: boolean };
 

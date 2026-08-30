@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/empty-state";
 import { AiVisibilityTrendAreaChart } from "@/components/ai-visibility/ai-visibility-trend-area-chart";
 import { ShareOfVoiceDonut } from "@/components/ai-visibility/share-of-voice-donut";
 import { AiVisibilityFilterBar } from "@/components/ai-visibility/ai-visibility-filter-bar";
-import { fillLastValueCarriedForward, dailyDateRange, type RawDailyValues } from "@seo-tool/ai-visibility";
+import { fillLastValueCarriedForward, dailyDateRange, type RawDailyValues } from "@rosterseo/ai-visibility";
 
 type RawRow = { date: string; provider: string; model: string; promptId: string; runId: string; entityKey: string; mentioned: boolean };
 type Entity = { key: string; label: string; isBrand: boolean };

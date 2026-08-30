@@ -1,4 +1,4 @@
-import type { googleConnections } from "@seo-tool/db";
+import type { googleConnections } from "@rosterseo/db";
 
 export type GoogleConnectionStatus = "not_connected" | "connected" | "needs_reconnect";
 

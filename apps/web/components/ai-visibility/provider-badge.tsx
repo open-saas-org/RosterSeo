@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { getModelDisplayLabel } from "@seo-tool/ai-visibility";
+import { getModelDisplayLabel } from "@rosterseo/ai-visibility";
 
 // Distinct outline color per AI *model family* (not just backend provider),
 // so ChatGPT/Gemini/Claude/etc. stay visually distinguishable at a glance

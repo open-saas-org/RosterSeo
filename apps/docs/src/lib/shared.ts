@@ -1,4 +1,4 @@
-export const appName = 'SEO Tool';
+export const appName = 'RosterSEO';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';

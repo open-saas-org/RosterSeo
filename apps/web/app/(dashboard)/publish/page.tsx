@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { blogConnections, withUserContext } from "@seo-tool/db";
+import { blogConnections, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { PublishComposer } from "@/components/publish/publish-composer";
 import { getCurrentProject } from "@/lib/current-project";

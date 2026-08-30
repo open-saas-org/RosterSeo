@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { blogConnections, withUserContext } from "@seo-tool/db";
+import { blogConnections, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { connectBlog } from "@/lib/publish/connect-blog";
 

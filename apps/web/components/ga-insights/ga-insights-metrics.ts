@@ -4,7 +4,7 @@
 // rows have different fields (this codebase prefers small purpose-specific
 // helpers over a premature shared abstraction for two unrelated shapes).
 
-import type { GA4OrganicTrendRow } from "@seo-tool/google";
+import type { GA4OrganicTrendRow } from "@rosterseo/google";
 
 export interface GaInsightsMetrics {
   totalSessions: number;

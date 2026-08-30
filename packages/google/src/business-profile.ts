@@ -3,7 +3,7 @@ import { google } from "googleapis";
 // Real Google Business Profile OAuth wrapper - kept as available plumbing
 // for a future GBP-connected feature, even though today's Local SEO module
 // (Profile/Monitor/Optimize) runs on DataForSEO's Business Data API
-// instead (no OAuth/approval needed, see @seo-tool/dataforseo's
+// instead (no OAuth/approval needed, see @rosterseo/dataforseo's
 // getBusinessListingDetails). This file's own connect card lives on the
 // Integrations page independently of Local SEO.
 //

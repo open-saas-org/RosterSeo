@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq, inArray, or } from "drizzle-orm";
-import { rankCheckJob } from "@seo-tool/jobs";
-import { rankCheckRuns, trackedKeywords, withUserContext } from "@seo-tool/db";
+import { rankCheckJob } from "@rosterseo/jobs";
+import { rankCheckRuns, trackedKeywords, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // POST /api/projects/:projectId/rank-tracking/fetch - the only route that

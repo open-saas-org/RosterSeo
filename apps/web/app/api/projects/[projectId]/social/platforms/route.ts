@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { SOCIAL_PLATFORMS } from "@seo-tool/social";
+import { SOCIAL_PLATFORMS } from "@rosterseo/social";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 
 // GET - the static platform registry, same reasoning as .../blog/platforms:
-// fetched by the client instead of importing @seo-tool/social directly,
+// fetched by the client instead of importing @rosterseo/social directly,
 // which also pulls in server-only OAuth code.
 export const GET = withAuth<{ projectId: string }>(async (_req, ctx, session) => {
   const { projectId } = await ctx.params;

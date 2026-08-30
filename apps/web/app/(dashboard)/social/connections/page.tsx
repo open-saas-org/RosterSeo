@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
-import { socialConnections, withUserContext } from "@seo-tool/db";
-import { SOCIAL_PLATFORMS } from "@seo-tool/social";
+import { socialConnections, withUserContext } from "@rosterseo/db";
+import { SOCIAL_PLATFORMS } from "@rosterseo/social";
 import { PageHeader } from "@/components/page-header";
 import { OAuthStatusBanner } from "@/components/oauth-status-banner";
 import { SocialConnectionsWorkspace } from "@/components/social/social-connections-workspace";

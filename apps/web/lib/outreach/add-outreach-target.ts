@@ -1,10 +1,10 @@
-import { outreachTargets, withUserContext } from "@seo-tool/db";
-import { findContactEmail } from "@seo-tool/crawler";
+import { outreachTargets, withUserContext } from "@rosterseo/db";
+import { findContactEmail } from "@rosterseo/crawler";
 import { normalizeDomain, isValidDomain } from "@/components/competitors/domain-utils";
 
 // Real shared logic behind POST /api/projects/:projectId/outreach -
-// extracted so Clay's add_outreach_target tool
-// (apps/web/lib/clay/tools/write.ts) runs the exact same real
+// extracted so Cappy's add_outreach_target tool
+// (apps/web/lib/cappy/tools/write.ts) runs the exact same real
 // crawl-for-contact-email + insert the Outreach page's "Add target" form
 // already does.
 export async function addOutreachTarget(

@@ -1,11 +1,11 @@
 import { eq, inArray } from "drizzle-orm";
 import Link from "next/link";
-import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@seo-tool/db";
+import { aiVisibilityPrompts, aiVisibilityResults, projectCompetitors, withUserContext } from "@rosterseo/db";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AiVisibilityRunControls } from "@/components/ai-visibility/ai-visibility-run-controls";
 import { VisibilityDashboard } from "@/components/ai-visibility/visibility-dashboard";
-import { calculateVisibilityScore, defaultTargets, getAllProviders, getModelDisplayLabel } from "@seo-tool/ai-visibility";
+import { calculateVisibilityScore, defaultTargets, getAllProviders, getModelDisplayLabel } from "@rosterseo/ai-visibility";
 import { getCurrentProject } from "@/lib/current-project";
 
 // Capped at 6 total entities (brand + up to 5 tracked competitors) to match

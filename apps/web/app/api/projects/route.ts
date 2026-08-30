@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { organizationMembers, projects, withUserContext } from "@seo-tool/db";
+import { organizationMembers, projects, withUserContext } from "@rosterseo/db";
 import { eq, isNull } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { getPostHogServerClient } from "@/lib/posthog-server";

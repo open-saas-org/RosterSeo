@@ -5,7 +5,7 @@ import {
   isAiVisibilityConfigured,
   isProviderConfigured,
   type AiVisibilityProvider,
-} from "@seo-tool/ai-visibility";
+} from "@rosterseo/ai-visibility";
 
 // Server Component: the only place in this module allowed to call
 // isAiVisibilityConfigured()/isProviderConfigured() directly, mirroring

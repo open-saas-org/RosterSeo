@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { blogPostTargets, blogPosts, withUserContext } from "@seo-tool/db";
-import { blogPublishJob } from "@seo-tool/jobs";
+import { blogPostTargets, blogPosts, withUserContext } from "@rosterseo/db";
+import { blogPublishJob } from "@rosterseo/jobs";
 
 // Real shared logic behind POST .../blog/posts/[postId]/publish - "Publish
 // now" and "Schedule for later" both call this, the only difference being

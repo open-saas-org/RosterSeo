@@ -1,5 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
-import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@seo-tool/db";
+import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
 
 // Real shared logic behind POST /api/projects/:projectId/social/posts -
 // same shape as Publish's createBlogPost, generalized to social platforms.

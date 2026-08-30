@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { desc, eq, inArray } from "drizzle-orm";
-import { aiVisibilityPrompts, aiVisibilityReportShares, aiVisibilityResults, db, withUserContext } from "@seo-tool/db";
-import { calculateVisibilityScore } from "@seo-tool/ai-visibility";
+import { aiVisibilityPrompts, aiVisibilityReportShares, aiVisibilityResults, db, withUserContext } from "@rosterseo/db";
+import { calculateVisibilityScore } from "@rosterseo/ai-visibility";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 import { ReportPrintButton } from "@/components/ai-visibility/report-print-button";

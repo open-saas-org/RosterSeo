@@ -105,7 +105,7 @@ export interface Provider {
   runStructuredResearch?<T>(options: StructuredResearchOptions<T>): Promise<StructuredResearchResult<T>>;
   // Real multi-turn, tool-calling chat - only implemented by the 3
   // providers whose REST API actually supports function calling (openai,
-  // anthropic, openrouter; see agentic.ts's header comment). Clay
-  // (apps/web/lib/clay/agent-loop.ts) is the only caller.
+  // anthropic, openrouter; see agentic.ts's header comment). Cappy
+  // (apps/web/lib/cappy/agent-loop.ts) is the only caller.
   chat?(options: AgenticChatOptions): Promise<AgenticChatResult>;
 }

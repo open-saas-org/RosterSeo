@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { aiVisibilityPrompts, withUserContext } from "@seo-tool/db";
+import { aiVisibilityPrompts, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { MAX_PROMPTS } from "@/lib/ai-visibility/track-prompt";
 

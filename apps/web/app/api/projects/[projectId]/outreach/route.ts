@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { desc, eq } from "drizzle-orm";
-import { outreachTargets, withUserContext } from "@seo-tool/db";
+import { outreachTargets, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { addOutreachTarget } from "@/lib/outreach/add-outreach-target";
 
@@ -9,7 +9,7 @@ import { addOutreachTarget } from "@/lib/outreach/add-outreach-target";
 // POST /api/projects/:projectId/outreach - add a target, either from a real
 //      backlink row (domain + sourceUrlFrom passed in) or a plain manual
 //      domain. Real crawl-for-contact-email attempt happens here if no
-//      contactEmail was supplied (see @seo-tool/crawler's findContactEmail) -
+//      contactEmail was supplied (see @rosterseo/crawler's findContactEmail) -
 //      never fabricated, left null (and contactEmailSource null) if the
 //      crawl finds nothing, so the UI can render an honest "no email found,
 //      enter one" state instead of a fake address.

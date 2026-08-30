@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { localBusinessProfiles, localGridScanPoints, localGridScans, withUserContext } from "@seo-tool/db";
-import { generateLocalSeoGuidance } from "@seo-tool/ai-visibility";
+import { localBusinessProfiles, localGridScanPoints, localGridScans, withUserContext } from "@rosterseo/db";
+import { generateLocalSeoGuidance } from "@rosterseo/ai-visibility";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // POST /api/projects/:projectId/local-seo/grid-scan/:scanId/guidance

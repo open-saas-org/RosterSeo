@@ -1,7 +1,7 @@
 import { and, eq, isNotNull } from "drizzle-orm";
-import { db, user, projects, localBusinessProfiles, localGridScans, localGridScanPoints, withUserContext } from "@seo-tool/db";
-import { generateGridPoints, runGridScanPoints } from "@seo-tool/dataforseo";
-import { localGridScanJob } from "@seo-tool/jobs";
+import { db, user, projects, localBusinessProfiles, localGridScans, localGridScanPoints, withUserContext } from "@rosterseo/db";
+import { generateGridPoints, runGridScanPoints } from "@rosterseo/dataforseo";
+import { localGridScanJob } from "@rosterseo/jobs";
 
 // Runs one project's geo-grid scan and persists it - the same real
 // DataForSEO orchestration (runGridScanPoints) the on-demand

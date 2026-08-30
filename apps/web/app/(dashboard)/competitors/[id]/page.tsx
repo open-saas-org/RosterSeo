@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { projectCompetitors, withUserContext } from "@seo-tool/db";
-import { resolveLocationCode } from "@seo-tool/dataforseo";
+import { projectCompetitors, withUserContext } from "@rosterseo/db";
+import { resolveLocationCode } from "@rosterseo/dataforseo";
 import { getCurrentProject } from "@/lib/current-project";
 import { getAiVisibilityByDomain } from "@/lib/competitors/ai-visibility-mentions";
 import { getCachedSnapshots } from "@/app/(dashboard)/competitors/actions";

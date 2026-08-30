@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { emailConnections, googleConnections, withUserContext } from "@seo-tool/db";
-import { decodeState, exchangeCodeForTokens, getGmailAddress, isGoogleOAuthConfigured } from "@seo-tool/google";
+import { emailConnections, googleConnections, withUserContext } from "@rosterseo/db";
+import { decodeState, exchangeCodeForTokens, getGmailAddress, isGoogleOAuthConfigured } from "@rosterseo/google";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 
 // GET /api/integrations/google/callback?code=...&state=...
 //
 // Google redirects the browser here after consent. `state` (built by
-// getGoogleAuthUrl in @seo-tool/google) carries the projectId + service the
+// getGoogleAuthUrl in @rosterseo/google) carries the projectId + service the
 // connect request was for, since nothing else survives the round trip to
 // Google and back. Every failure path redirects back to whichever page
 // initiated the connect (Integrations for gsc/ga4/gbp/merchant, Outreach

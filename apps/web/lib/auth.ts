@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db, schema, organizations, organizationMembers, withUserContext } from "@seo-tool/db";
+import { db, schema, organizations, organizationMembers, withUserContext } from "@rosterseo/db";
 import { getPostHogServerClient } from "@/lib/posthog-server";
 
 export const auth = betterAuth({

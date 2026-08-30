@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { projects, withUserContext } from "@seo-tool/db";
-import { generateIndexNowKey, submitUrlsToIndexNow } from "@seo-tool/indexnow";
+import { projects, withUserContext } from "@rosterseo/db";
+import { generateIndexNowKey, submitUrlsToIndexNow } from "@rosterseo/indexnow";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // POST /api/projects/:projectId/indexnow/submit - body: { urls: string[] }.

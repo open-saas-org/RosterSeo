@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { aiVisibilityReportShares, withUserContext } from "@seo-tool/db";
+import { aiVisibilityReportShares, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
 // Manages the real, revocable public share link for this project's AI

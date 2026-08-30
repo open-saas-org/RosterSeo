@@ -1,5 +1,5 @@
 import { count, eq } from "drizzle-orm";
-import { aiVisibilityPrompts, withUserContext } from "@seo-tool/db";
+import { aiVisibilityPrompts, withUserContext } from "@rosterseo/db";
 
 // Per-project cap on tracked prompts. Mirrors the order of magnitude of
 // MAX_TRACKED_KEYWORDS (apps/web/app/api/projects/[projectId]/keywords/route.ts,
@@ -9,8 +9,8 @@ import { aiVisibilityPrompts, withUserContext } from "@seo-tool/db";
 export const MAX_PROMPTS = 100;
 
 // Real shared logic behind POST /api/projects/:projectId/ai-visibility -
-// extracted so Clay's track_ai_visibility_prompt tool
-// (apps/web/lib/clay/tools/write.ts) calls the exact same real insert the
+// extracted so Cappy's track_ai_visibility_prompt tool
+// (apps/web/lib/cappy/tools/write.ts) calls the exact same real insert the
 // AI Visibility Prompts page already does.
 export async function trackAiVisibilityPrompt(userId: string, projectId: string, rawPromptText: string) {
   const promptText = rawPromptText.trim();

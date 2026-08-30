@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
-import { blogConnections, withUserContext } from "@seo-tool/db";
-import { BLOG_PLATFORMS } from "@seo-tool/publishing";
+import { blogConnections, withUserContext } from "@rosterseo/db";
+import { BLOG_PLATFORMS } from "@rosterseo/publishing";
 import { PageHeader } from "@/components/page-header";
 import { OAuthStatusBanner } from "@/components/oauth-status-banner";
 import { PublishConnectionsWorkspace } from "@/components/publish/publish-connections-workspace";

@@ -21,7 +21,7 @@ project and see, per domain:
 
 There is no mock path left in this module. Every DataForSEO call it makes —
 `getDomainOverview`, `getBacklinksOverview`, `getRankedKeywords` (all three from
-`@seo-tool/dataforseo`) — is gated by `isDataForSeoConfigured()`
+`@rosterseo/dataforseo`) — is gated by `isDataForSeoConfigured()`
 (`packages/dataforseo/src/client.ts`), and none of them fabricate a fallback anymore:
 
 - **`getDomainOverview`** and **`getBacklinksOverview`** throw a real
@@ -112,7 +112,7 @@ Table `project_competitors` (defined in `packages/db/src/app-schema.ts`, already
 | `created_at`          | timestamp | Defaults to now                                                  |
 
 Row-Level Security is enabled; all reads/writes go through `withUserContext(userId, ...)`
-from `@seo-tool/db` so RLS enforces tenant isolation. Querying the bare `db` export for
+from `@rosterseo/db` so RLS enforces tenant isolation. Querying the bare `db` export for
 tenant data returns zero rows by design (fail-closed).
 
 Domain stats are cached separately in `competitor_snapshot_cache`, keyed by

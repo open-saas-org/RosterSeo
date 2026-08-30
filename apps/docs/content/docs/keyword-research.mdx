@@ -37,7 +37,7 @@ bug that prompted this rebuild.
   DataForSEO Labs functions behind this grid has a mock fallback; a
   failed/unconfigured call returns an honest empty list, never
   fabricated-looking results (this is now the convention across the whole
-  `@seo-tool/dataforseo` package, not an exception specific to these
+  `@rosterseo/dataforseo` package, not an exception specific to these
   three). `getRelatedKeywords()` (Labs `related_keywords` - Google's actual
   "searches related to" matches) and `getKeywordSuggestions()` (Labs
   `keyword_suggestions` - real substring variations of the seed) run
@@ -46,8 +46,8 @@ bug that prompted this rebuild.
   tier when the first two together return fewer than 15 results. Each
   result carries a `source` tag (`related`/`suggestion`/`idea`) shown as a
   badge and filterable in the table. These three functions are also used
-  outside this page - the Clay assistant's read tool
-  (`apps/web/lib/clay/tools/read.ts`) and the MCP server
+  outside this page - the Cappy assistant's read tool
+  (`apps/web/lib/cappy/tools/read.ts`) and the MCP server
   (`apps/mcp-server/src/index.ts`) both call all three the same way.
 - **Seed keyword metrics and location**: real, and now actually
   location-aware. `getRealKeywordMetrics()` gained an optional
