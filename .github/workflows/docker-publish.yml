@@ -35,6 +35,7 @@ jobs:
           # the real "RosterSEO" casing since labels aren't path-restricted.
           images: ghcr.io/${{ github.repository_owner }}/rosterseo
           tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=short
             type=ref,event=branch
             type=semver,pattern={{version}}
