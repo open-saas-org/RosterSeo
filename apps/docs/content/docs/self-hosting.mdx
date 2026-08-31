@@ -86,21 +86,34 @@ role can't execute. Full detail: `packages/db/README.md` in the repo.
 
 ## Deploy on Railway
 
-The deploy mechanics are already real and working: `railway.toml` at the
-repo root tells Railway to build `Dockerfile` and, via its
-`releaseCommand`, run the real Drizzle migrations
-(`node packages/db/dist/migrate.mjs`) once per deploy, before traffic
-switches to the new release — attach a **PostgreSQL** plugin, set the
-required variables from `.env.example` (`SELF_HOSTED`,
-`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `DATAFORSEO_LOGIN`/
-`DATAFORSEO_PASSWORD`, plus whichever AI-provider keys you want enabled),
-and it comes up with a fully migrated schema — no manual step required.
+The real, verified template deploys the **published image**
+(`ghcr.io/open-saas-org/rosterseo:latest`), not a from-source Railway
+build — deliberately: pulling a prebuilt image is seconds instead of the
+~5 minutes a full monorepo Docker build takes, it needs no GitHub
+authorization from the deployer, and it's exactly what's already been
+tested end-to-end (real Postgres auto-attached via a `${{Postgres.DATABASE_URL}}`
+reference variable, real migrations on boot, a generated `BETTER_AUTH_SECRET`,
+`BETTER_AUTH_URL` self-referencing the assigned domain). `railway.toml` at
+the repo root still exists for anyone who'd rather have Railway build from
+source directly (its `releaseCommand` runs the same real migrations before
+cutover), but it's not what the template button uses.
 
-What's *not* done yet is turning that into an actual clickable **"Deploy on
-Railway" button** — that's a one-time action in Railway's own dashboard
-(Project Settings → Create Template), not something a file in this repo can
-produce by itself. See `docker/RAILWAY.md` for the exact steps to publish
-that template.
+See `docker/RAILWAY.md` for the exact one-time dashboard steps to publish
+and update that template.
+
+## Updating a running deployment
+
+Self-hosted deployments don't auto-update — same as any self-hosted
+software, a new image is never pulled into an already-running instance
+without you asking for it. To pick up the latest release:
+
+- **Railway**: open the `web` service → **Deployments** → **Redeploy**. This
+  re-resolves `:latest` and pulls whatever the tag currently points to, then
+  runs migrations on boot before serving traffic, same as any other start.
+- **Docker Compose**: `docker compose pull && docker compose up -d`.
+- **Plain `docker run`**: `docker pull ghcr.io/open-saas-org/rosterseo:latest`,
+  then re-run your `docker run` command (or `docker restart` if you're
+  already using a fixed container name that just needs the new image).
 
 ## Two modes
 
