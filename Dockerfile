@@ -49,6 +49,17 @@ RUN pnpm --filter @rosterseo/db build
 
 FROM base AS runner
 ENV NODE_ENV=production
+# Next's standalone server.js binds to `process.env.HOSTNAME || "0.0.0.0"` -
+# harmless-looking, except it means an unset HOSTNAME (the default on every
+# container runtime that doesn't happen to export one) falls through to
+# whatever the shell/OS resolves as the hostname, which inside a container
+# is its own container ID - a real, reachable-sounding value the server
+# logs as ready, but bound to an interface nothing outside the container
+# can reach. Confirmed live: identical image, identical port, 502
+# "Application failed to respond" on Railway until this was set explicitly -
+# the fix isn't platform-specific, so it belongs here, not in one host's
+# dashboard config.
+ENV HOSTNAME=0.0.0.0
 WORKDIR /repo
 # outputFileTracingRoot is set to the monorepo root, so standalone output
 # mirrors the full apps/web/... path rather than flattening to the root.
