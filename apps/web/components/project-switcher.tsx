@@ -77,13 +77,20 @@ export function ProjectSwitcher({
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      <SidebarMenuItem className="flex items-center gap-2">
+        <Link
+          href="/"
+          className="flex h-12 shrink-0 flex-col items-center justify-center rounded-md border border-border px-2.5 text-xs leading-[1.1] font-semibold tracking-tight group-data-[collapsible=icon]:hidden"
+        >
+          <span>Roster</span>
+          <span>SEO</span>
+        </Link>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
               <SidebarMenuButton
                 size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border border-border"
+                className="min-w-0 flex-1 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border border-border"
               />
             }
           >

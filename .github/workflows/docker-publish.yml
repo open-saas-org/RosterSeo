@@ -30,11 +30,17 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          # Image path is lowercase (GHCR/OCI requirement) - "rosterseo",
+          # not the "seo" repo slug. The image.title label below carries
+          # the real "RosterSEO" casing since labels aren't path-restricted.
+          images: ghcr.io/${{ github.repository_owner }}/rosterseo
           tags: |
             type=sha,format=short
             type=ref,event=branch
             type=semver,pattern={{version}}
+          labels: |
+            org.opencontainers.image.title=RosterSEO
+            org.opencontainers.image.description=Open-source SEO + AI-search-visibility platform. Self-hostable via Docker or Railway.
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

@@ -39,24 +39,28 @@ first container start. Migrations run automatically on container start too
 (see `docker/docker-entrypoint.sh`, baked into the image's `ENTRYPOINT`) —
 there's nothing to run by hand after `up`.
 
-**Just the Dockerfile**, against a Postgres you already have (a managed
-instance, another container, whatever) — this is the plain "build an image
-and run it anywhere" path for a VPS, Fly.io, Render, or any other
-Docker-based host that isn't Railway:
+**Prebuilt image**, against a Postgres you already have (a managed
+instance, another container, whatever) — this is the plain "run it
+anywhere" path for a VPS, Fly.io, Render, or any other Docker-based host
+that isn't Railway. Every push to `main` publishes a real image via
+`.github/workflows/docker-publish.yml` — no local build step needed:
 
 ```bash
-docker build -t rosterseo-web .
 docker run -p 3000:3000 \
   -e DATABASE_URL="postgres://user:pass@your-postgres-host:5432/rosterseo" \
   -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
   -e BETTER_AUTH_URL="http://localhost:3000" \
   -e NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000" \
-  rosterseo-web
+  ghcr.io/open-saas-org/rosterseo:main
 ```
 
-Same automatic migration-on-start behavior as Compose — the image migrates
-the database it's pointed at, then serves the app, every time it boots. See
-`.env.example` for every other variable (DataForSEO, AI providers, OAuth,
+Prefer to build it yourself instead (e.g. to test an uncommitted change)?
+`docker build -t rosterseo-web .` then swap the image name above for
+`rosterseo-web`.
+
+Same automatic migration-on-start behavior as Compose either way — the
+image migrates the database it's pointed at, then serves the app, every
+time it boots. See `.env.example` for every other variable (DataForSEO, AI providers, OAuth,
 etc.) — all optional beyond the ones above, each one just stays inert until
 you set it.
 
