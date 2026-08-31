@@ -4,11 +4,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/open-saas-org/seo.git"
+    "url": "https://github.com/open-saas-org/RosterSeo.git"
   },
-  "homepage": "https://github.com/open-saas-org/seo#readme",
+  "homepage": "https://github.com/open-saas-org/RosterSeo#readme",
   "bugs": {
-    "url": "https://github.com/open-saas-org/seo/issues"
+    "url": "https://github.com/open-saas-org/RosterSeo/issues"
   },
   "engines": {
     "node": ">=22.13"

@@ -6,7 +6,7 @@ import { fetchAndParse, normalizeUrl, assertPublicHost, type CrawledPageResult }
 // see that package for why.
 export type { CrawledPageResult };
 
-const USER_AGENT = "RosterSEOBot/1.0 (+https://github.com/open-saas-org/seo; site audit crawler)";
+const USER_AGENT = "RosterSEOBot/1.0 (+https://github.com/open-saas-org/RosterSeo; site audit crawler)";
 const DEFAULT_CONCURRENCY = 5;
 
 // Hard wall-clock cap on the whole crawl, not just a per-page timeout.

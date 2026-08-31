@@ -49,7 +49,7 @@ officially representing the community in public spaces.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the project maintainers by opening a
-[GitHub Security Advisory](https://github.com/open-saas-org/seo/security/advisories/new)
+[GitHub Security Advisory](https://github.com/open-saas-org/RosterSeo/security/advisories/new)
 (private to maintainers, even though the form is titled for security
 reports) or by direct message to a maintainer on GitHub. All complaints
 will be reviewed and investigated promptly and fairly.

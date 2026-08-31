@@ -5,7 +5,7 @@
 **Do not open a public GitHub issue for a security vulnerability.**
 
 Please report it privately via
-[GitHub Security Advisories](https://github.com/open-saas-org/seo/security/advisories/new)
+[GitHub Security Advisories](https://github.com/open-saas-org/RosterSeo/security/advisories/new)
 for this repository. This lets us confirm, fix, and coordinate a disclosure
 before the details are public.
 

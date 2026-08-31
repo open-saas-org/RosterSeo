@@ -12,7 +12,7 @@ const DOCS_URL = "http://localhost:3001";
 // Real repo (see apps/docs/src/lib/shared.ts's gitConfig and package.json's
 // "repository" field, both set to this same URL).
 const GITHUB_CONFIGURED = true;
-const GITHUB_URL = "https://github.com/open-saas-org/seo";
+const GITHUB_URL = "https://github.com/open-saas-org/RosterSeo";
 
 export default function HelpPage() {
   return (

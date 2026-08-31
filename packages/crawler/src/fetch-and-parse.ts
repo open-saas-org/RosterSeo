@@ -69,7 +69,7 @@ export interface FetchAndParseOptions {
   captureContent?: boolean;
 }
 
-export const USER_AGENT = "RosterSEOBot/1.0 (+https://github.com/open-saas-org/seo; page crawler)";
+export const USER_AGENT = "RosterSEOBot/1.0 (+https://github.com/open-saas-org/RosterSeo; page crawler)";
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_LINKS_PER_PAGE = 500;
 const MAX_EXTERNAL_LINKS_PER_PAGE = 500;
