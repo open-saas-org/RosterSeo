@@ -4,11 +4,12 @@ import { useState } from "react";
 import { AlertTriangle, Check, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import { RichTextEditor } from "@/components/editor/rich-text-editor";
+import { ScheduleAt } from "@/components/posts/schedule-at";
 import type { BlogPostTargetView, BlogPostView } from "./types";
 
 const STATUS_LABEL: Record<BlogPostTargetView["status"], string> = {
@@ -78,7 +79,11 @@ function TargetCard({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label className="text-xs text-muted-foreground">Body</Label>
-          <Textarea disabled={locked} rows={8} className="font-mono text-sm" value={target.adaptedBody} onChange={(e) => onChange({ ...target, adaptedBody: e.target.value })} />
+          <RichTextEditor
+            editable={!locked}
+            value={target.adaptedBody}
+            onChange={(markdown) => onChange({ ...target, adaptedBody: markdown })}
+          />
         </div>
         {target.failureReason ? (
           <Alert variant="destructive">
@@ -163,7 +168,7 @@ export function PublishPostReview({ projectId, post, initialTargets }: { project
                 {isPublishing ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
                 Publish now
               </Button>
-              <Input type="datetime-local" value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} className="w-auto" />
+              <ScheduleAt value={scheduledFor} onChange={setScheduledFor} />
               <Button type="button" variant="outline" disabled={isPublishing || !scheduledFor} onClick={() => handlePublish(true)}>
                 Schedule
               </Button>

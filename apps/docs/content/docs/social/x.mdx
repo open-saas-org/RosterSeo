@@ -1,0 +1,26 @@
+---
+title: X (Twitter)
+description: One-click OAuth, or connect manually — and X charges per post
+---
+
+<Callout type="warn">
+X charges **per post** once connected — no free tier. $0.015/post, $0.20 if
+it contains a link. Only set this up if you've funded a prepaid balance on
+the X developer account.
+</Callout>
+
+<Callout type="info">OAuth-capable — `X_CLIENT_ID` / `X_CLIENT_SECRET`.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>Go to [developer.x.com](https://developer.x.com) → create a Project + App.</Step>
+<Step>Enable **OAuth 2.0**, add the redirect URL — see [Social overview](/docs/social/overview#two-ways-to-connect-a-platform).</Step>
+<Step>Copy the **Client ID** / **Client Secret** into `X_CLIENT_ID` / `X_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+Paste an **Access Token** for the account on **Social → Connections → X**.
+
+Character limit: **280**.

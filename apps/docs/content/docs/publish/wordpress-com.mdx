@@ -1,0 +1,19 @@
+---
+title: WordPress.com
+description: One-click OAuth, or connect manually with an access token
+---
+
+<Callout type="info">OAuth-capable — `WORDPRESS_COM_CLIENT_ID` / `WORDPRESS_COM_CLIENT_SECRET`.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>Go to [developer.wordpress.com/apps](https://developer.wordpress.com/apps) → **Create New Application**.</Step>
+<Step>Set the redirect URL — see [Publish → the shared redirect URL](/docs/publish/overview#two-ways-to-connect-a-platform).</Step>
+<Step>Copy the **Client ID** and **Client Secret** into `WORDPRESS_COM_CLIENT_ID` / `WORDPRESS_COM_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+Paste an **Access Token** for the account, plus the site as
+`yourblog.wordpress.com`, on **Publish → Connections → WordPress.com**.

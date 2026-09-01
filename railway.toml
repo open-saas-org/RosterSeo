@@ -7,7 +7,14 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "node apps/web/server.js"
+# Starts the docs app (apps/docs) as a second, internal-only process on
+# 3001 before the real web server - same reasoning as
+# docker/docker-entrypoint.sh's identical two-line pattern, which this
+# bypasses entirely (Railway ignores that script when startCommand is
+# set). apps/web's own next.config.mjs rewrites /docs/* to that internal
+# port, so Railway only ever needs the one public port/domain it already
+# assigns to this service.
+startCommand = "sh -c 'PORT=3001 HOSTNAME=0.0.0.0 node apps/docs/server.js & exec node apps/web/server.js'"
 # Runs once, before traffic is switched to the new deploy - real Drizzle
 # migrations against DATABASE_URL (or DATABASE_MIGRATE_URL when set), via
 # the bundled packages/db/dist/migrate.mjs the Dockerfile's build stage

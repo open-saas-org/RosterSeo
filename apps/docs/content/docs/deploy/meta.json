@@ -1,0 +1,4 @@
+{
+  "title": "Deploy",
+  "pages": ["self-hosting", "environment-variables", "migrations"]
+}

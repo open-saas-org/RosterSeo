@@ -1,0 +1,91 @@
+---
+title: Architecture
+description: Stack choices and why, monorepo layout, runtime process model, tenant isolation
+---
+
+Two decisions shape everything below:
+
+1. **Open-core, not SaaS-only — today, single-tenant self-hosted
+   (`SELF_HOSTED=true`, no billing, operator's own API keys) with Postgres
+   row-level tenant isolation already built in. A multi-tenant hosted SaaS
+   mode (`SELF_HOSTED=false`, Stripe billing, per-org credit metering) is
+   planned on the same codebase, but not implemented yet** — `SELF_HOSTED`
+   isn't actually read anywhere in the app currently, and there's no
+   Stripe integration in the code. The RLS/org model exists because
+   multi-tenancy is the eventual goal, not because hosted billing works
+   today.
+2. **Self-hostable stack, not vendor-locked.** Vercel and Supabase are
+   fine if you're the only operator, but they don't work for "anyone can
+   one-click deploy this on Railway." Plain Postgres + Drizzle + Docker is
+   the well-established pattern for that goal — followed here.
+
+## Stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| Monorepo | pnpm workspaces + Turborepo | page-analyzer needs in-process access to crawler, SERP, AI-visibility, and GSC/GA4 modules simultaneously — not worth splitting into separately-versioned repos |
+| App framework | Next.js (App Router) | Single deploy artifact for dashboard UI + API routes; supports Docker standalone output for Railway. TanStack Start was considered (Cloudflare Workers portability via Vinxi) and decided against — that portability doesn't matter since we're Railway/Docker-only, and Next.js has deeper ecosystem maturity + lower implementation risk for an AI-assisted solo build |
+| API layer | Next.js Route Handlers, no separate Express/NestJS | No need to run a second HTTP service alongside the dashboard |
+| Database | Postgres + Drizzle ORM | Portable — works identically on Railway's managed Postgres, Docker Compose, or any Postgres host. No vendor-specific schema magic |
+| Auth | better-auth | Self-hostable (unlike Supabase Auth or Clerk), Drizzle adapter, org/session model we control |
+| Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
+| Background jobs | pg-boss, run in a separate `apps/worker` process | Postgres-native, no extra infra, matches our self-host-first goal |
+| Billing | Stripe, planned for hosted mode | Not implemented yet — no Stripe integration exists in the codebase today |
+| SEO data | DataForSEO API | Single vendor for keywords/SERP/backlinks/on-page/local |
+| AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity), plus BrightData + OpenRouter for AI-answer-engine visibility | Broadest real coverage without vendor lock-in to one LLM provider |
+| MCP server | `@modelcontextprotocol/sdk`, separate app in the monorepo | Lets a user's own AI tools query their project data directly |
+| Deploy targets | Railway (Docker, one-click template), Docker Compose (self-host), any Node host | Railway is primary per the open-source goal; Vercel remains possible since it's still Next.js, just not the default path |
+
+## Monorepo layout
+
+See README.md — same list, kept in one place to avoid drift.
+
+## Runtime process model
+
+Two processes, one Docker image family:
+- `apps/web` — Next.js server. Handles all synchronous requests: dashboard
+  pages, Route Handler APIs, auth. Never does expensive work inline —
+  every crawl / SERP pull / AI-visibility run gets enqueued and returns
+  immediately.
+- `apps/worker` — plain Node process (no HTTP framework at all). Consumes
+  `pg-boss` jobs and calls into the `packages/*` domain packages to do the
+  actual work.
+
+Both apps import shared business logic from `packages/*` (db, dataforseo,
+ai-visibility, google, shopify) rather than each other, so the MCP server
+and the web dashboard never end up with two divergent implementations of
+"how to fetch keyword rankings."
+
+## Tenant isolation, concretely
+
+Route Handlers check org membership via the auth wrapper in
+`apps/web/lib/api-utils.ts`, but that's application-level and can be
+forgotten on a new route. Postgres RLS (`packages/db/drizzle/0001_rls_policies.sql`)
+is the enforced backstop, with two details that turned out to matter in
+practice, not just in theory:
+
+- **Policies are scoped by `user_id`, not `organization_id`.** A request
+  that only knows a project id can't know that project's org up front
+  without reading it, and can't read it without RLS already allowing it -
+  scoping by the requesting user's memberships (via `organization_members`)
+  sidesteps that bootstrapping problem. `organization_members`' own policy
+  is further restricted to `user_id = current_setting(...)` specifically
+  (not a self-join) - a subquery against its own table from within its own
+  policy causes infinite recursion in Postgres, which we hit directly.
+- **The app's `DATABASE_URL` must be a `NOSUPERUSER NOBYPASSRLS` role.**
+  Superusers bypass RLS unconditionally, ignoring `FORCE ROW LEVEL
+  SECURITY` - also hit directly, silently, with no error. Migrations
+  (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY`, `CREATE POLICY`) need an
+  elevated role instead, since DDL requires table-owner or superuser
+  privileges. Hence two connection strings: `DATABASE_MIGRATE_URL`
+  (elevated, migrations only) and `DATABASE_URL` (restricted, what the app
+  actually runs as). See `packages/db/README.md`.
+
+Every tenant-scoped query must go through `withUserContext(userId, cb)`
+(`packages/db/src/with-user-context.ts`), which sets the session variable
+the policies check, rather than the bare `db` export.
+
+## Open decisions
+
+- Product name/branding — repo currently uses the placeholder package
+  scope `@rosterseo/*`.

@@ -1,0 +1,22 @@
+---
+title: LinkedIn
+description: One-click OAuth, or connect manually with an access token
+---
+
+<Callout type="info">OAuth-capable — `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET`.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>Go to [developer.linkedin.com](https://developer.linkedin.com) → **Create app**.</Step>
+<Step>Under **Products**, request **"Share on LinkedIn"** and **"Sign In with LinkedIn using OpenID Connect."**</Step>
+<Step>**Auth** tab → add the redirect URL — see [Social overview](/docs/social/overview#two-ways-to-connect-a-platform).</Step>
+<Step>Copy the **Client ID** / **Client Secret** into `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+Paste an **Access Token** for your profile on **Social → Connections →
+LinkedIn**.
+
+Character limit: **3000**.

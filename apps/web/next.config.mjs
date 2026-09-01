@@ -25,6 +25,27 @@ const nextConfig = {
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  // Serves the docs (apps/docs, a separate Fumadocs Next.js app) at /docs
+  // on this same origin/port instead of a separate subdomain - Next.js's
+  // documented "Multi Zones" pattern. docker-entrypoint.sh runs the docs
+  // app as a second internal-only process (DOCS_INTERNAL_URL, default
+  // http://127.0.0.1:3001) alongside this one; only this app's port is
+  // ever exposed publicly. /docs-static/* carries the docs app's own
+  // _next/static assets (see its assetPrefix) so they don't collide with
+  // this app's own /_next/*.
+  async rewrites() {
+    const docsUrl = (process.env.DOCS_INTERNAL_URL ?? "http://127.0.0.1:3001").replace(/\/$/, "");
+    return [
+      { source: "/docs", destination: `${docsUrl}/docs` },
+      { source: "/docs/:path*", destination: `${docsUrl}/docs/:path*` },
+      { source: "/docs-static/:path*", destination: `${docsUrl}/docs-static/:path*` },
+      { source: "/api/search", destination: `${docsUrl}/api/search` },
+      { source: "/llms.txt", destination: `${docsUrl}/llms.txt` },
+      { source: "/llms-full.txt", destination: `${docsUrl}/llms-full.txt` },
+      { source: "/llms.mdx/:path*", destination: `${docsUrl}/llms.mdx/:path*` },
+      { source: "/og/docs/:path*", destination: `${docsUrl}/og/docs/:path*` },
+    ];
+  },
 };
 
 // Safe with no Sentry config at all - source-map upload (which needs

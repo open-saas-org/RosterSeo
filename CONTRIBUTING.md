@@ -59,7 +59,8 @@ loop while iterating.
   feature PR makes both harder to review.
 - Reference the issue you're closing, if any.
 - A short "why," not just "what," in the PR description — especially for
-  anything touching RLS, auth, or billing (`SELF_HOSTED=false` mode).
+  anything touching RLS or auth, or laying groundwork for the planned
+  hosted-billing mode (`SELF_HOSTED=false` — not implemented yet).
 
 ## License
 

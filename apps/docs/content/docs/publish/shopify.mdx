@@ -1,0 +1,20 @@
+---
+title: Shopify
+description: One-click OAuth per shop, or connect manually with an Admin API token
+---
+
+<Callout type="info">OAuth-capable — `SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET`. Authorization happens per-shop domain.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>In the target Shopify admin: **Settings → Apps and sales channels → Develop apps** → create an app with the `write_content` scope.</Step>
+<Step>Set the redirect URL — see [Publish overview](/docs/publish/overview#two-ways-to-connect-a-platform).</Step>
+<Step>Copy the **API key** and **API secret key** into `SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+From that same custom app, install it and copy the **Admin API Access
+Token**, plus the numeric **Blog ID** and your shop domain (e.g.
+`your-store.myshopify.com`), on **Publish → Connections → Shopify**.

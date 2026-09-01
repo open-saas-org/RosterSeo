@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { socialConnections, withUserContext } from "@rosterseo/db";
+import { desc, eq } from "drizzle-orm";
+import { socialConnections, socialPlatformTemplates, withUserContext } from "@rosterseo/db";
 import { SOCIAL_PLATFORMS } from "@rosterseo/social";
 import { PageHeader } from "@/components/page-header";
 import { SocialComposer } from "@/components/social/social-composer";
@@ -8,7 +8,12 @@ import { getCurrentProject } from "@/lib/current-project";
 export default async function SocialPage() {
   const { session, project } = await getCurrentProject();
 
-  const rows = await withUserContext(session.user.id, (tx) => tx.select().from(socialConnections).where(eq(socialConnections.projectId, project.id)));
+  const [rows, templateRows] = await Promise.all([
+    withUserContext(session.user.id, (tx) => tx.select().from(socialConnections).where(eq(socialConnections.projectId, project.id))),
+    withUserContext(session.user.id, (tx) =>
+      tx.select().from(socialPlatformTemplates).where(eq(socialPlatformTemplates.projectId, project.id)).orderBy(desc(socialPlatformTemplates.createdAt)),
+    ),
+  ]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -16,6 +21,7 @@ export default async function SocialPage() {
       <SocialComposer
         projectId={project.id}
         platforms={SOCIAL_PLATFORMS}
+        templates={templateRows.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }))}
         connections={rows.map((r) => ({
           id: r.id,
           projectId: r.projectId,

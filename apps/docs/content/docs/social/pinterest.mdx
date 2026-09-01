@@ -1,0 +1,39 @@
+---
+title: Pinterest
+description: One-click OAuth, or connect manually with an access token
+---
+
+<Callout type="info">OAuth-capable — `PINTEREST_CLIENT_ID` / `PINTEREST_CLIENT_SECRET`.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>Go to [developers.pinterest.com/apps](https://developers.pinterest.com/apps) → **Create app**.</Step>
+<Step>Add the redirect URL — see [Social overview](/docs/social/overview#two-ways-to-connect-a-platform). Scopes `boards:read pins:read pins:write` are requested automatically.</Step>
+<Step>Copy the **App ID** / **App secret** into `PINTEREST_CLIENT_ID` / `PINTEREST_CLIENT_SECRET`.</Step>
+</Steps>
+
+<Callout type="warn">
+App secret missing or not shown? Pinterest only displays a newly generated
+secret once — look for a **Regenerate** option on the same app page if you
+missed copying it.
+</Callout>
+
+## Or connect manually
+
+<Steps>
+<Step>Generate an **Access Token** for your account from the same app page (Pinterest supports a trial token without the full OAuth redirect flow).</Step>
+<Step>
+Find the **Board ID** — Pinterest doesn't show it in the board's URL. Call:
+
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" "https://api.pinterest.com/v5/boards"
+```
+
+and copy the `id` of the board you want from the response.
+</Step>
+<Step>Paste the token and Board ID on **Social → Connections → Pinterest**.</Step>
+</Steps>
+
+Character limit: **500**. An image is required — the composer blocks
+submission if Pinterest is selected with no Image URL set.

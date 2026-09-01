@@ -1,0 +1,37 @@
+---
+title: Facebook Pages
+description: One Meta app covers Facebook Pages and Instagram — set it up once here
+---
+
+<Callout type="info">OAuth-capable — `META_CLIENT_ID` / `META_CLIENT_SECRET`. The same app and credentials also cover [Instagram](/docs/social/instagram) — nothing extra to register there.</Callout>
+
+<Callout type="warn">
+Posts to your own **Facebook Page**, not a personal profile — Meta's API
+doesn't allow posting to personal timelines at all. No Page yet? Create
+one free at [facebook.com/pages/create](https://facebook.com/pages/create)
+— takes a couple minutes, doesn't need real followers or content.
+</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>Go to [developers.facebook.com](https://developers.facebook.com) → **Create App** → type **Business**.</Step>
+<Step>Add the **Facebook Login** product → Settings → add the redirect URL — see [Social overview](/docs/social/overview#two-ways-to-connect-a-platform).</Step>
+<Step>Request scopes `pages_manage_posts`, `pages_show_list`, `pages_read_engagement` under App Review — needed for anyone besides your own Meta account to use this.</Step>
+<Step>Copy the **App ID** / **App Secret** into `META_CLIENT_ID` / `META_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Connecting
+
+Click **Connect** on **Social → Connections → Facebook Page** — it pulls
+in every Page you administer under that login in one authorization, each
+as its own connection.
+
+<Callout type="warn">
+Getting **"That account has nothing connectable"**? Three likely causes,
+in order: (1) no Page exists yet — see above, (2) you have one but didn't
+tick it on Facebook's "Choose what you allow" consent screen — redo Connect
+and watch for that step, (3) your Meta app is still in **Development
+Mode** — add your Facebook account under **App Roles → Add People** in the
+Meta dashboard.
+</Callout>

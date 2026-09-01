@@ -1,0 +1,23 @@
+---
+title: Spend
+description: What this deployment is actually paying the upstream APIs
+---
+
+The Spend page is a deployment-wide cost dashboard — not scoped to a
+project or organization, since every provider credential here is a single
+global `.env` value (DataForSEO, BrightData, the AI Visibility LLM
+providers), so there's no real per-tenant cost to attribute even with
+multiple projects/orgs on the same deployment.
+
+## What it shows
+
+- All-time and trailing-30-day spend totals
+- A per-provider breakdown, each row flagged as **real** cost or an
+  **estimate** depending on whether that provider's API returns real
+  billing data
+- A daily spend trend by provider
+- The 50 most recent individual spend-log entries
+
+There's nothing to configure here — it just reads what your connected
+providers actually cost, using the same keys documented on
+[Environment Variables](/docs/deploy/environment-variables).

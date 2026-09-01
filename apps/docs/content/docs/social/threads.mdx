@@ -1,0 +1,22 @@
+---
+title: Threads
+description: A separate App ID/Secret, inside the same Meta App dashboard as Facebook
+---
+
+<Callout type="info">
+OAuth-capable — `THREADS_CLIENT_ID` / `THREADS_CLIENT_SECRET`. Its own
+credential pair, even though it lives in the same Meta App dashboard used
+for [Facebook Pages](/docs/social/facebook).
+</Callout>
+
+<Steps>
+<Step>In your Meta App dashboard: add the **Threads API** product.</Step>
+<Step>Add the redirect URL — see [Social overview](/docs/social/overview#two-ways-to-connect-a-platform). Scopes `threads_basic`, `threads_content_publish` are requested automatically.</Step>
+<Step>Copy the **Threads App ID** / **Threads App Secret** into `THREADS_CLIENT_ID` / `THREADS_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+Paste an **Access Token** on **Social → Connections → Threads**.
+
+Character limit: **500**.

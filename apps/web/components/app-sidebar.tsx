@@ -60,17 +60,6 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 pt-1">
-          {/* The mark is black-on-transparent - wrap it in a fixed white
-              chip so it stays legible against the sidebar's dark-mode
-              background, not just the light-mode near-white one. */}
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white">
-            <Image src="/RosterSeoLogo.webp" alt="RosterSEO" width={18} height={18} />
-          </div>
-          <span className="text-sm font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            RosterSEO
-          </span>
-        </div>
         <ProjectSwitcher projects={projects} archivedProjects={archivedProjects} />
         <SidebarModeTabs />
       </SidebarHeader>

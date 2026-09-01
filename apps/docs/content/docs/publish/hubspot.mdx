@@ -1,0 +1,19 @@
+---
+title: HubSpot
+description: One-click OAuth, or connect manually with an access token
+---
+
+<Callout type="info">OAuth-capable — `HUBSPOT_CLIENT_ID` / `HUBSPOT_CLIENT_SECRET`.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>Go to [developers.hubspot.com](https://developers.hubspot.com) → create a public app.</Step>
+<Step>Set the redirect URL — see [Publish overview](/docs/publish/overview#two-ways-to-connect-a-platform). Request the `content` scope.</Step>
+<Step>Copy the **Client ID** and **Client Secret** into `HUBSPOT_CLIENT_ID` / `HUBSPOT_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+Paste an **Access Token** on **Publish → Connections → HubSpot** — the blog
+it can publish to is resolved automatically after connecting.

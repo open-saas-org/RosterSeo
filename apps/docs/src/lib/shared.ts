@@ -5,6 +5,6 @@ export const docsContentRoute = '/llms.mdx/docs';
 
 export const gitConfig = {
   user: 'open-saas-org',
-  repo: 'seo',
+  repo: 'RosterSeo',
   branch: 'main',
 };

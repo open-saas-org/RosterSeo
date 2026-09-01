@@ -1,0 +1,127 @@
+---
+title: Self-Hosting
+description: Run it locally, via Docker, or deploy to Railway
+---
+
+## Local development (no Docker)
+
+Requires Node 22.13+ (pnpm 11 itself needs it), pnpm, and a Postgres instance (local install, or a free
+one from Railway/Neon/Supabase).
+
+```bash
+cp .env.example .env
+pnpm install
+```
+
+Postgres needs two roles before running migrations — see
+[Database roles](#database-roles) below, then:
+
+```bash
+pnpm db:migrate
+pnpm dev
+```
+
+`apps/web` runs on `http://localhost:3000`, `apps/docs` on `http://localhost:3001`.
+`apps/worker` (the job queue consumer) starts alongside them via the same
+`pnpm dev`.
+
+## Self-host via Docker
+
+**Docker Compose** — app + a real local Postgres, good for trying it out:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+`docker/postgres-init.sql` creates the restricted app role automatically on
+first container start. Migrations run automatically on container start too
+(see `docker/docker-entrypoint.sh`, baked into the image's `ENTRYPOINT`) —
+there's nothing to run by hand after `up`.
+
+**Prebuilt image**, against a Postgres you already have (a managed
+instance, another container, whatever) — this is the plain "run it
+anywhere" path for a VPS, Fly.io, Render, or any other Docker-based host
+that isn't Railway. Every push to `main` publishes a real image via
+`.github/workflows/docker-publish.yml` — no local build step needed:
+
+```bash
+docker run -p 3000:3000 \
+  -e DATABASE_URL="postgres://user:pass@your-postgres-host:5432/rosterseo" \
+  -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
+  -e BETTER_AUTH_URL="http://localhost:3000" \
+  -e NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000" \
+  ghcr.io/open-saas-org/rosterseo:latest
+```
+
+Prefer to build it yourself instead (e.g. to test an uncommitted change)?
+`docker build -t rosterseo-web .` then swap the image name above for
+`rosterseo-web`.
+
+Same automatic migration-on-start behavior as Compose either way — the
+image migrates the database it's pointed at, then serves the app, every
+time it boots. See `.env.example` for every other variable (DataForSEO, AI providers, OAuth,
+etc.) — all optional beyond the ones above, each one just stays inert until
+you set it.
+
+## Database roles
+
+This is the one setup step that's easy to get wrong and fails silently if
+you do: **the app's runtime `DATABASE_URL` must be a non-superuser role**,
+or Postgres row-level security (the tenant-isolation mechanism) is skipped
+entirely — no error, it just quietly returns every tenant's rows.
+
+```sql
+CREATE ROLE rosterseo_app WITH LOGIN PASSWORD '<pick one>' NOSUPERUSER NOBYPASSRLS;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rosterseo_app;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO rosterseo_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO rosterseo_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO rosterseo_app;
+GRANT CREATE ON DATABASE rosterseo TO rosterseo_app;
+```
+
+Set `DATABASE_URL` to this restricted role, and `DATABASE_MIGRATE_URL` to
+an elevated (superuser/owner) role — migrations run DDL that a restricted
+role can't execute. Full detail: `packages/db/README.md` in the repo.
+
+## Deploy on Railway
+
+The real, verified template deploys the **published image**
+(`ghcr.io/open-saas-org/rosterseo:latest`), not a from-source Railway
+build — deliberately: pulling a prebuilt image is seconds instead of the
+~5 minutes a full monorepo Docker build takes, it needs no GitHub
+authorization from the deployer, and it's exactly what's already been
+tested end-to-end (real Postgres auto-attached via a `${{Postgres.DATABASE_URL}}`
+reference variable, real migrations on boot, a generated `BETTER_AUTH_SECRET`,
+`BETTER_AUTH_URL` self-referencing the assigned domain). `railway.toml` at
+the repo root still exists for anyone who'd rather have Railway build from
+source directly (its `releaseCommand` runs the same real migrations before
+cutover), but it's not what the template button uses.
+
+See `docker/RAILWAY.md` for the exact one-time dashboard steps to publish
+and update that template.
+
+## Updating a running deployment
+
+Self-hosted deployments don't auto-update — same as any self-hosted
+software, a new image is never pulled into an already-running instance
+without you asking for it. To pick up the latest release:
+
+- **Railway**: open the `web` service → **Deployments** → **Redeploy**. This
+  re-resolves `:latest` and pulls whatever the tag currently points to, then
+  runs migrations on boot before serving traffic, same as any other start.
+- **Docker Compose**: `docker compose pull && docker compose up -d`.
+- **Plain `docker run`**: `docker pull ghcr.io/open-saas-org/rosterseo:latest`,
+  then re-run your `docker run` command (or `docker restart` if you're
+  already using a fixed container name that just needs the new image).
+
+## Modes
+
+- **`SELF_HOSTED=true`** — single-tenant, no billing, bring your own
+  DataForSEO/LLM API keys. This is the only mode that actually exists in
+  the code today.
+- **`SELF_HOSTED=false`** — a multi-tenant hosted SaaS mode (Stripe
+  billing, per-org credit metering) is planned on the same codebase, but
+  not implemented yet. `SELF_HOSTED` isn't read anywhere in the app right
+  now, and there's no Stripe integration — setting it to `false` changes
+  nothing.

@@ -6,8 +6,10 @@ const AUTH_PAGES = ["/login", "/signup"];
 // Real, session-less public routes - the page itself is responsible for
 // its own auth (a share token, in this case), so this middleware's
 // blanket "no session -> /login" redirect must not apply to them, or the
-// page component never even gets a chance to check the token.
-const PUBLIC_PATH_PREFIXES = ["/reports/ai-visibility/"];
+// page component never even gets a chance to check the token. "/docs" is
+// the proxied docs app (see next.config.mjs's rewrites) - it's public
+// documentation, never gated behind login, same as any product's /docs.
+const PUBLIC_PATH_PREFIXES = ["/reports/ai-visibility/", "/docs"];
 
 // Cookie-presence check only, not a real session validation (no DB round
 // trip) - fast enough to run on every request. Routes that actually need

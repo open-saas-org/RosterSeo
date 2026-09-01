@@ -1,0 +1,32 @@
+---
+title: Backlink Outreach
+description: Turn a backlink target into a drafted, sent email — with AI-drafted copy and a real send-from connection
+---
+
+The Outreach page manages the pipeline from "found a site worth a backlink
+from" to "sent them an email about it."
+
+## Adding a target
+
+Add a domain manually, or send one straight from a [Backlinks](/docs/seo/backlinks)
+page row — that path also attempts to find a real contact email for you
+automatically.
+
+## Drafting and sending
+
+<Steps>
+<Step>Click **Generate draft** on a target — AI writes a subject/body you can edit inline, along with the contact email if it wasn't found automatically.</Step>
+<Step>Pick which connected email account to send from.</Step>
+<Step>Send — status moves through `drafted` → `queued` → `sent` (or `failed`).</Step>
+</Steps>
+
+## Connecting an account to send from
+
+You need at least one connected email account before you can send.
+**Outreach → Connections** supports two kinds:
+
+- **SMTP** — host, port, and credentials for any provider.
+- **Gmail (OAuth)** — reuses the same Google OAuth client documented on
+  [Connected Data → Integrations](/docs/connected-data/integrations#oauth-flow),
+  requesting a send-only `gmail.send` scope — RosterSEO can send as that
+  address, never read, list, or delete anything in the inbox.

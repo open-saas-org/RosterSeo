@@ -5,10 +5,11 @@ import { AlertTriangle, Check, ExternalLink, Loader2, Sparkles } from "lucide-re
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import type { SocialPostTargetView, SocialPostView } from "./types";
+import { ScheduleAt } from "@/components/posts/schedule-at";
+import { SocialCharCounter } from "./social-char-counter";
+import type { SocialPlatformDefView, SocialPostTargetView, SocialPostView } from "./types";
 
 const STATUS_LABEL: Record<SocialPostTargetView["status"], string> = {
   pending: "Not sent yet",
@@ -18,7 +19,19 @@ const STATUS_LABEL: Record<SocialPostTargetView["status"], string> = {
   failed: "Failed",
 };
 
-function TargetCard({ projectId, postId, target, onChange }: { projectId: string; postId: string; target: SocialPostTargetView; onChange: (next: SocialPostTargetView) => void }) {
+function TargetCard({
+  projectId,
+  postId,
+  target,
+  charLimit,
+  onChange,
+}: {
+  projectId: string;
+  postId: string;
+  target: SocialPostTargetView;
+  charLimit?: number;
+  onChange: (next: SocialPostTargetView) => void;
+}) {
   const [isRespinning, setIsRespinning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,7 +79,9 @@ function TargetCard({ projectId, postId, target, onChange }: { projectId: string
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <Textarea disabled={locked} rows={4} value={target.adaptedBody} onChange={(e) => onChange({ ...target, adaptedBody: e.target.value })} />
-        <p className="text-right text-xs text-muted-foreground">{target.adaptedBody.length} characters</p>
+        <div className="flex justify-end">
+          <SocialCharCounter length={target.adaptedBody.length} limit={charLimit} />
+        </div>
         {target.failureReason ? (
           <Alert variant="destructive">
             <AlertTriangle />
@@ -84,7 +99,18 @@ function TargetCard({ projectId, postId, target, onChange }: { projectId: string
   );
 }
 
-export function SocialPostReview({ projectId, post, initialTargets }: { projectId: string; post: SocialPostView; initialTargets: SocialPostTargetView[] }) {
+export function SocialPostReview({
+  projectId,
+  post,
+  initialTargets,
+  platforms,
+}: {
+  projectId: string;
+  post: SocialPostView;
+  initialTargets: SocialPostTargetView[];
+  platforms: SocialPlatformDefView[];
+}) {
+  const platformById = new Map(platforms.map((p) => [p.id, p]));
   const [targets, setTargets] = useState(initialTargets);
   const [postStatus, setPostStatus] = useState(post.status);
   const [scheduledFor, setScheduledFor] = useState("");
@@ -129,7 +155,14 @@ export function SocialPostReview({ projectId, post, initialTargets }: { projectI
       </div>
 
       {targets.map((target) => (
-        <TargetCard key={target.id} projectId={projectId} postId={post.id} target={target} onChange={updateTarget} />
+        <TargetCard
+          key={target.id}
+          projectId={projectId}
+          postId={post.id}
+          target={target}
+          charLimit={platformById.get(target.platform)?.charLimit}
+          onChange={updateTarget}
+        />
       ))}
 
       {!allSent ? (
@@ -146,7 +179,7 @@ export function SocialPostReview({ projectId, post, initialTargets }: { projectI
                 {isPublishing ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
                 Post now
               </Button>
-              <Input type="datetime-local" value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} className="w-auto" />
+              <ScheduleAt value={scheduledFor} onChange={setScheduledFor} />
               <Button type="button" variant="outline" disabled={isPublishing || !scheduledFor} onClick={() => handlePublish(true)}>
                 Schedule
               </Button>

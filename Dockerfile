@@ -39,6 +39,11 @@ COPY --from=deps /repo/apps/web/node_modules ./apps/web/node_modules
 COPY --from=deps /repo/packages ./packages
 COPY . .
 RUN pnpm --filter @rosterseo/web build
+# Docs (apps/docs) builds to its own standalone server.js too - served at
+# /docs on the SAME public port as the app above via apps/web's next.config
+# rewrites (Next.js "Multi Zones"), not a separate exposed port/subdomain.
+# See docker-entrypoint.sh for how both processes actually get started.
+RUN pnpm --filter @rosterseo/docs build
 # Bundles packages/db's real migration script (drizzle-orm's migrator, no
 # CLI/dev-tool dependency) into one self-contained ESM file with only
 # Node's own built-ins left external - see packages/db/package.json's
@@ -66,6 +71,14 @@ WORKDIR /repo
 COPY --from=build /repo/apps/web/.next/standalone ./
 COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build /repo/apps/web/public ./apps/web/public
+# Docs' own standalone output, layered into the same image root - its
+# server.js ends up at ./apps/docs/server.js alongside web's at
+# ./apps/web/server.js, each started as its own process (see
+# docker-entrypoint.sh). .next/static needs the same manual copy Next's
+# standalone output always needs (it's never included automatically) -
+# same reason apps/web needs the identical line above.
+COPY --from=build /repo/apps/docs/.next/standalone ./
+COPY --from=build /repo/apps/docs/.next/static ./apps/docs/.next/static
 # The bundled migration script + its raw .sql migration files (read at
 # runtime via a path relative to the compiled file - see
 # packages/db/src/migrate.ts) - this is the whole reason releaseCommand in

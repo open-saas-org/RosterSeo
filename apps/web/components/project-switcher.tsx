@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ChevronsUpDown, Globe, Plus, Settings, ArchiveRestore, Loader2 } from "lucide-react";
 import { ACTIVE_PROJECT_COOKIE } from "@/lib/project-cookie";
@@ -41,6 +42,13 @@ export function ProjectSwitcher({
   const active = projects.find((p) => p.id === activeId) ?? projects[0];
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  // Every other card on the dashboard is a real fetch against the newly
+  // active project (GSC, GA4, backlinks, site audit, ...) - switching feels
+  // instant in the sidebar label but the actual page content lags behind
+  // by however long those take. Wrapping the refresh in a transition is
+  // what lets the dashboard's own loading.tsx skeleton kick in for that gap
+  // instead of the old data just sitting there looking current.
+  const [isSwitching, startTransition] = useTransition();
 
   // A server refresh (after archive/delete) can hand this same mounted
   // component a `projects` list that no longer contains `activeId` (e.g.
@@ -54,7 +62,9 @@ export function ProjectSwitcher({
   function selectProject(id: string) {
     setActiveId(id);
     document.cookie = `${ACTIVE_PROJECT_COOKIE}=${encodeURIComponent(id)}; path=/; max-age=${60 * 60 * 24 * 365}`;
-    router.refresh();
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   async function restoreProject(id: string) {
@@ -77,31 +87,35 @@ export function ProjectSwitcher({
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem className="flex items-center gap-2">
-        <Link
-          href="/"
-          className="flex h-12 shrink-0 flex-col items-center justify-center rounded-md border border-border px-2.5 text-xs leading-[1.1] font-semibold tracking-tight group-data-[collapsible=icon]:hidden"
-        >
-          <span>Roster</span>
-          <span>SEO</span>
-        </Link>
+      <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
               <SidebarMenuButton
                 size="lg"
+                disabled={isSwitching}
                 className="min-w-0 flex-1 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border border-border"
               />
             }
           >
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Globe className="size-4" />
+            {/* White-on-transparent variant here, not the black mark -
+                a saturated brand-teal chip needs the light mark to stay
+                legible, same reasoning as the white chip elsewhere just
+                inverted. */}
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary">
+              <Image src="/RosterSeoLogo-white.png" alt="" width={20} height={20} />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-medium">{active.name}</span>
-              <span className="truncate text-xs text-muted-foreground">{active.domain}</span>
+              <span className="truncate text-xs text-muted-foreground">
+                {isSwitching ? "Switching…" : active.domain}
+              </span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
+            {isSwitching ? (
+              <Loader2 className="ml-auto size-4 shrink-0 animate-spin text-muted-foreground group-data-[collapsible=icon]:hidden" />
+            ) : (
+              <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--anchor-width)"

@@ -22,15 +22,18 @@ connected" state) until you set its API keys/credentials in `.env`. See
 `.env.example` for the full list; nothing in the app fabricates a
 plausible-looking number when a real integration isn't configured.
 
-## Two ways to run this
+## How this runs today
 
-**1. Self-hosted (`SELF_HOSTED=true`)** — single-tenant, no billing, you
-bring your own DataForSEO/LLM API keys. This is the standard open-source
-self-host distribution model.
+**Self-hosted (`SELF_HOSTED=true`)** — single-tenant, no billing, you bring
+your own DataForSEO/LLM API keys. This is the standard open-source
+self-host distribution model, and the only mode that actually exists in
+the code right now.
 
-**2. Hosted SaaS (`SELF_HOSTED=false`)** — multi-tenant, Stripe billing,
-per-org credit metering. Same codebase, different env flag — this is how
-you'd run your own paid hosted instance.
+**Planned: hosted SaaS (`SELF_HOSTED=false`)** — a multi-tenant, Stripe-billed
+hosted mode is on the roadmap, not implemented yet. `SELF_HOSTED` isn't
+read anywhere in the app today, and there's no Stripe integration in the
+codebase — treat any mention of hosted mode elsewhere as forward-looking,
+not something you can flip on now.
 
 ## Quick start (local dev)
 
@@ -117,7 +120,7 @@ this as an actual "Deploy on Railway" button/template.
 
 ```
 apps/
-  web/          Next.js dashboard + API routes (Better-Auth, Stripe in hosted mode)
+  web/          Next.js dashboard + API routes (Better-Auth; Stripe billing planned, not yet implemented)
   worker/       pg-boss job consumer (crawls, SERP pulls, AI-visibility runs)
   mcp-server/   MCP server exposing project data to external AI tools
   docs/         Fumadocs documentation site (per-feature docs, architecture)
@@ -126,12 +129,15 @@ packages/
   jobs/         Shared pg-boss job definitions (enqueue from web, process in worker)
   dataforseo/   DataForSEO API client (SERP, keywords, crawl, backlinks)
   ai-visibility/ Multi-provider LLM prompt-sampling for brand visibility
-  google/       GSC + GA4 OAuth and incremental sync
+  google/       GSC + GA4 + GBP + Merchant Center + Gmail OAuth and incremental sync
   crawler/      Shared single-page fetch+parse (Site Audit's BFS crawl and Page Analyzer)
   bing/         Bing Webmaster Tools client (single global API key, no OAuth)
   wordpress/    WordPress Application Password client (connect + verify + list posts)
   indexnow/     IndexNow protocol client (Bing/Yandex/Seznam/Naver instant-index pings)
   shopify/      Shopify Connect + agent write-back
+  email/        SMTP + Gmail OAuth send, used by Backlink Outreach
+  publishing/   Blog adapters (WordPress, Ghost, Tumblr, Dev.to, Hashnode, Webflow, Shopify, HubSpot, Blogger) + OAuth
+  social/       Social adapters (Bluesky, Mastodon, LinkedIn, Pinterest, Facebook, Instagram, Threads, X) + OAuth
 docker/         Dockerfile support docs, Railway publishing steps
 ```
 

@@ -12,6 +12,14 @@ export type SocialPlatformDefView = {
   accessNote?: string;
 };
 
+export type SocialPlatformTemplateView = {
+  id: string;
+  projectId: string;
+  name: string;
+  connectionIds: string[];
+  createdAt: string;
+};
+
 export type SocialConnectionView = {
   id: string;
   projectId: string;

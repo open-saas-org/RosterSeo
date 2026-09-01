@@ -13,7 +13,7 @@ import { toConnectionStatus } from "@/lib/google-connection-status";
 //        for why the connection itself is account-level).
 //
 // GBP has no per-project "property" of its own here - Local SEO runs on
-// DataForSEO instead of this connection (see /docs/local-seo) - so it only
+// DataForSEO instead of this connection (see /docs/seo/local-seo) - so it only
 // ever appears in the GET status list and DELETE, never PATCH. Merchant
 // Center DOES have a per-project pick (which account's product performance
 // this project reports on, see /merchant-insights), same shape as gsc/ga4.

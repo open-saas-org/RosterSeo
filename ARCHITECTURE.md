@@ -2,10 +2,15 @@
 
 Two decisions shape everything below:
 
-1. **Open-core, not SaaS-only.** Same codebase runs as a single-tenant
-   self-hosted deploy (`SELF_HOSTED=true`, no billing, operator's own API
-   keys) or a multi-tenant hosted SaaS (`SELF_HOSTED=false`, Stripe billing,
-   per-org credit metering, Postgres row-level tenant isolation).
+1. **Open-core, not SaaS-only — today, single-tenant self-hosted
+   (`SELF_HOSTED=true`, no billing, operator's own API keys) with Postgres
+   row-level tenant isolation already built in. A multi-tenant hosted SaaS
+   mode (`SELF_HOSTED=false`, Stripe billing, per-org credit metering) is
+   planned on the same codebase, but not implemented yet — `SELF_HOSTED`
+   isn't actually read anywhere in the app currently, and there's no
+   Stripe integration in the code. The RLS/org model exists because
+   multi-tenancy is the eventual goal, not because hosted billing works
+   today.**
 2. **Self-hostable stack, not vendor-locked.** Vercel and Supabase are
    fine if you're the only operator, but they don't work for "anyone can
    one-click deploy this on Railway." Plain Postgres + Drizzle + Docker is
@@ -22,7 +27,7 @@ Two decisions shape everything below:
 | Auth | better-auth | Self-hostable (unlike Supabase Auth or Clerk), Drizzle adapter, org/session model we control |
 | Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
 | Background jobs | pg-boss, run in a separate `apps/worker` process | Postgres-native, no extra infra, matches our self-host-first goal |
-| Billing | Stripe (hosted mode only) | Off entirely when `SELF_HOSTED=true` |
+| Billing | Stripe, planned for hosted mode | Not implemented yet — no Stripe integration exists in the codebase today |
 | SEO data | DataForSEO API | Single vendor for keywords/SERP/backlinks/on-page/local |
 | AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity), plus BrightData + OpenRouter for AI-answer-engine visibility | Broadest real coverage without vendor lock-in to one LLM provider |
 | MCP server | `@modelcontextprotocol/sdk`, separate app in the monorepo | Lets a user's own AI tools query their project data directly |

@@ -1,0 +1,19 @@
+---
+title: Tumblr
+description: One-click OAuth, or connect manually with an access token
+---
+
+<Callout type="info">OAuth-capable — `TUMBLR_CLIENT_ID` / `TUMBLR_CLIENT_SECRET`.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>Go to [tumblr.com/oauth/apps](https://www.tumblr.com/oauth/apps) → **Register application**.</Step>
+<Step>Set the redirect URL — see [Publish overview](/docs/publish/overview#two-ways-to-connect-a-platform).</Step>
+<Step>Copy the **OAuth Consumer Key** and **Secret Key** into `TUMBLR_CLIENT_ID` / `TUMBLR_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+Paste an **Access Token** plus the blog identifier (e.g.
+`yourblog.tumblr.com`) on **Publish → Connections → Tumblr**.

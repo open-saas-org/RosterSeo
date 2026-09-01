@@ -1,0 +1,67 @@
+---
+title: Brand Lookup
+description: One-off, ad-hoc check of whether and how a brand is mentioned across LLM providers right now
+---
+
+Route: `/brand-lookup`.
+
+## What it does
+
+Enter a brand name or domain and, optionally, a specific question. The page
+runs a **single** sample of that prompt against every configured LLM
+provider (OpenAI, Anthropic, Google, Perplexity) and shows a simple
+pass/fail-style verdict per provider: mentioned (yes/no), its rough position
+in the answer, sentiment, and a response snippet, when mentioned.
+
+If no question is given, a generic default prompt is used —
+`"What do you know about {brand}? Would you recommend it, and why?"`.
+
+## How this differs from AI Visibility
+
+[AI Visibility](/docs/ai-visibility) does **ongoing, tracked-prompt
+monitoring**: a fixed list of prompts, sampled repeatedly over time (several
+samples per provider, per run) to build a mention *rate* and a trend chart
+for a project. Brand Lookup is the opposite shape of tool — a **one-off,
+ad-hoc check**: no tracked list, no persistence, no trend, just "what does
+each provider say about this brand right now." It draws exactly one sample
+per provider (`sampleIndex: 0`) rather than AI Visibility's multi-sample
+fan-out, since there's no "stability across draws" question being asked
+here.
+
+Use Brand Lookup to spot-check a brand or explore how a specific question
+gets answered before deciding it's worth adding as a tracked prompt in AI
+Visibility.
+
+## What's real today
+
+- **Sampling is real-only, with no mock path**: `@rosterseo/ai-visibility`'s
+  `samplePrompt(promptText, brandDomain, provider, sampleIndex)` is a
+  brand-only wrapper around `sampleEntities()`, which makes one real call
+  through the provider registry (`packages/ai-visibility/src/providers/`)
+  and parses the actual response text for a mention of the brand. There's
+  no seeded-random or deterministic mock generator anywhere in this path —
+  an unconfigured or failing provider returns `null` for that provider
+  instead of a fabricated result, and the UI simply shows nothing for it
+  rather than a made-up verdict. `isAiVisibilityConfigured()` gates an
+  honest "not configured" `Alert` at the top of the page when none of the
+  four providers has a key set, matching the pattern on
+  [Integrations](/docs/connected-data/integrations) and AI Visibility.
+- **The four providers** (`openai`, `anthropic`, `google`, `perplexity`)
+  each call their own real API and are independently gated by
+  `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_AI_API_KEY`, and
+  `PERPLEXITY_API_KEY` respectively (`isProviderConfigured()` /
+  `getProvider(id).isConfigured()`) — a provider missing its key is simply
+  skipped, not backfilled with a fake answer.
+- **Not deterministic**: because every result now comes from a real LLM
+  call, re-running the same brand/question can return a different answer
+  each time (normal LLM sampling variance), unlike a seeded mock generator
+  would. There's still no persistence — the lookup is a Server Action
+  (`apps/web/app/(dashboard)/brand-lookup/actions.ts`) with nothing saved
+  to the database, so there's no history or trend across runs the way AI
+  Visibility has.
+
+## Notable follow-up work (not built in this pass)
+
+- No login/session flow exists yet, so there's no project to scope a lookup
+  to or a "save this as a tracked prompt" action — see AI Visibility's docs
+  for the same limitation on its Track-equivalent actions.

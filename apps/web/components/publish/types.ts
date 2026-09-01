@@ -12,6 +12,14 @@ export type BlogPlatformDefView = {
   helpText?: string;
 };
 
+export type BlogPlatformTemplateView = {
+  id: string;
+  projectId: string;
+  name: string;
+  connectionIds: string[];
+  createdAt: string;
+};
+
 export type BlogConnectionView = {
   id: string;
   projectId: string;

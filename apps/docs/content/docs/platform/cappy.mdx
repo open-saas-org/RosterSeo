@@ -1,0 +1,45 @@
+---
+title: Cappy
+description: The in-app AI agent that can read your project's data and, with your approval, take real actions on it
+---
+
+Cappy is a project-scoped AI chat agent, not a generic chatbot bolted on
+the side — it can read real data across every pillar and, with your
+explicit approval on each one, take real write actions too.
+
+## Reading vs. writing
+
+<Callout type="info">
+Every read happens automatically. Every write pauses for your approval
+first — nothing changes in your project without you clicking Approve on
+that specific action.
+</Callout>
+
+**Read tools** — rankings, competitors, backlinks, audits, Search Console
+data — run immediately, no confirmation needed.
+
+**Write tools** need an explicit Approve/Deny before they execute:
+- Add a tracked keyword
+- Add a competitor
+- Track an AI-visibility prompt
+- Start a site audit
+- Add an outreach target
+- Generate an outreach draft
+- Create a blog post
+- Create a social post
+- Update project notes
+
+## Choosing a provider
+
+**Cappy's settings** (gear icon in the chat) let you pick which AI provider
+answers for this project — OpenAI, Anthropic, or OpenRouter — plus an
+optional model override if you don't want the default for that provider.
+This uses the same provider API keys already set in your `.env` (see
+[Environment Variables](/docs/deploy/environment-variables)) — nothing
+extra to configure here beyond having at least one of those keys set.
+
+## Conversations
+
+Chat history is multi-turn and persisted per conversation — starting a new
+chat or reopening an old one is just a `?c=` link, no separate "sessions"
+concept to manage.

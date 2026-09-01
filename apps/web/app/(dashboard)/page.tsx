@@ -12,6 +12,7 @@ import {
   withUserContext,
 } from "@rosterseo/db";
 import { calculateVisibilityScore } from "@rosterseo/ai-visibility";
+import Image from "next/image";
 import { Globe, Key, Users, Link as LinkIcon } from "lucide-react";
 import { MetricCard } from "@/components/metric-card";
 import { SearchPerformanceCard } from "@/components/dashboard/search-performance-card";
@@ -194,6 +195,19 @@ export default async function OverviewPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        {/* White-on-transparent mark on the brand-teal chip, not the black
+            mark - this sits on the theme's regular background (light or
+            dark depending on the viewer), not a fixed light sidebar/switcher
+            surface, so it needs a background that holds up in both. */}
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary">
+          <Image src="/RosterSeoLogo-white.png" alt="" width={26} height={26} />
+        </div>
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Welcome to RosterSEO</h1>
+          <p className="text-sm text-muted-foreground">Here&apos;s how {project.domain} is doing today.</p>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Domain Authority"

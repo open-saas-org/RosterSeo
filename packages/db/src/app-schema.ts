@@ -1120,6 +1120,37 @@ export const socialPostTargetsRelations = relations(socialPostTargets, ({ one })
   connection: one(socialConnections, { fields: [socialPostTargets.socialConnectionId], references: [socialConnections.id] }),
 }));
 
+// A saved platform combination ("Marketing team" -> LinkedIn + X + Bluesky,
+// say) so composing doesn't mean re-picking the same set of connections
+// every time - the composer's "Save selection" writes here, and its
+// preselected-platform dropdown reads from here. connectionIds references
+// social_connections.id but isn't a real FK array (Postgres has no native
+// FK-on-jsonb-array) - a connection deleted after being saved into a
+// template just drops out silently when the composer resolves the ids
+// against the current connections list, same non-issue as any other
+// jsonb-of-ids column in this schema.
+export const socialPlatformTemplates = pgTable("social_platform_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  connectionIds: jsonb("connection_ids").notNull().$type<string[]>(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Same shape, blog_connections instead of social_connections - see
+// social_platform_templates above for the reasoning.
+export const blogPlatformTemplates = pgTable("blog_platform_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  connectionIds: jsonb("connection_ids").notNull().$type<string[]>(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // One row per Mastodon instance this deployment has ever connected to -
 // Mastodon's OAuth requires a real per-instance "app" (POST
 // {instance}/api/v1/apps), unlike every other platform here which uses one

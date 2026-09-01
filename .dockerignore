@@ -31,8 +31,10 @@ Thumbs.db
 # build, same reasoning as .gitignore.
 elmo-reference/
 open-seo-reference/
+postiz-reference/
 seo tool hubspot/
 
 # Docs/planning content the web image doesn't need at runtime.
 seo-saas-prd-v1.md
 ARCHITECTURE.md
+PUBLISHING_PLATFORM_PRD.md

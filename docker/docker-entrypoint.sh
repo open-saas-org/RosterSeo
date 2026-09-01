@@ -35,5 +35,18 @@ set -e
 echo "[docker-entrypoint] Running database migrations..."
 node packages/db/dist/migrate.mjs
 
+# Docs (apps/docs) run as a second, internal-only process on 3001 - never
+# exposed directly (no EXPOSE 3001, no public port mapping needed for it).
+# apps/web's own next.config.mjs rewrites /docs/* to
+# http://127.0.0.1:3001/docs/* (DOCS_INTERNAL_URL, defaults to that same
+# address), so the one publicly exposed port (3000) serves both. Started
+# with `&`, not `exec`, so PID 1 stays the web server below and correctly
+# receives SIGTERM - if this background process dies, the container itself
+# doesn't (a known, accepted trade-off of not pulling in a real init/process
+# supervisor for a single secondary process: the app keeps serving, /docs
+# just 502s until the next restart).
+echo "[docker-entrypoint] Starting docs server..."
+PORT=3001 HOSTNAME=0.0.0.0 node apps/docs/server.js &
+
 echo "[docker-entrypoint] Starting web server..."
 exec node apps/web/server.js

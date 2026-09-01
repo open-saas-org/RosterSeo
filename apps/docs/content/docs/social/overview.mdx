@@ -1,0 +1,99 @@
+---
+title: Overview
+description: Write a post once, and post or schedule it to every connected social account
+---
+
+Compose plain text (social platforms don't render rich formatting — see
+below), pick platforms by icon, and post now or schedule from an inline
+calendar. Optionally adapt the copy per platform with AI before sending.
+
+<Callout type="warn">
+Text only, deliberately — every platform here posts through an API that
+takes plain text (confirmed against each adapter's own request body). A
+bold/italic toolbar would let you format something the platform silently
+flattens back to plain text.
+</Callout>
+
+## While composing
+
+- **Character counter** — the ring next to the text field shows the
+  **tightest limit among your currently-selected platforms**, not a
+  per-platform count. Select Bluesky (300) + LinkedIn (3000) and you'll
+  only see the 300 limit while composing — switch to the per-platform
+  review screen (below) to check each one individually.
+- **Emoji picker** — the smiley icon under the text field opens a small
+  curated grid; click one to insert it at your cursor.
+- **Image required for some platforms** — Instagram and Pinterest's APIs
+  require at least one image per post. Selecting either without an Image
+  URL set blocks submission with an explicit error, rather than failing
+  silently after you've already tried to post.
+
+## Publish now, schedule, or adapt per platform first
+
+The right-hand panel has an **"Edit content/image per platform"** switch —
+off by default:
+
+- **Off** (the common case): click **Post now**, or pick a date/time on
+  the inline calendar and click **Schedule** — the same text goes to every
+  selected platform as-is.
+- **On**: the button changes to a single **"Continue to per-platform
+  editing"** — this takes you to a review screen per platform where you
+  can click **Respin with AI** to get an adapted version, or edit it by
+  hand, before anything actually sends. Turning the switch on doesn't
+  adapt anything by itself; respinning is a separate action per target.
+
+<Callout type="warn">
+Despite the switch's label, there's no per-platform **image** field on
+that review screen today — only the text body. Whatever image you set in
+Compose goes to every platform unchanged either way.
+</Callout>
+
+## Viewing your posts
+
+**Social → Posts** has a **List / Calendar** toggle — List is the usual
+status feed; Calendar shows scheduled and published posts on the day
+they're set for, with a small colored dot per status.
+
+## Two ways to connect a platform
+
+<Steps>
+<Step>
+**One-click OAuth** — click Connect, log in, approve access. Needs the
+deployment owner to register a developer app once per platform (below) and
+set its Client ID/Secret in `.env`.
+</Step>
+<Step>
+**Manual token** — paste a token you generated yourself on the platform's
+own site. Works immediately, no `.env` change. Bluesky and Mastodon *only*
+work this way — Bluesky has no OAuth app model at all, and Mastodon
+registers a fresh per-instance app automatically the first time anyone
+connects that instance, so there's nothing for a deployment owner to
+pre-register either.
+</Step>
+</Steps>
+
+If you're setting up OAuth, every platform except Mastodon (per-instance)
+uses the same redirect URL:
+
+```
+<your deployment URL>/api/integrations/social/callback
+```
+
+## Platform templates
+
+Save the set of platforms you post to most often with **Save selection**
+on the compose screen, then reuse it from the **preselected platforms**
+dropdown.
+
+## Per-platform guides
+
+<Cards>
+  <Card title="Bluesky" href="/docs/social/bluesky" />
+  <Card title="Mastodon" href="/docs/social/mastodon" />
+  <Card title="LinkedIn" href="/docs/social/linkedin" />
+  <Card title="Pinterest" href="/docs/social/pinterest" />
+  <Card title="Facebook Pages" href="/docs/social/facebook" />
+  <Card title="Instagram" href="/docs/social/instagram" />
+  <Card title="Threads" href="/docs/social/threads" />
+  <Card title="X (Twitter)" href="/docs/social/x" />
+</Cards>

@@ -1,0 +1,19 @@
+---
+title: Webflow
+description: One-click OAuth, or connect manually with a Site API Token
+---
+
+<Callout type="info">OAuth-capable — `WEBFLOW_CLIENT_ID` / `WEBFLOW_CLIENT_SECRET`.</Callout>
+
+## Register the app (deployment owner, one time)
+
+<Steps>
+<Step>In your Webflow workspace: **Site settings → Apps & Integrations → API access**, or register a full OAuth app at [developers.webflow.com](https://developers.webflow.com).</Step>
+<Step>Set the redirect URL — see [Publish overview](/docs/publish/overview#two-ways-to-connect-a-platform). Request scopes `cms:read cms:write sites:read`.</Step>
+<Step>Copy the **Client ID** and **Client Secret** into `WEBFLOW_CLIENT_ID` / `WEBFLOW_CLIENT_SECRET`.</Step>
+</Steps>
+
+## Or connect manually
+
+Generate a **Site API Token** the same way, then paste it plus the **Blog
+Posts Collection ID** on **Publish → Connections → Webflow**.

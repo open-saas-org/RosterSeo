@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
+import { SOCIAL_PLATFORMS } from "@rosterseo/social";
 import { PageHeader } from "@/components/page-header";
 import { SocialPostReview } from "@/components/social/social-post-review";
 import type { SocialPostTargetView, SocialPostView } from "@/components/social/types";
@@ -38,6 +39,7 @@ export default async function SocialPostDetailPage({ params }: { params: Promise
       <PageHeader title="Review & post" description="AI-adapt each platform's version (character-limit aware), edit anything you like, then post now or schedule." />
       <SocialPostReview
         projectId={project.id}
+        platforms={SOCIAL_PLATFORMS}
         post={{
           ...post,
           status: post.status as SocialPostView["status"],

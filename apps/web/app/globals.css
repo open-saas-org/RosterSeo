@@ -265,3 +265,84 @@
     color: black !important;
   }
 }
+
+/* RichTextEditor's rendered content (components/editor/rich-text-editor.tsx) -
+   hand-written instead of pulling in @tailwindcss/typography, since this
+   app is Tailwind v4 CSS-first (no JS config, no plugins registered
+   anywhere else) and the actual element set Tiptap's StarterKit produces
+   is small and known ahead of time. */
+.tiptap-content {
+  outline: none;
+}
+.tiptap-content > * + * {
+  margin-top: 0.75em;
+}
+.tiptap-content h2 {
+  font-size: 1.25em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+.tiptap-content h3 {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.tiptap-content p {
+  color: var(--foreground);
+  line-height: 1.65;
+}
+.tiptap-content ul,
+.tiptap-content ol {
+  padding-left: 1.25em;
+}
+.tiptap-content ul {
+  list-style: disc;
+}
+.tiptap-content ol {
+  list-style: decimal;
+}
+.tiptap-content li + li {
+  margin-top: 0.25em;
+}
+.tiptap-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tiptap-content blockquote {
+  border-left: 2px solid var(--border);
+  padding-left: 0.85em;
+  color: var(--muted-foreground);
+}
+.tiptap-content code {
+  background: var(--muted);
+  border-radius: 0.25em;
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+}
+.tiptap-content pre {
+  background: var(--muted);
+  border-radius: 0.5em;
+  padding: 0.75em 1em;
+  overflow-x: auto;
+}
+.tiptap-content pre code {
+  background: none;
+  padding: 0;
+}
+.tiptap-content img {
+  max-width: 100%;
+  border-radius: 0.5em;
+}
+.tiptap-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+.tiptap-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}

@@ -1,0 +1,25 @@
+---
+title: Instagram
+description: Same Meta app as Facebook — no separate Instagram App ID
+---
+
+<Callout type="info">
+Reuses `META_CLIENT_ID` / `META_CLIENT_SECRET` — there's no separate
+Instagram App ID/Secret in RosterSEO. See [Facebook
+Pages](/docs/social/facebook) for the one-time app setup; only the
+requested scope differs (adds `instagram_business_content_publish`).
+</Callout>
+
+<Callout type="warn">
+Requires a **Business or Creator Instagram account linked to a Facebook
+Page** — Meta's API has no other way to post to Instagram. No linked
+account, no Page administered under that login, or both, and Connect finds
+nothing.
+</Callout>
+
+Connecting pulls in every linked Instagram account across every Page you
+administer, in one authorization — multiple accounts are supported
+natively, each becomes its own connection.
+
+Character limit: **2200**. An image is required — the composer blocks
+submission if Instagram is selected with no Image URL set.
