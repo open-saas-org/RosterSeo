@@ -60,7 +60,8 @@ loop while iterating.
 - Reference the issue you're closing, if any.
 - A short "why," not just "what," in the PR description — especially for
   anything touching RLS or auth, or laying groundwork for the planned
-  hosted-billing mode (`SELF_HOSTED=false` — not implemented yet).
+  hosted-billing mode (`SELF_HOSTED=false` — see `apps/web/lib/self-hosted.ts`
+  and `ROADMAP.md`).
 
 ## License
 

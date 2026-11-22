@@ -24,16 +24,22 @@ plausible-looking number when a real integration isn't configured.
 
 ## How this runs today
 
-**Self-hosted (`SELF_HOSTED=true`)** — single-tenant, no billing, you bring
-your own DataForSEO/LLM API keys. This is the standard open-source
-self-host distribution model, and the only mode that actually exists in
-the code right now.
+**Self-hosted (`SELF_HOSTED=true`, the default)** — single-tenant, no
+billing, you bring your own DataForSEO/LLM API keys. This is the standard
+open-source self-host distribution model and stays fully free and fully
+functional forever — hosted mode is an additional deploy target, not a
+paywall bolted onto the OSS product.
 
-**Planned: hosted SaaS (`SELF_HOSTED=false`)** — a multi-tenant, Stripe-billed
-hosted mode is on the roadmap, not implemented yet. `SELF_HOSTED` isn't
-read anywhere in the app today, and there's no Stripe integration in the
-codebase — treat any mention of hosted mode elsewhere as forward-looking,
-not something you can flip on now.
+**Hosted SaaS (`SELF_HOSTED=false`)** — multi-tenant, Stripe-billed, the
+operator supplies the DataForSEO/LLM/Google credentials so customers never
+touch an API key. `isSelfHosted()` (`apps/web/lib/self-hosted.ts`) is the
+one seam between the two modes: Checkout/Billing Portal/webhook routes
+under `apps/web/app/api/billing` and `/api/webhooks/stripe`, in-code plan
+config (`apps/web/lib/plans.ts`), and monthly usage-limit enforcement
+(`apps/web/lib/usage.ts`) only ever activate when it's set. See
+[ROADMAP.md](./ROADMAP.md) for the full plan and what's still open (a
+connected-accounts usage cap for Publish/Social, and credential
+encryption-at-rest rollout beyond Google tokens).
 
 ## Quick start (local dev)
 
@@ -120,7 +126,7 @@ this as an actual "Deploy on Railway" button/template.
 
 ```
 apps/
-  web/          Next.js dashboard + API routes (Better-Auth; Stripe billing planned, not yet implemented)
+  web/          Next.js dashboard + API routes (Better-Auth; Stripe billing for hosted mode, see lib/self-hosted.ts)
   worker/       pg-boss job consumer (crawls, SERP pulls, AI-visibility runs)
   mcp-server/   MCP server exposing project data to external AI tools
   docs/         Fumadocs documentation site (per-feature docs, architecture)
