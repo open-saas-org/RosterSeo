@@ -1,4 +1,4 @@
-import type { SocialAdapter } from "../types";
+import type { SocialAdapter, SocialPostMetrics } from "../types";
 
 // Instagram Content Publishing API (Business Login) - accountIdentifier is
 // the Instagram Business Account ID. Two-step publish (create a media
@@ -39,5 +39,33 @@ export const instagramAdapter: SocialAdapter = {
     const permalink = permalinkRes.ok ? ((await permalinkRes.json()) as { permalink?: string }).permalink : undefined;
 
     return { remoteId: published.id, remoteUrl: permalink ?? `https://www.instagram.com/` };
+  },
+  // `impressions` is deliberately NOT fetched - Meta deprecated that
+  // metric for most media created after mid-2023, so requesting it
+  // returns an error on current accounts rather than a real number; left
+  // undefined rather than guessed at. `shares`/`clicks` have no public
+  // Instagram media-insights equivalent at all. Unverified against a live
+  // funded account in this environment.
+  async fetchMetrics(credentials, remotePostId) {
+    const token = credentials.accessToken!;
+    const [fieldsRes, insightsRes] = await Promise.all([
+      fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${remotePostId}?fields=like_count,comments_count&access_token=${encodeURIComponent(token)}`),
+      fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${remotePostId}/insights?metric=reach&access_token=${encodeURIComponent(token)}`),
+    ]);
+
+    const metrics: SocialPostMetrics = {};
+
+    if (fieldsRes.ok) {
+      const fields = (await fieldsRes.json()) as { like_count?: number; comments_count?: number };
+      metrics.likes = fields.like_count;
+      metrics.comments = fields.comments_count;
+    }
+
+    if (insightsRes.ok) {
+      const insights = (await insightsRes.json()) as { data?: { name: string; values: { value: number }[] }[] };
+      metrics.reach = insights.data?.find((d) => d.name === "reach")?.values[0]?.value;
+    }
+
+    return metrics;
   },
 };

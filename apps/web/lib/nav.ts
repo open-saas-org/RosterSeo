@@ -150,6 +150,7 @@ export const navPillars: NavPillar[] = [
         items: [
           { title: "Compose", href: "/social", icon: PenSquare },
           { title: "Posts", href: "/social/posts", icon: Share2 },
+          { title: "Analytics", href: "/social/analytics", icon: BarChart3 },
           { title: "Connections", href: "/social/connections", icon: Plug },
         ],
       },

@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PublishPostReview } from "@/components/publish/publish-post-review";
 import { SocialPostReview } from "@/components/social/social-post-review";
+import { SocialPostMetrics } from "@/components/social/social-post-metrics";
 import type { BlogPostTargetView, BlogPostView } from "@/components/publish/types";
 import type { SocialPlatformDefView, SocialPostTargetView, SocialPostView } from "@/components/social/types";
 
@@ -67,12 +68,17 @@ export function PostsInspector({
             <PublishPostReview projectId={projectId} post={(detail as BlogDetail).post} initialTargets={(detail as BlogDetail).targets} />
           ) : null}
           {detail && pillar === "social" ? (
-            <SocialPostReview
-              projectId={projectId}
-              post={(detail as SocialDetail).post}
-              initialTargets={(detail as SocialDetail).targets}
-              platforms={(detail as SocialDetail).platforms}
-            />
+            <>
+              <SocialPostReview
+                projectId={projectId}
+                post={(detail as SocialDetail).post}
+                initialTargets={(detail as SocialDetail).targets}
+                platforms={(detail as SocialDetail).platforms}
+              />
+              {(detail as SocialDetail).post.status === "published" || (detail as SocialDetail).post.status === "partial" ? (
+                <SocialPostMetrics projectId={projectId} postId={(detail as SocialDetail).post.id} />
+              ) : null}
+            </>
           ) : null}
         </div>
       </SheetContent>

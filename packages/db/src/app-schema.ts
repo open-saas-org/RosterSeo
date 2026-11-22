@@ -1170,6 +1170,38 @@ export const socialPostTargetsRelations = relations(socialPostTargets, ({ one })
   connection: one(socialConnections, { fields: [socialPostTargets.socialConnectionId], references: [socialConnections.id] }),
 }));
 
+// One row per real fetch of a published target's platform-native
+// engagement numbers (PUBLISHING_PLATFORM_PRD.md §3) - a snapshot log, not
+// an upsert-in-place single row, so a trend chart can show change over
+// time rather than just "latest." projectId is denormalized here too,
+// same reasoning as blogPostTargets/socialPostTargets (a direct RLS
+// policy instead of joining through target -> post -> project). Every
+// metric column is nullable and deliberately left null (never 0) when a
+// platform's API didn't actually return that field for that post type -
+// see each packages/social adapter's fetchMetrics() for exactly which
+// fields each of Facebook/Instagram/LinkedIn can honestly provide.
+export const socialPostMetrics = pgTable("social_post_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  socialPostTargetId: uuid("social_post_target_id")
+    .notNull()
+    .references(() => socialPostTargets.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(),
+  fetchedAt: timestamp("fetched_at").notNull().defaultNow(),
+  reach: integer("reach"),
+  impressions: integer("impressions"),
+  likes: integer("likes"),
+  comments: integer("comments"),
+  shares: integer("shares"),
+  clicks: integer("clicks"),
+});
+
+export const socialPostMetricsRelations = relations(socialPostMetrics, ({ one }) => ({
+  target: one(socialPostTargets, { fields: [socialPostMetrics.socialPostTargetId], references: [socialPostTargets.id] }),
+}));
+
 // A saved platform combination ("Marketing team" -> LinkedIn + X + Bluesky,
 // say) so composing doesn't mean re-picking the same set of connections
 // every time - the composer's "Save selection" writes here, and its
