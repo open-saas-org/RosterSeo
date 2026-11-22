@@ -66,7 +66,16 @@ export async function assertPublicHost(urlString: string): Promise<void> {
     throw new SsrfBlockedError(`Refusing to fetch a non-http(s) URL: ${urlString}`);
   }
 
-  const hostname = parsed.hostname;
+  // URL.hostname keeps the brackets for an IPv6 literal (e.g. "[::1]"),
+  // per the WHATWG URL spec - net.isIP() doesn't recognize that form at
+  // all (returns 0, "not an IP"), so every bracketed IPv6 literal used to
+  // fall through to the dns.lookup() branch below, which then failed to
+  // resolve a literal address string and threw "could not resolve" - a
+  // SsrfBlockedError either way, but for the wrong reason: it blocked
+  // every IPv6 literal, public or private, not just private ones.
+  const hostname = parsed.hostname.startsWith("[") && parsed.hostname.endsWith("]")
+    ? parsed.hostname.slice(1, -1)
+    : parsed.hostname;
   const ipVersion = net.isIP(hostname);
 
   if (ipVersion === 4) {

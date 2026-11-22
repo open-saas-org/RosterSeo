@@ -13,3 +13,4 @@ export const db = drizzle(pool, { schema });
 
 export { withUserContext } from "./with-user-context";
 export { insertSpendLog, type SpendLogInput } from "./spend-logger";
+export { encryptSecret, decryptSecret, isEncrypted } from "./crypto";
