@@ -8,8 +8,44 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  // --- Hosted SaaS billing (apps/web/lib/plans.ts, apps/web/lib/stripe.ts) ---
+  // All null/default in SELF_HOSTED mode, where none of this is read -
+  // see apps/web/lib/self-hosted.ts. planId defaults to "free" rather than
+  // null so every org (including every existing self-hosted org after this
+  // migration) always has a real plan to resolve limits against; hosted
+  // mode's signup flow immediately overwrites it with "trial".
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  planId: text("plan_id").notNull().default("free"), // free | trial | starter | pro | agency
+  subscriptionStatus: text("subscription_status").notNull().default("active"), // active | trialing | past_due | canceled | incomplete
+  trialEndsAt: timestamp("trial_ends_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Monthly per-org usage counters backing hosted-mode plan limits
+// (apps/web/lib/usage.ts) - deliberately a simple incrementing counter per
+// (org, metric, month), not a per-event ledger like the deleted
+// credit_ledger (see migration 0012's own comment) - this only needs to
+// answer "has this org gone over its monthly cap for X", never "what
+// exactly did they spend it on", so there's no need to keep one row per
+// action. No-op entirely (never read or written) in SELF_HOSTED mode.
+export const usageCounters = pgTable(
+  "usage_counters",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    // page_analyzer_reports | site_audits | ai_visibility_prompts | rank_checks | connected_accounts
+    metric: text("metric").notNull(),
+    // Always the first-of-month, UTC, midnight - the unique key's third
+    // column, so "this month's" row is a plain equality lookup rather than
+    // a range query.
+    periodStart: timestamp("period_start").notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (table) => [unique().on(table.organizationId, table.metric, table.periodStart)],
+);
 
 export const organizationMembers = pgTable("organization_members", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1040,6 +1076,14 @@ export const blogPostTargets = pgTable("blog_post_targets", {
   remoteUrl: text("remote_url"),
   failureReason: text("failure_reason"),
   publishedAt: timestamp("published_at"),
+  // The pg-boss job id returned by blogPublishJob.enqueue() for this
+  // target's currently-queued send, if any - lets the Posts workspace's
+  // reschedule action move the job's real startAfter in place
+  // (boss.update(name, null, { id, startAfter })) instead of either
+  // leaving a stale job to fire at the old time, or blindly re-enqueuing a
+  // second one alongside it. Null once a target has been picked up
+  // (publishing/published/failed) - nothing left to reschedule by then.
+  pgBossJobId: text("pg_boss_job_id"),
 });
 
 export const blogPostsRelations = relations(blogPosts, ({ many }) => ({
@@ -1109,6 +1153,8 @@ export const socialPostTargets = pgTable("social_post_targets", {
   remoteUrl: text("remote_url"),
   failureReason: text("failure_reason"),
   publishedAt: timestamp("published_at"),
+  // See blogPostTargets.pgBossJobId - same reschedule mechanism, social side.
+  pgBossJobId: text("pg_boss_job_id"),
 });
 
 export const socialPostsRelations = relations(socialPosts, ({ many }) => ({

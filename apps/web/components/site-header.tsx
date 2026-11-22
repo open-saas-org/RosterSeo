@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CreditCard } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { buttonVariants } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
-import { navPillars, navTopBar } from "@/lib/nav";
+import { navPillars, navTopBar, type NavItem } from "@/lib/nav";
 
 // Under $0.01 still renders as "<$0.01" rather than "$0.00" - real spend
 // rounds to zero at 2 decimals surprisingly often (a single DataForSEO
@@ -19,10 +20,16 @@ function formatSpend(usd: number): string {
   return `$${usd.toFixed(2)}`;
 }
 
-export function SiteHeader({ totalSpendUsd }: { totalSpendUsd: number }) {
+export function SiteHeader({ totalSpendUsd, showBilling = false }: { totalSpendUsd: number; showBilling?: boolean }) {
   const pathname = usePathname();
   const allGroups = navPillars.flatMap((pillar) => pillar.groups);
-  const allItems = [...allGroups.flatMap((group) => group.items), ...navTopBar];
+  // Billing only exists in hosted SaaS mode (SELF_HOSTED=false) - computed
+  // server-side in the dashboard layout and passed down, since
+  // process.env.SELF_HOSTED isn't readable from this client component.
+  const topBarItems: NavItem[] = showBilling
+    ? [...navTopBar, { title: "Billing", href: "/settings/billing", icon: CreditCard }]
+    : navTopBar;
+  const allItems = [...allGroups.flatMap((group) => group.items), ...topBarItems];
   const current = allItems.find((item) => item.href === pathname);
   const currentGroup = allGroups.find((group) => group.items.some((item) => item.href === pathname));
 
@@ -40,7 +47,7 @@ export function SiteHeader({ totalSpendUsd }: { totalSpendUsd: number }) {
         <span className="font-medium">{current?.title ?? "Dashboard"}</span>
       </div>
       <div className="ml-auto flex items-center gap-1">
-        {navTopBar.map((item) => {
+        {topBarItems.map((item) => {
           const linkClassName = cn(
             buttonVariants({ variant: "ghost", size: item.iconOnly ? "icon-sm" : "sm" }),
             pathname === item.href && "bg-muted text-foreground",

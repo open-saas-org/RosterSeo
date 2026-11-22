@@ -3,6 +3,7 @@ import { and, eq, inArray, or } from "drizzle-orm";
 import { rankCheckJob } from "@rosterseo/jobs";
 import { rankCheckRuns, trackedKeywords, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 // POST /api/projects/:projectId/rank-tracking/fetch - the only route that
 // triggers a real DataForSEO call for the rank tracker. Body:
@@ -20,6 +21,11 @@ export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
   const project = await requireProjectAccess(projectId, session.user.id);
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  const usage = await checkAndIncrementUsage(project.organizationId, "rank_checks", session.user.id);
+  if (!usage.allowed) {
+    return NextResponse.json({ error: "usage_limit_exceeded", limit: usage.limit, used: usage.used }, { status: 402 });
   }
 
   const body = await req.json().catch(() => null);

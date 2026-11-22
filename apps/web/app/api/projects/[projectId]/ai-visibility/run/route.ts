@@ -9,6 +9,7 @@ import {
   type AiVisibilityTarget,
 } from "@rosterseo/ai-visibility";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 // POST /api/projects/:projectId/ai-visibility/run - samples every tracked
 // prompt for the project across its AI Visibility targets, `samplesPerProvider`
@@ -58,6 +59,16 @@ export const POST = withAuth<RouteParams>(async (req: NextRequest, ctx, session)
     typeof body.samplesPerProvider === "number" && body.samplesPerProvider > 0 && body.samplesPerProvider <= 10
       ? Math.floor(body.samplesPerProvider)
       : 3;
+
+  // Metered as "AI Visibility runs this month", not a literal count of
+  // tracked prompts (that's a standing resource, closer to
+  // tracked_keywords - see plans.ts's own note) - each run can sample
+  // several prompts at once, so this caps how often the expensive
+  // multi-provider sampling pipeline fires per org per month.
+  const usage = await checkAndIncrementUsage(project.organizationId, "ai_visibility_prompts", session.user.id);
+  if (!usage.allowed) {
+    return NextResponse.json({ error: "usage_limit_exceeded", limit: usage.limit, used: usage.used }, { status: 402 });
+  }
 
   const targetsOverride = parseTargetsOverride(body.targets);
   const savedTargets = (project.aiVisibilityTargets ?? []).filter((t) => t.enabled !== false);

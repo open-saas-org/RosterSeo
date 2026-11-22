@@ -4,6 +4,7 @@ import { pageAnalyzerReports, googleConnections, withUserContext } from "@roster
 import { isGoogleOAuthConfigured } from "@rosterseo/google";
 import { isDataForSeoConfigured, resolveLocationCode } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
+import { checkAndIncrementUsage } from "@/lib/usage";
 import { toConnectionStatus } from "@/lib/google-connection-status";
 import { getValidAccessToken } from "@/lib/google-token";
 import { resolveDomainSnapshot } from "@/lib/domain-snapshot";
@@ -124,6 +125,11 @@ export const POST = withAuth<RouteParams>(async (req: NextRequest, ctx, session)
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
   const { url, targetKeyword, targetLocation } = parsed;
+
+  const usage = await checkAndIncrementUsage(project.organizationId, "page_analyzer_reports", session.user.id);
+  if (!usage.allowed) {
+    return NextResponse.json({ error: "usage_limit_exceeded", limit: usage.limit, used: usage.used }, { status: 402 });
+  }
 
   const [pending] = await withUserContext(session.user.id, (tx) =>
     tx

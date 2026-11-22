@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getSpendSummary } from "@/lib/spend-data";
+import { isSelfHosted } from "@/lib/self-hosted";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -55,7 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         activeProjectId={activeProject.id}
       />
       <SidebarInset>
-        <SiteHeader totalSpendUsd={totalAllTimeUsd} />
+        <SiteHeader totalSpendUsd={totalAllTimeUsd} showBilling={!isSelfHosted()} />
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
