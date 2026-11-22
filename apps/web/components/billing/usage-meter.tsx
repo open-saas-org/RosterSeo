@@ -1,16 +1,24 @@
 import { Progress, ProgressTrack, ProgressIndicator } from "@/components/ui/progress";
+import { USAGE_METRIC_LABELS, type UsageMetric } from "@/lib/plans";
 
-const METRIC_LABELS: Record<string, string> = {
-  page_analyzer_reports: "Page Analyzer reports",
-  tracked_keywords: "Tracked keywords",
-  site_audits: "Site audits",
-  ai_visibility_prompts: "AI Visibility prompts",
-  connected_accounts: "Connected Publish/Social accounts",
-};
+export function UsageMeter({ metric, used, limit }: { metric: UsageMetric; used: number; limit: number }) {
+  const label = USAGE_METRIC_LABELS[metric];
 
-export function UsageMeter({ metric, used, limit }: { metric: string; used: number; limit: number }) {
-  const label = METRIC_LABELS[metric] ?? metric;
-  const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 100;
+  // A limit of 0 means this feature simply isn't included in the current
+  // plan (e.g. Free's site_audits) - not "0 used of a 0 cap," which would
+  // read as an alarming always-maxed-out red bar for something the user
+  // never tried to use. Show the honest "not included" state instead of a
+  // progress bar at all.
+  if (limit <= 0) {
+    return (
+      <div className="flex items-baseline justify-between text-sm">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="text-muted-foreground">Not included in your plan</span>
+      </div>
+    );
+  }
+
+  const pct = Math.min(100, Math.round((used / limit) * 100));
 
   return (
     <div className="space-y-1.5">

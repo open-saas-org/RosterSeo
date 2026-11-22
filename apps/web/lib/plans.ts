@@ -19,6 +19,22 @@
 export const USAGE_METRICS = ["page_analyzer_reports", "site_audits", "ai_visibility_prompts", "rank_checks", "local_seo_scans", "connected_accounts"] as const;
 export type UsageMetric = (typeof USAGE_METRICS)[number];
 
+// Single source of truth for human-readable metric names - a Record typed
+// over every UsageMetric (not a plain object with a `?? metric` fallback
+// at the call site) so adding a metric to USAGE_METRICS without adding its
+// label here is a compile error, not a raw snake_case string silently
+// leaking into the Billing page's UI (which is exactly what happened to
+// rank_checks/local_seo_scans before this existed - they were added here
+// without the then-separate label map in usage-meter.tsx being updated).
+export const USAGE_METRIC_LABELS: Record<UsageMetric, string> = {
+  page_analyzer_reports: "Page Analyzer reports",
+  site_audits: "Site audits",
+  ai_visibility_prompts: "AI Visibility prompts",
+  rank_checks: "Rank checks",
+  local_seo_scans: "Local SEO scans",
+  connected_accounts: "Connected Publish/Social accounts",
+};
+
 export type Plan = {
   id: "free" | "trial" | "starter" | "pro" | "agency";
   name: string;
