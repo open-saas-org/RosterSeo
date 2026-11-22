@@ -14,6 +14,14 @@ export interface SocialPlatformDef {
   // OAuth client id/secret).
   credentialFields: { key: string; label: string; type: "text" | "password" | "url" }[];
   accountIdentifierLabel: string;
+  // When the account identifier is just one of the credential fields above
+  // re-used for display (e.g. Bluesky's handle doubles as both the login
+  // credential and the human-readable identifier), set this to that
+  // field's key instead of duplicating it as a second input the user has
+  // to fill in twice. Leave unset for platforms where the identifier is
+  // genuinely separate from any credential (e.g. LinkedIn's Person ID vs.
+  // its Access Token).
+  accountIdentifierSource?: string;
   // Unlike Blogger in Publish, none of these platforms are hard-blocked
   // pending approval - Meta's Standard Access and X's billing both work
   // immediately for your own accounts. accessNote surfaces a real caveat

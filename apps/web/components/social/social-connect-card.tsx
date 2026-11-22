@@ -35,10 +35,11 @@ export function SocialConnectCard({
     setError(null);
     setIsSaving(true);
     try {
+      const resolvedIdentifier = platform.accountIdentifierSource ? credentials[platform.accountIdentifierSource] : accountIdentifier;
       const res = await fetch(`/api/projects/${projectId}/social/connections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ platform: platform.id, label: label || platform.name, accountIdentifier, credentials }),
+        body: JSON.stringify({ platform: platform.id, label: label || platform.name, accountIdentifier: resolvedIdentifier, credentials }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? `Couldn't connect ${platform.name}.`);
@@ -157,10 +158,12 @@ export function SocialConnectCard({
               <Label className="text-xs text-muted-foreground">Label</Label>
               <Input required placeholder={platform.name} value={label} onChange={(e) => setLabel(e.target.value)} />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs text-muted-foreground">{platform.accountIdentifierLabel}</Label>
-              <Input required value={accountIdentifier} onChange={(e) => setAccountIdentifier(e.target.value)} />
-            </div>
+            {!platform.accountIdentifierSource ? (
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">{platform.accountIdentifierLabel}</Label>
+                <Input required value={accountIdentifier} onChange={(e) => setAccountIdentifier(e.target.value)} />
+              </div>
+            ) : null}
             {platform.credentialFields.map((field) => (
               <div key={field.key} className="flex flex-col gap-1.5">
                 <Label className="text-xs text-muted-foreground">{field.label}</Label>
