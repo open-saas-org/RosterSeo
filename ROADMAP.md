@@ -1,30 +1,30 @@
 # Roadmap — open-source core + hosted SaaS
 
-Status: **active build plan**, written after a full-codebase audit on
-2026-11-22. This is the thin, top-level index — each phase below links to
-the detailed, authoritative doc for that area rather than duplicating it.
-Update the linked doc when a decision changes; update this file only when
-a phase's status changes, so the two never drift the way `.env.example`/
-README drifted once before (see git history).
+Status: written after a full-codebase audit on 2026-11-22; Phases 0-2
+below largely shipped the same session, on branch
+`feat/saas-and-publish-redesign` (not yet merged to `main` as of this
+writing — see the top of git log for the exact commits). This is the
+thin, top-level index — each phase below links to the detailed,
+authoritative doc for that area rather than duplicating it. Update the
+linked doc when a decision changes; update this file only when a phase's
+status changes, so the two never drift the way `.env.example`/README
+drifted once before (see git history).
 
 ## The two products, one codebase
 
-- **Open-source core** (`SELF_HOSTED=true`, the only mode that exists
-  today): free, self-hosted, bring-your-own API keys (DataForSEO, LLM
-  providers, Google OAuth app). MIT-licensed, Docker/Railway one-click
-  deploy. This stays fully free and fully functional forever — hosted mode
-  is an *additional* deploy target, not a paywall bolted onto the OSS
-  product.
-- **Hosted SaaS** (`SELF_HOSTED=false`, not implemented yet — this
-  roadmap's main new work): the same codebase, multi-tenant, Stripe-billed,
-  operator (you) supplies the DataForSEO/LLM/Google credentials so
-  customers never touch an API key. Differentiator for customers: zero
-  setup, vs. self-host's zero cost.
+- **Open-source core** (`SELF_HOSTED=true`, the default): free,
+  self-hosted, bring-your-own API keys (DataForSEO, LLM providers, Google
+  OAuth app). MIT-licensed, Docker/Railway one-click deploy. This stays
+  fully free and fully functional forever — hosted mode is an *additional*
+  deploy target, not a paywall bolted onto the OSS product.
+- **Hosted SaaS** (`SELF_HOSTED=false`): the same codebase, multi-tenant,
+  Stripe-billed, operator (you) supplies the DataForSEO/LLM/Google
+  credentials so customers never touch an API key. Differentiator for
+  customers: zero setup, vs. self-host's zero cost. `isSelfHosted()`
+  (`apps/web/lib/self-hosted.ts`) is the one seam — every billing-aware
+  code path checks it.
 
-## Phase 0 — Production-readiness & security (do first, blocks hosted mode)
-
-Full detail: see the "Critical"/"Important" items below; no separate doc,
-small enough to track here.
+## Phase 0 — Production-readiness & security
 
 - [x] `/api/health` liveness route + Docker `HEALTHCHECK` + non-root
   container user + a real `worker-runner` Docker stage (the worker
@@ -33,92 +33,102 @@ small enough to track here.
 - [x] `docker-publish.yml`: GHA layer caching, multi-arch (amd64+arm64),
   and a real second published image for the worker
   (`ghcr.io/<owner>/rosterseo-worker`).
-- [ ] **Credential encryption at rest** — Google OAuth tokens, WordPress
-  Application Passwords, SMTP passwords are stored plaintext today. Fine
-  for single-operator self-host; not acceptable once this app holds
-  *other people's* Google/social credentials in hosted mode. Needed before
-  hosted mode takes real signups: `packages/db/src/crypto.ts`
-  (AES-256-GCM, key from `CREDENTIAL_ENCRYPTION_KEY` env var), applied at
-  minimum to `google_connections`, `wordpress_connections`, and any SMTP
-  credential column, with a backward-compatible read path (decrypt if it
-  looks encrypted, pass through plaintext otherwise) so existing
-  self-hosted installs don't break on upgrade.
-- [ ] Real test coverage. `pnpm test` has been passing with **zero test
-  files** in the entire monorepo (`passWithNoTests: true` everywhere) —
-  CI's test gate has never actually caught anything. Priority order: RLS
-  policy tests (the thing most likely to silently fail and leak data
-  across tenants), the new billing/usage-limit logic, the SSRF guard
-  (already has real logic worth locking in), the new Publish/Social
-  reschedule routes.
+- [x] **Credential encryption at rest** — `packages/db/src/crypto.ts`
+  (AES-256-GCM, key from `CREDENTIAL_ENCRYPTION_KEY`, backward-compatible
+  plaintext passthrough), wired into every real read/write call site:
+  `google_connections`, `wordpress_connections`, `email_connections`
+  (SMTP + Gmail OAuth), and `blog_connections`/`social_connections`' jsonb
+  `credentials` blobs (via `encryptRecord`/`decryptRecord`). Documented in
+  `ARCHITECTURE.md` and `.env.example`.
+- [x] Real test coverage started: `packages/db/src/crypto.test.ts`,
+  `packages/crawler/src/ssrf-guard.test.ts` — the first test files in the
+  monorepo (CI's `pnpm test` had been passing against zero tests). The
+  SSRF test immediately caught and fixed a real bug (IPv6 literal URLs
+  blocked for the wrong reason, due to a bracket-stripping issue). Still
+  open: RLS policy tests, billing/usage-limit tests, Publish/Social
+  reschedule-route tests — real test coverage is nowhere near complete,
+  this is a start, not a finish line.
 - [ ] Full `.env.example` vs. `process.env.*` diff (spot-checked, not
-  exhaustively verified this pass).
+  exhaustively verified).
 
-## Phase 1 — Publish/Social UI rebuild ("Posts workspace")
+## Phase 1 — Publish/Social UI rebuild ("Posts workspace") — shipped
 
 Full detail, researched against Postiz/Posterly/Buffer/Metricool:
-[PUBLISHING_PLATFORM_PRD.md](./PUBLISHING_PLATFORM_PRD.md). Status in that
-doc is the source of truth; summary:
+[PUBLISHING_PLATFORM_PRD.md](./PUBLISHING_PLATFORM_PRD.md).
 
-1. **Posts workspace** — Inspector side-panel (reuse `Sheet`), bulk
-   select/delete/reschedule (reuse `rank-tracking-table.tsx`'s pattern),
-   platform/status filters, compose lands on Posts (not a dead end). New
-   `PATCH` reschedule routes for both pillars.
-2. **Calendar drag-and-drop** — `@dnd-kit` (new dependency), per-platform
-   color, click-to-open-Inspector.
-3. **Analytics** — real per-platform engagement data (Facebook/Instagram +
-   LinkedIn first, per each platform's actual API support — not every
-   platform can back this honestly, see the PRD's table), background
-   polling job, new `social_post_metrics` table.
+1. [x] **Posts workspace** — `PostsInspector` side-panel (Sheet), bulk
+   select/delete/reschedule, platform/status filters, compose lands on
+   Posts (not a dead end). Real `PATCH`/bulk-delete/bulk-reschedule
+   routes for both pillars, backed by a new `defineJob().reschedule()`
+   that moves an already-enqueued pg-boss job in place.
+2. [x] **Calendar drag-and-drop** — `@dnd-kit/core`, per-platform color
+   accents, click-to-open-Inspector, time-of-day preserved on drop,
+   disabled below the 768px breakpoint (no touch drag yet).
+3. [x] **Analytics, Facebook/Instagram + LinkedIn only** (per the PRD's
+   own phasing — the other 5 platforms either have no real per-post
+   analytics API or need a paid tier, see the PRD's table): new
+   `social_post_metrics` table, a daily `apps/worker` polling job,
+   `/social/analytics` page with an honest "not available" state per
+   metric, a per-post performance view in the Inspector panel. **Not
+   live-verified** against real Facebook/Instagram/LinkedIn accounts —
+   the LinkedIn metrics specifically use the Social Actions API (not the
+   Organic Share Statistics API the PRD assumed, which turned out to be
+   scoped to organization-authored posts only, not this app's
+   person-authored posting model) with field names taken from docs, not
+   tested live. Verify against a real connected account before fully
+   trusting this.
+4. **Not started**: the remaining 5 platforms' analytics, a client-facing
+   approval portal (explicit non-goal), media library (explicit
+   non-goal).
 
-## Phase 2 — Hosted SaaS: billing & multi-tenancy
+## Phase 2 — Hosted SaaS: billing & multi-tenancy — shipped
 
-Design is decided (not open questions) — implementing against this plan:
-
-- **Schema** (new migration): `organizations.stripeCustomerId` /
+- [x] **Schema**: `organizations.stripeCustomerId` /
   `stripeSubscriptionId` / `planId` / `subscriptionStatus` / `trialEndsAt`;
-  a monthly `usage_counters` table (org_id, metric, period, count) —
-  simpler than the old per-event credit ledger, sufficient for hard
-  per-tier caps.
-- **Plans**: in-code config (`apps/web/lib/plans.ts`), not a DB table —
-  tiers are a product decision shipped with code, not user-editable data.
-  Starter ($29/mo) / Pro ($79/mo) / Agency ($199/mo) + a 14-day trial,
-  limits per Page-Analyzer-reports/mo, tracked keywords, site audits/mo,
-  AI-visibility prompts, connected Publish/Social accounts.
-- **Stripe**: Checkout (subscription creation) + Billing Portal (self-serve
-  management) + one webhook route handling
-  `checkout.session.completed` / `customer.subscription.updated` /
-  `customer.subscription.deleted` / `invoice.payment_failed`.
-- **`isSelfHosted()`**: one helper (`apps/web/lib/self-hosted.ts`,
-  `SELF_HOSTED !== "false"`, defaults true) gating the entire billing UI,
-  usage enforcement, and the onboarding plan-selection step — self-hosted
-  installs never see any of this.
-- **Usage enforcement**: one `checkAndIncrementUsage()` helper, called at
-  each of the ~6 call sites where the old (deleted) `deductCredits()` used
-  to live — Page Analyzer, Rank Tracking, Site Audit, AI Visibility, Local
-  SEO, Publish/Social connection creation. No-ops entirely when
-  self-hosted.
+  a monthly `usage_counters` table (org_id, metric, period, count).
+- [x] **Plans**: in-code config (`apps/web/lib/plans.ts`) — Free (trial-
+  expired default) / Starter $29 / Pro $79 / Agency $199, plus a 14-day
+  Pro-level trial on every new hosted-mode signup, resolved on read (no
+  background job needed to flip an expired trial's effective limits).
+- [x] **Stripe**: Checkout + Billing Portal + one webhook route
+  (`checkout.session.completed` / `customer.subscription.updated` /
+  `customer.subscription.deleted` / `invoice.payment_failed`), using a
+  narrowly-scoped additive RLS policy (`with-system-context.ts` +
+  migration `0047`) for the one legitimately-unauthenticated write path.
+- [x] **`isSelfHosted()`** gates the Billing nav item, the entire billing
+  UI, and every usage check — self-hosted installs see none of it.
+- [x] **Usage enforcement**: `checkAndIncrementUsage()` (row-locked,
+  atomic check-and-increment), wired into Page Analyzer, Rank Tracking,
+  Site Audit, AI Visibility, Local SEO, and Publish/Social connection
+  creation (`connected_accounts` metric) — all 6 of the original
+  `deductCredits()` call sites, now covered.
+- [ ] `tracked_keywords` (a standing resource cap, not a monthly action)
+  is defined in `plans.ts` but not yet enforced anywhere — needs a plain
+  row-count check at keyword-creation time, different shape from
+  `checkAndIncrementUsage`.
+- [ ] No live Stripe account/webhook exchange has been tested end-to-end
+  in this environment — typecheck-clean and carefully reviewed, not
+  live-verified.
 - Full backlog tracking: add a "13.4 SaaS Billing" section to
-  [seo-saas-prd-v1.md](./seo-saas-prd-v1.md) as it ships (that file is this
-  project's existing living implementation-status tracker — keep using it,
-  don't fork a second one).
+  [seo-saas-prd-v1.md](./seo-saas-prd-v1.md) next (that file is this
+  project's existing living implementation-status tracker — not yet
+  updated with this session's work as of this commit).
 
 ## Phase 3 — Open-source polish
 
-- Public roadmap visibility: this file, kept current.
-- Confirm CI badge, CONTRIBUTING.md, SECURITY.md stay accurate once hosted
-  mode exists (self-host contributors shouldn't need to care about Stripe
-  code paths at all — keep `isSelfHosted()` as the one clean seam).
-- Railway template: add a second Railway service for the worker image once
-  it's published (today Railway only deploys the web image; the worker
-  needs its own service pointed at `rosterseo-worker:latest` — tracked
-  here, not yet done).
+- [x] Public roadmap visibility: this file, kept current through Phase 2.
+- [ ] Confirm CI badge, CONTRIBUTING.md, SECURITY.md stay accurate — the
+  "not implemented yet" billing language was fixed in README/CONTRIBUTING/
+  ARCHITECTURE this session; re-scan after any further billing changes.
+- [ ] Railway template: add a second Railway service for the worker image
+  once it's published (today Railway only deploys the web image).
 
-## Why this order
+## What's genuinely still open after this session
 
-Publish/Social UI ships before billing because it's pure UI + small
-backend additions on top of already-working features — fast, visible,
-addresses the explicit "I don't like this UI" complaint immediately. SaaS
-billing ships after Phase 0's credential-encryption work specifically
-because taking real customer signups while still storing their connected
-accounts' tokens in plaintext would be irresponsible to ship, regardless
-of how good the billing UX is.
+- Encryption rollout is wired in, but not live-tested against a real
+  OAuth round-trip or a pre-existing plaintext row upgrading cleanly.
+- Billing is implemented but never exercised against a real Stripe
+  account (test or live mode).
+- Analytics field/metric names for all three platforms are doc-sourced,
+  not live-verified.
+- This branch has not been pushed or opened as a PR yet.
