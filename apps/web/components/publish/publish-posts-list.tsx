@@ -90,6 +90,7 @@ function PublishPostsListInner({ projectId, posts }: { projectId: string; posts:
     title: post.title,
     date: new Date(post.scheduledFor ?? post.createdAt),
     status: post.status,
+    platforms: post.platforms,
   }));
 
   const allSelected = filteredPosts.length > 0 && filteredPosts.every((p) => selectedIds.has(p.id));
@@ -179,7 +180,13 @@ function PublishPostsListInner({ projectId, posts }: { projectId: string; posts:
         </div>
       </TabsContent>
       <TabsContent value="calendar" className="mt-3">
-        <PostCalendar events={events} />
+        <PostCalendar
+          events={events}
+          pillar="blog"
+          projectId={projectId}
+          onSelectPost={setInspectorPostId}
+          onRescheduled={() => router.refresh()}
+        />
       </TabsContent>
       <PostsInspector postId={inspectorPostId} pillar="blog" projectId={projectId} onClose={() => setInspectorPostId(null)} />
     </Tabs>

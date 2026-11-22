@@ -28,8 +28,8 @@ export async function getUpcomingPosts(userId: string, projectId: string, limit 
   ]);
 
   const events: CalendarEvent[] = [
-    ...social.map((p) => ({ id: p.id, href: `/social/posts/${p.id}`, title: p.body, date: p.scheduledFor!, status: "scheduled" as const })),
-    ...blog.map((p) => ({ id: p.id, href: `/publish/posts/${p.id}`, title: p.title, date: p.scheduledFor!, status: "scheduled" as const })),
+    ...social.map((p) => ({ id: p.id, href: `/social/posts/${p.id}`, title: p.body, date: p.scheduledFor!, status: "scheduled" as const, platforms: [] })),
+    ...blog.map((p) => ({ id: p.id, href: `/publish/posts/${p.id}`, title: p.title, date: p.scheduledFor!, status: "scheduled" as const, platforms: [] })),
   ];
 
   events.sort((a, b) => a.date.getTime() - b.date.getTime());
