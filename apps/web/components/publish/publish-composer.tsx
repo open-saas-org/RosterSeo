@@ -168,7 +168,7 @@ export function PublishComposer({
         title="No blog platforms connected yet"
         description="Connect at least one blogging platform before you can compose a post."
         action={
-          <Button render={<Link href="/publish/connections" />} size="sm">
+          <Button render={<Link href="/publish/connections" />} nativeButton={false} size="sm">
             Connect a platform
           </Button>
         }

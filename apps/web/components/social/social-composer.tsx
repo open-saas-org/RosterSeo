@@ -193,7 +193,7 @@ export function SocialComposer({
         title="No social platforms connected yet"
         description="Connect at least one social platform before you can compose a post."
         action={
-          <Button render={<Link href="/social/connections" />} size="sm">
+          <Button render={<Link href="/social/connections" />} nativeButton={false} size="sm">
             Connect a platform
           </Button>
         }
