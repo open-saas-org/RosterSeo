@@ -79,4 +79,19 @@ describe("crypto (credential encryption at rest)", () => {
     expect(encryptSecret("")).toBe("");
     expect(decryptSecret("")).toBe("");
   });
+
+  describe("encryptRecord / decryptRecord (jsonb credential blobs)", () => {
+    beforeEach(() => {
+      process.env.CREDENTIAL_ENCRYPTION_KEY = TEST_KEY_HEX;
+    });
+
+    it("round-trips every value in a record while preserving its keys", async () => {
+      const { encryptRecord, decryptRecord } = await import("./crypto");
+      const creds = { apiKey: "key-123", apiSecret: "secret-456" };
+      const encrypted = encryptRecord(creds);
+      expect(Object.keys(encrypted)).toEqual(Object.keys(creds));
+      expect(encrypted.apiKey).not.toBe(creds.apiKey);
+      expect(decryptRecord(encrypted)).toEqual(creds);
+    });
+  });
 });

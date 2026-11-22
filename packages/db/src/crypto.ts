@@ -101,6 +101,21 @@ export function decryptSecret(value: string): string {
   return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
 }
 
+// Record-shaped variants for jsonb credential blobs (blog_connections /
+// social_connections' `credentials` column - arbitrary per-platform
+// key/value secrets, e.g. { apiKey: "..." } or { accessToken: "...",
+// refreshToken: "..." }). Encrypts every value, preserves every key, so
+// the column keeps its existing shape and any code that reads a specific
+// key by name keeps working unchanged - it just gets ciphertext back
+// until it goes through decryptRecord().
+export function encryptRecord<T extends Record<string, string>>(record: T): T {
+  return Object.fromEntries(Object.entries(record).map(([k, v]) => [k, encryptSecret(v)])) as T;
+}
+
+export function decryptRecord<T extends Record<string, string>>(record: T): T {
+  return Object.fromEntries(Object.entries(record).map(([k, v]) => [k, decryptSecret(v)])) as T;
+}
+
 // Constant-time check for whether a value is in encrypted form, useful in
 // tests/migrations - exported mainly so callers never need to duplicate
 // the "enc:v1:" prefix check themselves.
