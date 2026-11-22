@@ -1,5 +1,5 @@
 import { and, eq, gte } from "drizzle-orm";
-import { emailConnections, outreachTargets, withUserContext } from "@rosterseo/db";
+import { decryptSecret, emailConnections, encryptSecret, outreachTargets, withUserContext } from "@rosterseo/db";
 import { GoogleReauthRequiredError, refreshAccessToken, sendGmail } from "@rosterseo/google";
 import { sendSmtpMail } from "@rosterseo/email";
 
@@ -10,18 +10,23 @@ import { sendSmtpMail } from "@rosterseo/email";
 // function anyway.
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 
+// Decrypt point for email_connections' gmailAccessToken/gmailRefreshToken -
+// same reasoning as apps/web/lib/google-token.ts's getValidAccessToken:
+// every real caller reaches a token value through this function, so
+// decrypting here (and re-encrypting what gets written back) covers every
+// real usage.
 async function getValidGmailAccessToken(userId: string, connection: typeof emailConnections.$inferSelect): Promise<string> {
   if (!connection.gmailRefreshToken) throw new Error(`Email connection ${connection.id} has no Gmail refresh token`);
   if (connection.gmailExpiresAt && connection.gmailExpiresAt.getTime() - EXPIRY_BUFFER_MS > Date.now() && connection.gmailAccessToken) {
-    return connection.gmailAccessToken;
+    return decryptSecret(connection.gmailAccessToken);
   }
 
   try {
-    const refreshed = await refreshAccessToken(connection.gmailRefreshToken);
+    const refreshed = await refreshAccessToken(decryptSecret(connection.gmailRefreshToken));
     await withUserContext(userId, (tx) =>
       tx
         .update(emailConnections)
-        .set({ gmailAccessToken: refreshed.accessToken, gmailExpiresAt: refreshed.expiresAt, gmailNeedsReconnect: false })
+        .set({ gmailAccessToken: encryptSecret(refreshed.accessToken), gmailExpiresAt: refreshed.expiresAt, gmailNeedsReconnect: false })
         .where(eq(emailConnections.id, connection.id)),
     );
     return refreshed.accessToken;
@@ -110,7 +115,7 @@ export async function runOutreachSend(payload: { outreachTargetId: string; proje
           host: connection.smtpHost,
           port: connection.smtpPort,
           username: connection.smtpUsername,
-          password: connection.smtpPasswordEncrypted,
+          password: decryptSecret(connection.smtpPasswordEncrypted),
           fromEmail: connection.fromEmail,
           fromName: connection.fromName,
         },

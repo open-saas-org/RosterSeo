@@ -675,9 +675,10 @@ export const localSeoRecommendations = pgTable("local_seo_recommendations", {
 
 // One real WordPress site connected per project, via a WP core 5.6+
 // Application Password (Users > Profile in the customer's own WP admin) -
-// no plugin, no OAuth. `applicationPassword` is stored as plain text, same
-// convention google_connections.access_token/refresh_token already use, so
-// this doesn't introduce a new encryption layer inconsistently.
+// no plugin, no OAuth. `applicationPassword` goes through
+// packages/db/src/crypto.ts's encryptSecret/decryptSecret at every real
+// write/read call site (the connect route and packages/wordpress's
+// client), same as google_connections.access_token/refresh_token.
 export const wordpressConnections = pgTable("wordpress_connections", {
   projectId: uuid("project_id")
     .primaryKey()
@@ -696,10 +697,11 @@ export const wordpressConnections = pgTable("wordpress_connections", {
 // right for GSC/GA/GBP/Merchant's "verify a property once" model), but
 // outreach identity is naturally per-project (an agency wants project A's
 // outreach coming from a different address than project B's).
-// smtpPasswordEncrypted is stored as plain text, same convention
-// google_connections.access_token/wordpress_connections.application_password
-// already use (see that table's own comment) - not introducing a new
-// encryption layer inconsistently for just this one credential.
+// smtpPasswordEncrypted (and the gmail* OAuth token columns below) go
+// through crypto.ts's encryptSecret/decryptSecret, same as
+// google_connections/wordpress_connections - see apps/web/app/api/projects/
+// [projectId]/email-connections/route.ts (write) and
+// apps/worker/src/features/outreach-runner.ts (read, at point of use).
 export const emailConnections = pgTable("email_connections", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id")
@@ -1005,9 +1007,11 @@ export const providerSpendLog = pgTable("provider_spend_log", {
 // platforms (app password, API key, OAuth token, GraphQL PAT...) wide
 // columns per type would be unwieldy - same reasoning as
 // local_business_profiles.attributes storing "Google's own nested shapes,
-// not worth fully modeling". Stored as plain text, same convention every
-// other credential in this app already uses (google_connections,
-// wordpress_connections, email_connections all document this same choice).
+// not worth fully modeling". Every value in this record goes through
+// crypto.ts's encryptRecord/decryptRecord (the jsonb-shaped sibling of
+// encryptSecret/decryptSecret - preserves keys, encrypts values) at the
+// connect route (write) and each platform adapter's connection-fetch
+// helper (read) - see packages/publishing/src/connections.ts.
 export const blogConnections = pgTable("blog_connections", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id")

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { blogConnections, withUserContext } from "@rosterseo/db";
+import { blogConnections, encryptRecord, withUserContext } from "@rosterseo/db";
 import { decodeBlogOAuthState, exchangeBlogOAuthCode, isBlogOAuthConfigured, listBlogOAuthSites } from "@rosterseo/publishing";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 // GET /api/integrations/blog/callback?code=...&state=...
 //
@@ -58,16 +59,23 @@ export async function GET(req: NextRequest) {
           .limit(1);
 
         const credentialsObj: Record<string, string> = state.platform === "shopify" ? { accessToken, shopDomain: state.shopDomain as string } : { accessToken };
+        const encryptedCredentials = encryptRecord(credentialsObj);
 
         if (existing) {
-          await tx.update(blogConnections).set({ credentials: credentialsObj, status: "connected", lastError: null, connectedAt: new Date() }).where(eq(blogConnections.id, existing.id));
+          // A re-auth/token-refresh of an already-connected site - doesn't
+          // count against the connected-accounts usage cap (only a
+          // genuinely new row does, below).
+          await tx.update(blogConnections).set({ credentials: encryptedCredentials, status: "connected", lastError: null, connectedAt: new Date() }).where(eq(blogConnections.id, existing.id));
         } else {
+          const usage = await checkAndIncrementUsage(project.organizationId, "connected_accounts", session.user.id);
+          if (!usage.allowed) continue; // skip this site, keep connecting any others already under the cap
+
           await tx.insert(blogConnections).values({
             projectId: state.projectId,
             platform: state.platform,
             label: site.label,
             authType: "oauth",
-            credentials: credentialsObj,
+            credentials: encryptedCredentials,
             siteIdentifier: site.siteIdentifier,
           });
         }

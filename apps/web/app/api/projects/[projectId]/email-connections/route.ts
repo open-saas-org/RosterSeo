@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { emailConnections, withUserContext } from "@rosterseo/db";
+import { emailConnections, encryptSecret, withUserContext } from "@rosterseo/db";
 import { verifySmtpConnection } from "@rosterseo/email";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 
@@ -65,7 +65,7 @@ export const POST = withAuth<{ projectId: string }>(async (req, ctx, session) =>
   const [connection] = await withUserContext(session.user.id, (tx) =>
     tx
       .insert(emailConnections)
-      .values({ projectId, type: "smtp", label, fromEmail, fromName, smtpHost: host, smtpPort: port, smtpUsername: username, smtpPasswordEncrypted: password })
+      .values({ projectId, type: "smtp", label, fromEmail, fromName, smtpHost: host, smtpPort: port, smtpUsername: username, smtpPasswordEncrypted: encryptSecret(password) })
       .returning(),
   );
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { socialConnections, withUserContext } from "@rosterseo/db";
+import { encryptRecord, socialConnections, withUserContext } from "@rosterseo/db";
 import {
   decodeState,
   exchangeLinkedInCode,
@@ -17,6 +17,7 @@ import {
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
 import { getOrCreateMastodonApp } from "@/lib/social/mastodon-app";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 type State = { projectId: string; platform: SocialOAuthPlatform; instanceUrl?: string };
 
@@ -102,14 +103,19 @@ export async function GET(req: NextRequest) {
           .limit(1);
 
         if (existing) {
-          await tx.update(socialConnections).set({ credentials: account.credentials, label: account.label, status: "connected", lastError: null, connectedAt: new Date() }).where(eq(socialConnections.id, existing.id));
+          // Re-auth/token-refresh of an already-connected account - doesn't
+          // count against the connected-accounts usage cap.
+          await tx.update(socialConnections).set({ credentials: encryptRecord(account.credentials), label: account.label, status: "connected", lastError: null, connectedAt: new Date() }).where(eq(socialConnections.id, existing.id));
         } else {
+          const usage = await checkAndIncrementUsage(project.organizationId, "connected_accounts", session.user.id);
+          if (!usage.allowed) continue; // skip this account, keep connecting any others already under the cap
+
           await tx.insert(socialConnections).values({
             projectId: state.projectId,
             platform: state.platform,
             label: account.label,
             authType: "oauth",
-            credentials: account.credentials,
+            credentials: encryptRecord(account.credentials),
             accountIdentifier: account.accountIdentifier,
           });
         }

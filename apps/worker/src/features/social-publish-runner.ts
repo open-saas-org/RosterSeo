@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { socialConnections, socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
+import { decryptRecord, socialConnections, socialPostTargets, socialPosts, withUserContext } from "@rosterseo/db";
 import { getSocialAdapter } from "@rosterseo/social";
 
 // Same rollup shape as blog-publish-runner.ts's rollUpPostStatus.
@@ -56,7 +56,7 @@ export async function runSocialPublish(payload: { socialPostTargetId: string; pr
   await withUserContext(userId, (tx) => tx.update(socialPostTargets).set({ status: "publishing" }).where(eq(socialPostTargets.id, socialPostTargetId)));
 
   try {
-    const result = await adapter.publish(connection.credentials, connection.accountIdentifier, { text: target.adaptedBody, mediaUrls: post.mediaUrls });
+    const result = await adapter.publish(decryptRecord(connection.credentials), connection.accountIdentifier, { text: target.adaptedBody, mediaUrls: post.mediaUrls });
     await withUserContext(userId, (tx) =>
       tx
         .update(socialPostTargets)

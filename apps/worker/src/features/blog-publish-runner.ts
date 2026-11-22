@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { blogConnections, blogPostTargets, blogPosts, withUserContext } from "@rosterseo/db";
+import { blogConnections, blogPostTargets, blogPosts, decryptRecord, withUserContext } from "@rosterseo/db";
 import { getBlogAdapter, markdownToHtml } from "@rosterseo/publishing";
 
 // Rolls the parent blogPosts row's own status up once every one of its
@@ -59,7 +59,7 @@ export async function runBlogPublish(payload: { blogPostTargetId: string; projec
 
   try {
     const html = markdownToHtml(target.adaptedBody);
-    const result = await adapter.publish(connection.credentials, connection.siteIdentifier, { title: target.adaptedTitle, markdown: target.adaptedBody, html, tags: post.tags });
+    const result = await adapter.publish(decryptRecord(connection.credentials), connection.siteIdentifier, { title: target.adaptedTitle, markdown: target.adaptedBody, html, tags: post.tags });
     await withUserContext(userId, (tx) =>
       tx
         .update(blogPostTargets)

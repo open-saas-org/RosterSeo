@@ -1,4 +1,4 @@
-import { blogConnections, withUserContext } from "@rosterseo/db";
+import { blogConnections, encryptRecord, withUserContext } from "@rosterseo/db";
 import { getBlogAdapter, getBlogPlatformDef } from "@rosterseo/publishing";
 
 // Real shared logic behind POST /api/projects/:projectId/blog/connections -
@@ -31,7 +31,7 @@ export async function connectBlog(
         platform: opts.platform,
         label: opts.label,
         authType: platformDef.authType,
-        credentials: opts.credentials,
+        credentials: encryptRecord(opts.credentials),
         siteIdentifier: opts.siteIdentifier,
         status: "connected",
       })
