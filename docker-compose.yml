@@ -21,6 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     restart: unless-stopped
     depends_on:
       postgres:
@@ -38,24 +39,28 @@ services:
       DATABASE_MIGRATE_URL: postgres://postgres:postgres@postgres:5432/rosterseo
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile
-      target: build
+      target: worker-runner
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      web:
         condition: service_healthy
     env_file:
       - .env
     environment:
       DATABASE_URL: postgres://rosterseo_app:rosterseo_dev@postgres:5432/rosterseo
-    # Runs via tsx rather than a compiled dist/ build - the Dockerfile's
-    # `build` stage only builds apps/web today. Fine functionally, just not
-    # the leanest possible image; worth a dedicated worker build step later.
-    command: ["pnpm", "--filter", "@rosterseo/worker", "dev"]
 
 volumes:
   postgres_data:

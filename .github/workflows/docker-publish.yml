@@ -19,6 +19,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Needed for multi-arch (amd64 + arm64) builds below - buildx itself
+      # is bundled with the Docker Engine on ubuntu-latest runners, but
+      # cross-building arm64 on an amd64 runner needs QEMU user-mode
+      # emulation registered first.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -26,8 +36,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - name: Extract metadata (tags, labels) for the web image
+        id: meta-web
         uses: docker/metadata-action@v5
         with:
           # Image path is lowercase (GHCR/OCI requirement) - "rosterseo",
@@ -43,10 +53,44 @@ jobs:
             org.opencontainers.image.title=RosterSEO
             org.opencontainers.image.description=Open-source SEO + AI-search-visibility platform. Self-hostable via Docker or Railway.
 
-      - name: Build and push Docker image
+      - name: Build and push the web image
         uses: docker/build-push-action@v5
         with:
           context: .
+          target: runner
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+          # GitHub Actions cache backend - every real dependency ("deps")
+          # layer is reused across runs unless pnpm-lock.yaml changed, so a
+          # docs-only or app-code-only change no longer re-runs
+          # `pnpm install --frozen-lockfile` from scratch every single push.
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      - name: Extract metadata (tags, labels) for the worker image
+        id: meta-worker
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/rosterseo-worker
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+          labels: |
+            org.opencontainers.image.title=RosterSEO Worker
+            org.opencontainers.image.description=RosterSEO's pg-boss background job consumer (crawls, SERP pulls, AI-visibility runs).
+
+      - name: Build and push the worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: worker-runner
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-worker.outputs.tags }}
+          labels: ${{ steps.meta-worker.outputs.labels }}
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
