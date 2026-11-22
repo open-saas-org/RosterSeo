@@ -20,8 +20,13 @@ export async function scheduleSocialPost(userId: string, projectId: string, post
   );
   await withUserContext(userId, (tx) => tx.update(socialPostTargets).set({ status: "queued" }).where(eq(socialPostTargets.socialPostId, postId)));
 
+  // See lib/publish/schedule-post.ts's identical comment - same reschedule
+  // mechanism, social side.
   await Promise.all(
-    targets.map((target) => socialPublishJob.enqueue({ socialPostTargetId: target.id, projectId, userId }, scheduledFor ? { startAfter: scheduledFor } : undefined)),
+    targets.map(async (target) => {
+      const jobId = await socialPublishJob.enqueue({ socialPostTargetId: target.id, projectId, userId }, scheduledFor ? { startAfter: scheduledFor } : undefined);
+      await withUserContext(userId, (tx) => tx.update(socialPostTargets).set({ pgBossJobId: jobId }).where(eq(socialPostTargets.id, target.id)));
+    }),
   );
 
   return { queued: targets.length };

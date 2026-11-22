@@ -42,6 +42,8 @@ export type SocialPostView = {
   createdByUserId: string;
   createdAt: string;
   updatedAt: string;
+  // See BlogPostView.platforms' identical comment.
+  platforms: string[];
 };
 
 export type SocialPostTargetView = {

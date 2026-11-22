@@ -50,6 +50,21 @@ export function defineJob<Schema extends z.ZodType>(queueName: string, payloadSc
       await ensureQueue(boss, queueName, queueOptions);
       return boss.send(queueName, parsed, options);
     },
+    // Moves an already-enqueued job's startAfter in place (pg-boss's own
+    // update(), not cancel+re-send) - the safe primitive behind the Posts
+    // workspace's "Reschedule" action on an already-`scheduled` post.
+    // Re-sending instead of updating would leave the original job sitting
+    // in pg-boss to fire at the OLD time too, double-publishing. Returns
+    // the number of jobs actually moved (0 if the job already ran/was
+    // cancelled - the caller should treat that as "nothing to reschedule"
+    // rather than a hard error, since it just means a publish beat the
+    // reschedule request).
+    async reschedule(jobId: string, startAfter: Date) {
+      const boss = await getBoss();
+      await ensureQueue(boss, queueName, queueOptions);
+      const result = await boss.update(queueName, null, { id: jobId, startAfter });
+      return result.updated;
+    },
     async work(handler: (payload: z.infer<Schema>) => Promise<void>) {
       const boss = await getBoss();
       await ensureQueue(boss, queueName, queueOptions);

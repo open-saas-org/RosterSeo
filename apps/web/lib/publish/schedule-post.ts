@@ -22,10 +22,14 @@ export async function scheduleBlogPost(userId: string, projectId: string, postId
   );
   await withUserContext(userId, (tx) => tx.update(blogPostTargets).set({ status: "queued" }).where(eq(blogPostTargets.blogPostId, postId)));
 
+  // Capture each enqueued job's id so a later reschedule (PATCH .../posts/:id)
+  // can move it in place via blogPublishJob.reschedule() instead of leaving
+  // a stale job to fire at the old time.
   await Promise.all(
-    targets.map((target) =>
-      blogPublishJob.enqueue({ blogPostTargetId: target.id, projectId, userId }, scheduledFor ? { startAfter: scheduledFor } : undefined),
-    ),
+    targets.map(async (target) => {
+      const jobId = await blogPublishJob.enqueue({ blogPostTargetId: target.id, projectId, userId }, scheduledFor ? { startAfter: scheduledFor } : undefined);
+      await withUserContext(userId, (tx) => tx.update(blogPostTargets).set({ pgBossJobId: jobId }).where(eq(blogPostTargets.id, target.id)));
+    }),
   );
 
   return { queued: targets.length };

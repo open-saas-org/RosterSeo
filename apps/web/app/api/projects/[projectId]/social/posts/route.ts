@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { socialPosts, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { createSocialPost } from "@/lib/social/create-post";
 
 type RouteParams = { projectId: string };
 
-export const GET = withAuth<RouteParams>(async (_req, ctx, session) => {
+// See the blog equivalent route's identical comment re: optional ?status=.
+export const GET = withAuth<RouteParams>(async (req, ctx, session) => {
   const { projectId } = await ctx.params;
   const project = await requireProjectAccess(projectId, session.user.id);
   if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const posts = await withUserContext(session.user.id, (tx) => tx.select().from(socialPosts).where(eq(socialPosts.projectId, projectId)).orderBy(desc(socialPosts.createdAt)));
+  const status = req.nextUrl.searchParams.get("status");
+  const where = status ? and(eq(socialPosts.projectId, projectId), eq(socialPosts.status, status)) : eq(socialPosts.projectId, projectId);
+
+  const posts = await withUserContext(session.user.id, (tx) => tx.select().from(socialPosts).where(where).orderBy(desc(socialPosts.createdAt)));
 
   return NextResponse.json({ posts });
 });

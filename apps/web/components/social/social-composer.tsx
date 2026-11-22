@@ -178,7 +178,8 @@ export function SocialComposer({
       });
       const publishData = await publishRes.json();
       if (!publishRes.ok) throw new Error(publishData.error ?? "Couldn't post that.");
-      router.push(`/social/posts/${createData.post.id}`);
+      // See the Publish composer's identical comment.
+      router.push(`/social/posts?highlight=${createData.post.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't post that.");
       setIsSubmitting(false);

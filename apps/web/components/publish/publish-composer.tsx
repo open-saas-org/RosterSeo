@@ -148,7 +148,13 @@ export function PublishComposer({
       });
       const publishData = await publishRes.json();
       if (!publishRes.ok) throw new Error(publishData.error ?? "Couldn't publish that post.");
-      router.push(`/publish/posts/${createData.post.id}`);
+      // Nothing left for the user to do on this one post - land on the
+      // Posts workspace (briefly highlighted) rather than a standalone
+      // per-post page with no next action, per the Publishing Platform
+      // PRD's "feels very empty" complaint. The editPerPlatform branch
+      // above still goes to the dedicated review route, since that one
+      // DOES have a required next action (adapting each target).
+      router.push(`/publish/posts?highlight=${createData.post.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't publish that post.");
       setIsSubmitting(false);

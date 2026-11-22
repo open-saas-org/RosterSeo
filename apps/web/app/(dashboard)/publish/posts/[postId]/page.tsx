@@ -45,6 +45,7 @@ export default async function PublishPostDetailPage({ params }: { params: Promis
           scheduledFor: post.scheduledFor?.toISOString() ?? null,
           createdAt: post.createdAt.toISOString(),
           updatedAt: post.updatedAt.toISOString(),
+          platforms: Array.from(new Set(targets.map((t) => t.platform))),
         }}
         initialTargets={targets.map((t) => ({ ...t, status: t.status as BlogPostTargetView["status"], publishedAt: t.publishedAt?.toISOString() ?? null }))}
       />
