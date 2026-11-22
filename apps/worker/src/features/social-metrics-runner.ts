@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray } from "drizzle-orm";
-import { db, socialConnections, socialPostMetrics, socialPostTargets, user, withUserContext } from "@rosterseo/db";
+import { db, decryptRecord, socialConnections, socialPostMetrics, socialPostTargets, user, withUserContext } from "@rosterseo/db";
 import { getSocialAdapter } from "@rosterseo/social";
 import { socialMetricsFetchJob } from "@rosterseo/jobs";
 
@@ -84,12 +84,7 @@ export async function runFetchSocialMetrics(payload: { socialPostTargetId: strin
   }
 
   try {
-    // NOTE: connection.credentials is read here the same way
-    // social-publish-runner.ts already does - not yet routed through the
-    // credential-encryption helper (packages/db/src/crypto.ts) a parallel
-    // task in this session is wiring up separately. Update this call site
-    // too once that lands.
-    const metrics = await adapter.fetchMetrics(connection.credentials, target.remotePostId);
+    const metrics = await adapter.fetchMetrics(decryptRecord(connection.credentials), target.remotePostId);
     await withUserContext(userId, (tx) =>
       tx.insert(socialPostMetrics).values({
         projectId: target.projectId,
