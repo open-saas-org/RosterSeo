@@ -112,8 +112,9 @@ function RunningState({ url, targetKeyword, stale }: { url?: string; targetKeywo
           <AlertTitle>This looks stuck</AlertTitle>
           <AlertDescription>
             {url ? <span className="font-medium">{url}</span> : "This page"} has been analyzing for longer than
-            expected - it&apos;s still being polled in case it finishes, but a run normally completes in under a
-            minute. If it doesn&apos;t resolve soon, try running the analysis again from the Page Analyzer form.
+            expected - it&apos;s still being polled in case it finishes, but a run normally completes within a couple
+            of minutes. If it doesn&apos;t resolve within another minute or so, try running the analysis again from
+            the Page Analyzer form.
           </AlertDescription>
         </Alert>
       ) : (
@@ -128,7 +129,7 @@ function RunningState({ url, targetKeyword, stale }: { url?: string; targetKeywo
               </>
             ) : null}
             &nbsp;- crawling the page and every real top-10 competitor, pulling real keyword and SERP data, and
-            generating AI guidance. This can take up to a minute.
+            generating AI guidance. Real crawls take real time - this usually takes a couple of minutes.
           </span>
         </div>
       )}

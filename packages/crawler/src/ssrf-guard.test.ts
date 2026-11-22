@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import dns from "node:dns";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { assertPublicHost, SsrfBlockedError } from "./ssrf-guard";
 
 describe("assertPublicHost (SSRF guard)", () => {
@@ -42,5 +43,27 @@ describe("assertPublicHost (SSRF guard)", () => {
 
   it("allows a public IPv6 literal straight through", async () => {
     await expect(assertPublicHost("http://[2001:4860:4860::8888]/")).resolves.toBeUndefined();
+  });
+
+  describe("a DNS resolver that never responds", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.useRealTimers();
+    });
+
+    it("times out instead of hanging forever", async () => {
+      // dns.lookup has no signal/timeout option of its own - this is the
+      // regression test for the real gap found while investigating a Page
+      // Analyzer run that looked stuck: a hung DNS lookup for a real-world
+      // competitor domain used to block assertPublicHost (and everything
+      // awaiting it) indefinitely, with no timeout anywhere in the call
+      // chain to recover from it.
+      vi.spyOn(dns.promises, "lookup").mockReturnValue(new Promise(() => {})); // never resolves/rejects
+      vi.useFakeTimers();
+
+      const assertion = expect(assertPublicHost("http://a-real-looking-domain.example/")).rejects.toThrow(SsrfBlockedError);
+      await vi.advanceTimersByTimeAsync(10_000);
+      await assertion;
+    });
   });
 });
