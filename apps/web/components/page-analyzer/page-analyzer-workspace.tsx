@@ -134,7 +134,7 @@ export function PageAnalyzerWorkspace({ projectId }: { projectId: string }) {
         {isHistoryLoading ? (
           <ListSkeleton rows={4} />
         ) : history.length === 0 ? (
-          <EmptyState icon={Wand2} title="No past reports" description="Reports you run will show up here." />
+          <EmptyState icon={Wand2} graphic="page-analyzer" title="No past reports" description="Reports you run will show up here." />
         ) : (
           <div className="overflow-hidden rounded-xl border bg-card">
             <DataTable columns={historyColumns} data={history} pageSize={10} emptyMessage="No reports found." bordered={false} />

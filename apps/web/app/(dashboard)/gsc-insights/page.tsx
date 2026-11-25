@@ -66,6 +66,7 @@ export default async function GscInsightsPage() {
           ) : null}
           <EmptyState
             icon={BarChart3}
+            graphic="insights"
             title={
               fetchFailed || gsc.status === "needs_reconnect"
                 ? "Search Console needs reconnecting"

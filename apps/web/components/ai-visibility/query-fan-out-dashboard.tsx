@@ -282,6 +282,7 @@ export function QueryFanOutDashboard({
       {analysis.fanoutRuns === 0 ? (
         <EmptyState
           icon={Network}
+          graphic="ai-visibility"
           title="No real search-query data yet"
           description="This page shows the actual web searches an AI engine issued while answering your tracked prompts - only providers that expose search queries produce this (BrightData scraped runs, or OpenRouter with web search enabled). Configure one in Settings → Providers, then run a visibility check."
         />

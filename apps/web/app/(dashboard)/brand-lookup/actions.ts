@@ -1,11 +1,15 @@
 "use server";
 
+import { headers } from "next/headers";
 import {
   AI_VISIBILITY_PROVIDERS,
   samplePrompt,
   type AiVisibilityProvider,
   type PromptSampleResult,
 } from "@rosterseo/ai-visibility";
+import { auth } from "@/lib/auth";
+import { getUserOrganization } from "@/lib/org";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 // Brand Lookup is a one-off, ad-hoc check - distinct from AI Visibility's
 // ongoing tracked-prompt monitoring (apps/web/app/(dashboard)/ai-visibility/).
@@ -34,10 +38,26 @@ export async function lookupBrandAction(input: {
   brand: string;
   question?: string;
 }): Promise<BrandLookupResult> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    throw new Error("Not signed in.");
+  }
+
+  const org = await getUserOrganization(session.user.id);
+  if (!org) {
+    throw new Error("Organization not found.");
+  }
+
   const brand = input.brand.trim();
   if (!brand) {
     throw new Error("Enter a brand name or domain to check.");
   }
+
+  const usage = await checkAndIncrementUsage(org.id, "ai_visibility_prompts", session.user.id);
+  if (!usage.allowed) {
+    throw new Error(`Monthly AI Visibility limit reached (${usage.used}/${usage.limit}). Upgrade your plan to run more checks.`);
+  }
+
   const promptText = input.question?.trim() || defaultPromptText(brand);
 
   const providerResults = await Promise.all(

@@ -245,6 +245,7 @@ export function KeywordResearchTable({
       {results.length === 0 ? (
         <EmptyState
           icon={ListChecks}
+          graphic="keyword-research"
           title="No results"
           description="Search a seed keyword to see similar keywords, variations, and questions here."
         />

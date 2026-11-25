@@ -8,7 +8,7 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
-  // --- Hosted SaaS billing (apps/web/lib/plans.ts, apps/web/lib/stripe.ts) ---
+  // --- Hosted SaaS billing (apps/web/lib/plans.ts, apps/web/lib/cashfree.ts) ---
   // All null/default in SELF_HOSTED mode, where none of this is read -
   // see apps/web/lib/self-hosted.ts. planId defaults to "free" rather than
   // null so every org (including every existing self-hosted org after this

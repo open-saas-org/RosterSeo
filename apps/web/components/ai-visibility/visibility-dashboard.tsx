@@ -352,7 +352,7 @@ export function VisibilityDashboard({
       </Card>
 
       {filteredRows.length === 0 ? (
-        <EmptyState icon={Search} title="No matching prompts" description="Try a different search or clear the tag filter." />
+        <EmptyState icon={Search} graphic="ai-visibility" title="No matching prompts" description="Try a different search or clear the tag filter." />
       ) : (
         <div className="flex flex-col gap-4">
           {filteredRows.map(({ prompt }) => (

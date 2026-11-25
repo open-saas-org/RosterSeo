@@ -66,6 +66,7 @@ export default async function MerchantInsightsPage() {
           ) : null}
           <EmptyState
             icon={Store}
+            graphic="insights"
             title={
               fetchFailed || merchant.status === "needs_reconnect"
                 ? "Merchant Center needs reconnecting"

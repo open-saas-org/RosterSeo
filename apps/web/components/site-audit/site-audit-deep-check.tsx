@@ -104,7 +104,7 @@ export function SiteAuditDeepCheck({ project, auditId }: { project: { id: string
       </div>
 
       {data.auditStatus !== "complete" ? (
-        <EmptyState icon={Ban} title="Audit not finished" description="This deep check runs against a completed site audit's crawl data." />
+        <EmptyState icon={Ban} graphic="site-audit" title="Audit not finished" description="This deep check runs against a completed site audit's crawl data." />
       ) : isRunning ? (
         <Card className="mx-auto max-w-2xl w-full">
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
@@ -116,6 +116,7 @@ export function SiteAuditDeepCheck({ project, auditId }: { project: { id: string
       ) : !hasRun ? (
         <EmptyState
           icon={Search}
+          graphic="site-audit"
           title="Not run yet"
           description="Run the deep check to find broken outbound links, pages nothing on your site links to, and keyword cannibalization from Search Console."
         />

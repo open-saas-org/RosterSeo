@@ -1,8 +1,8 @@
 // Hosted-SaaS plan config (SELF_HOSTED=false only - see self-hosted.ts).
 // Deliberately in-code, not a database table: these are product decisions
 // shipped with a release, not something an operator or customer edits at
-// runtime. Stripe Price IDs stay in env vars so switching from Stripe test
-// mode to live mode (or repricing) never needs a deploy of this file.
+// runtime. Cashfree Plan IDs stay in env vars so switching from sandbox to
+// production (or repricing) never needs a deploy of this file.
 //
 // Limits use a very high finite number (not Infinity) for "unlimited" so
 // every limit stays a plain comparable number wherever it's read (e.g.
@@ -39,7 +39,7 @@ export type Plan = {
   id: "free" | "trial" | "starter" | "pro" | "agency";
   name: string;
   priceUsd: number | null; // null = not purchasable directly (free/trial)
-  stripePriceEnvVar: "STRIPE_PRICE_STARTER" | "STRIPE_PRICE_PRO" | "STRIPE_PRICE_AGENCY" | null;
+  cashfreePlanEnvVar: "CASHFREE_PLAN_STARTER" | "CASHFREE_PLAN_PRO" | "CASHFREE_PLAN_AGENCY" | null;
   limits: {
     projects: number;
     maxTrackedKeywords: number;
@@ -53,7 +53,7 @@ export const PLANS: Plan[] = [
     id: "free",
     name: "Free",
     priceUsd: null,
-    stripePriceEnvVar: null,
+    cashfreePlanEnvVar: null,
     limits: {
       projects: 1,
       maxTrackedKeywords: 25,
@@ -71,7 +71,7 @@ export const PLANS: Plan[] = [
     id: "trial",
     name: "Trial",
     priceUsd: null,
-    stripePriceEnvVar: null,
+    cashfreePlanEnvVar: null,
     limits: {
       projects: 10,
       maxTrackedKeywords: 1000,
@@ -86,8 +86,8 @@ export const PLANS: Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    priceUsd: 29,
-    stripePriceEnvVar: "STRIPE_PRICE_STARTER",
+    priceUsd: 10,
+    cashfreePlanEnvVar: "CASHFREE_PLAN_STARTER",
     limits: {
       projects: 3,
       maxTrackedKeywords: 150,
@@ -102,8 +102,8 @@ export const PLANS: Plan[] = [
   {
     id: "pro",
     name: "Pro",
-    priceUsd: 79,
-    stripePriceEnvVar: "STRIPE_PRICE_PRO",
+    priceUsd: 20,
+    cashfreePlanEnvVar: "CASHFREE_PLAN_PRO",
     limits: {
       projects: 10,
       maxTrackedKeywords: 1000,
@@ -118,8 +118,8 @@ export const PLANS: Plan[] = [
   {
     id: "agency",
     name: "Agency",
-    priceUsd: 199,
-    stripePriceEnvVar: "STRIPE_PRICE_AGENCY",
+    priceUsd: 40,
+    cashfreePlanEnvVar: "CASHFREE_PLAN_AGENCY",
     limits: {
       projects: UNLIMITED,
       maxTrackedKeywords: UNLIMITED,
@@ -137,9 +137,9 @@ export function getPlan(planId: string): Plan {
   return PLANS.find((p) => p.id === planId) ?? PLANS[0]!; // unknown id -> "free", never throws
 }
 
-export function getPlanByStripePrice(stripePriceId: string): Plan | null {
+export function getPlanByCashfreePlanId(cashfreePlanId: string): Plan | null {
   return (
-    PLANS.find((p) => p.stripePriceEnvVar && process.env[p.stripePriceEnvVar] === stripePriceId) ?? null
+    PLANS.find((p) => p.cashfreePlanEnvVar && process.env[p.cashfreePlanEnvVar] === cashfreePlanId) ?? null
   );
 }
 
@@ -159,4 +159,9 @@ export function resolveEffectivePlan(org: {
     return getPlan("free");
   }
   return getPlan(org.planId);
+}
+
+export function isPaidPlanActive(org: { planId: string; subscriptionStatus: string }): boolean {
+  const plan = getPlan(org.planId);
+  return plan.priceUsd !== null && org.subscriptionStatus === "active";
 }

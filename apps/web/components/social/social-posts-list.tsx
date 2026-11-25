@@ -79,7 +79,7 @@ function SocialPostsListInner({ projectId, posts }: { projectId: string; posts: 
   );
 
   if (posts.length === 0) {
-    return <EmptyState icon={Share2} title="No posts yet" description="Compose your first post to see it here." />;
+    return <EmptyState icon={Share2} graphic="social" title="No posts yet" description="Compose your first post to see it here." />;
   }
 
   const events: CalendarEvent[] = filteredPosts.map((post) => ({

@@ -142,7 +142,9 @@ export function SocialComposer({
     if (selectedIds.length === 0) return "Select at least one platform.";
     if (!text.trim()) return "Write something first.";
     if (selectedNeedsMedia && !mediaUrl.trim()) return "At least one selected platform needs an image - add an image URL.";
-    if (overPlatforms.length > 0) return `Over the character limit for ${overPlatforms.map((c) => c.label).join(", ")}.`;
+    if (!editPerPlatform && overPlatforms.length > 0) {
+      return `Over the character limit for ${overPlatforms.map((c) => c.label).join(", ")}. Enable "Edit per platform" to tailor each post.`;
+    }
     return null;
   }
 
@@ -190,6 +192,7 @@ export function SocialComposer({
     return (
       <EmptyState
         icon={Share2}
+        graphic="social"
         title="No social platforms connected yet"
         description="Connect at least one social platform before you can compose a post."
         action={

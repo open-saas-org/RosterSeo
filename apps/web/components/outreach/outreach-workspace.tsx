@@ -79,7 +79,7 @@ export function OutreachWorkspace({
       </Card>
 
       {targets.length === 0 ? (
-        <EmptyState icon={Mail} title="No outreach targets yet" description="Add a domain above, or add one from a real backlink row on the Backlinks page." />
+        <EmptyState icon={Mail} graphic="outreach" title="No outreach targets yet" description="Add a domain above, or add one from a real backlink row on the Backlinks page." />
       ) : (
         <div className="flex flex-col gap-2">
           {targets.map((t) => (

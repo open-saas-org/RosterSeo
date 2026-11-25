@@ -24,16 +24,21 @@ export default function SignupPage() {
     setError(null);
     setIsSubmitting(true);
 
-    const { error: signUpError } = await authClient.signUp.email({ name, email, password });
+    try {
+      const { error: signUpError } = await authClient.signUp.email({ name, email, password });
 
-    if (signUpError) {
-      setError(signUpError.message ?? "Could not create your account.");
+      if (signUpError) {
+        setError(signUpError.message ?? "Could not create your account.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      router.push("/onboarding");
+      router.refresh();
+    } catch {
+      setError("Network error while creating your account. Please try again.");
       setIsSubmitting(false);
-      return;
     }
-
-    router.push("/onboarding");
-    router.refresh();
   }
 
   return (

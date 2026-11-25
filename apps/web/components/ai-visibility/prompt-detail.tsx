@@ -238,7 +238,7 @@ export function PromptDetail({
 
         <TabsContent value="llm-responses" className="mt-4">
           {llmResponses.length === 0 ? (
-            <EmptyState icon={MessageSquare} title="No runs yet" description="Run a visibility check to see individual LLM responses for this prompt." />
+            <EmptyState icon={MessageSquare} graphic="ai-visibility" title="No runs yet" description="Run a visibility check to see individual LLM responses for this prompt." />
           ) : (
             <Card>
               <CardContent className="flex flex-col p-0">

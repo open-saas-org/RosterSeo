@@ -161,7 +161,7 @@ export function SiteAuditPageDetail({ project, auditId, pageId }: { project: { i
           </CardHeader>
           <CardContent>
             {inboundLinks.length === 0 ? (
-              <EmptyState icon={Unlink} title="No inbound links" description="No other crawled page links to this URL." />
+              <EmptyState icon={Unlink} graphic="backlinks" title="No inbound links" description="No other crawled page links to this URL." />
             ) : (
               <div className="flex flex-col gap-1.5">
                 {inboundLinks.map((url) => (

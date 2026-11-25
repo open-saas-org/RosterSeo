@@ -19,6 +19,7 @@ export function SiteAuditView({ project }: { project: { id: string; name: string
 
       <EmptyState
         icon={ListChecks}
+        graphic="site-audit"
         title="No audits yet"
         description={`Run your first audit to crawl ${project.domain} and see a prioritized list of technical SEO issues.`}
         action={<SiteAuditLaunchControl project={project} onLaunched={(auditId) => router.push(`/site-audit?auditId=${auditId}&tab=issues`)} />}

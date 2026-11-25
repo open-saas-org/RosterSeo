@@ -165,6 +165,7 @@ export function OpportunitiesWorkspace({ projectId }: { projectId: string }) {
       <div className="flex flex-col gap-4">
         <EmptyState
           icon={Target}
+          graphic="opportunities"
           title="No opportunities report yet"
           description="Generate a real, LLM-analyzed report of what to create, update, and pursue based on your tracked prompts' brand-vs-competitor standing and cited sources."
         />

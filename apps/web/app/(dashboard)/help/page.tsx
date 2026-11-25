@@ -3,11 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Docs app isn't linked from anywhere else in apps/web yet (grepped for
-// existing links - there are none). README.md documents it as
-// `pnpm --filter @rosterseo/docs dev` running on http://localhost:3001,
-// so that's the URL used here rather than inventing a production one.
-const DOCS_URL = "http://localhost:3001";
+const DOCS_URL = "/docs";
 
 // Real repo (see apps/docs/src/lib/shared.ts's gitConfig and package.json's
 // "repository" field, both set to this same URL).
@@ -30,21 +26,16 @@ export default function HelpPage() {
             </div>
             <CardTitle>Documentation</CardTitle>
             <CardDescription>
-              Product spec, architecture, and per-feature docs covering what&apos;s real vs. mock today.
+              Guides, architecture, and per-feature documentation for RosterSEO.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <a
               href={DOCS_URL}
-              target="_blank"
-              rel="noreferrer"
               className="text-sm font-medium text-primary underline-offset-4 hover:underline"
             >
-              Open docs site
+              Open docs
             </a>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Runs locally via <code>pnpm --filter @rosterseo/docs dev</code> (port 3001).
-            </p>
           </CardContent>
         </Card>
 

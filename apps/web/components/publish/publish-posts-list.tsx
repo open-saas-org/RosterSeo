@@ -81,7 +81,7 @@ function PublishPostsListInner({ projectId, posts }: { projectId: string; posts:
   );
 
   if (posts.length === 0) {
-    return <EmptyState icon={Newspaper} title="No posts yet" description="Compose your first post to see it here." />;
+    return <EmptyState icon={Newspaper} graphic="publish" title="No posts yet" description="Compose your first post to see it here." />;
   }
 
   const events: CalendarEvent[] = filteredPosts.map((post) => ({

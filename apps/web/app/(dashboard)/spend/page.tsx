@@ -3,14 +3,19 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { SpendWorkspace } from "@/components/spend/spend-workspace";
 import { auth } from "@/lib/auth";
+import { isSelfHosted } from "@/lib/self-hosted";
 import { getSpendSummary } from "@/lib/spend-data";
 
 // Same global/account-level pattern as the Settings page (auth.api.getSession
 // directly, no getCurrentProject()) - spend is instance-wide, not
 // project-scoped, since every provider credential it tracks is a single
 // global env var for the whole deployment (see providerSpendLog's own
-// comment in packages/db/src/app-schema.ts).
+// comment in packages/db/src/app-schema.ts). Gated to self-hosted mode so
+// hosted SaaS tenants never see deployment-wide API spend across other orgs.
 export default async function SpendPage() {
+  if (!isSelfHosted()) {
+    redirect("/");
+  }
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 

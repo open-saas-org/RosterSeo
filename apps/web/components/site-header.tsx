@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CreditCard } from "lucide-react";
+import { CreditCard, Sparkles } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { buttonVariants } from "@/components/ui/button";
@@ -20,16 +20,28 @@ function formatSpend(usd: number): string {
   return `$${usd.toFixed(2)}`;
 }
 
-export function SiteHeader({ totalSpendUsd, showBilling = false }: { totalSpendUsd: number; showBilling?: boolean }) {
+export function SiteHeader({
+  totalSpendUsd,
+  showBilling = false,
+  showUpgrade = false,
+}: {
+  totalSpendUsd: number;
+  showBilling?: boolean;
+  showUpgrade?: boolean;
+}) {
   const pathname = usePathname();
   const allGroups = navPillars.flatMap((pillar) => pillar.groups);
   // Billing only exists in hosted SaaS mode (SELF_HOSTED=false) - computed
   // server-side in the dashboard layout and passed down, since
   // process.env.SELF_HOSTED isn't readable from this client component.
-  const topBarItems: NavItem[] = showBilling
-    ? [...navTopBar, { title: "Billing", href: "/settings/billing", icon: CreditCard }]
+  const baseTopBar = showBilling
+    ? navTopBar.filter((item) => item.href !== "/spend" && item.href !== "/ai-mcp")
     : navTopBar;
-  const allItems = [...allGroups.flatMap((group) => group.items), ...topBarItems];
+  const topBarItems: NavItem[] = showBilling
+    ? [...baseTopBar, { title: "Billing", href: "/settings/billing", icon: CreditCard }]
+    : baseTopBar;
+  const extraItems: NavItem[] = showBilling ? [{ title: "Pricing", href: "/pricing" }] : [];
+  const allItems = [...allGroups.flatMap((group) => group.items), ...topBarItems, ...extraItems];
   const current = allItems.find((item) => item.href === pathname);
   const currentGroup = allGroups.find((group) => group.items.some((item) => item.href === pathname));
 
@@ -80,6 +92,12 @@ export function SiteHeader({ totalSpendUsd, showBilling = false }: { totalSpendU
             </Tooltip>
           );
         })}
+        {showBilling && showUpgrade ? (
+          <Link href="/pricing" className={cn(buttonVariants({ variant: "default", size: "sm" }), "ml-1")}>
+            <Sparkles className="size-3.5" />
+            Upgrade
+          </Link>
+        ) : null}
         <Separator orientation="vertical" className="mx-1 h-4 !self-center" />
         <ThemeToggle />
       </div>

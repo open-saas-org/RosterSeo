@@ -52,6 +52,7 @@ export default async function BingInsightsPage() {
           ) : null}
           <EmptyState
             icon={Compass}
+            graphic="insights"
             title={fetchFailed ? "Couldn't reach Bing Webmaster Tools" : "Bing Webmaster Tools isn't configured"}
             description={
               fetchFailed

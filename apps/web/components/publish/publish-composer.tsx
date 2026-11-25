@@ -165,6 +165,7 @@ export function PublishComposer({
     return (
       <EmptyState
         icon={Newspaper}
+        graphic="publish"
         title="No blog platforms connected yet"
         description="Connect at least one blogging platform before you can compose a post."
         action={
