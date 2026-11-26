@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { wordpressConnections, withUserContext } from "@rosterseo/db";
+import { decryptSecret, encryptSecret, wordpressConnections, withUserContext } from "@rosterseo/db";
 import { verifyWordPressConnection, listRecentPosts } from "@rosterseo/wordpress";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 
@@ -31,7 +31,7 @@ export const GET = withAuth<RouteParams>(async (_req, ctx, session) => {
   }
 
   try {
-    const posts = await listRecentPosts(conn.siteUrl, conn.username, conn.applicationPassword, 5);
+    const posts = await listRecentPosts(conn.siteUrl, conn.username, decryptSecret(conn.applicationPassword), 5);
     return NextResponse.json({ connected: true, siteUrl: conn.siteUrl, connectedAt: conn.connectedAt, posts });
   } catch (err) {
     console.error("WordPress recent-posts fetch failed", err);
@@ -61,13 +61,14 @@ export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Couldn't connect to that WordPress site" }, { status: 400 });
   }
 
+  const encryptedPassword = encryptSecret(applicationPassword);
   await withUserContext(session.user.id, (tx) =>
     tx
       .insert(wordpressConnections)
-      .values({ projectId, siteUrl, username, applicationPassword })
+      .values({ projectId, siteUrl, username, applicationPassword: encryptedPassword })
       .onConflictDoUpdate({
         target: wordpressConnections.projectId,
-        set: { siteUrl, username, applicationPassword, connectedAt: new Date() },
+        set: { siteUrl, username, applicationPassword: encryptedPassword, connectedAt: new Date() },
       }),
   );
 

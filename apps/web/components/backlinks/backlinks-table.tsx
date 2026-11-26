@@ -132,7 +132,7 @@ export function BacklinksTable({
   ];
 
   if (backlinks.length === 0) {
-    return <EmptyState icon={Search} title="No individual backlinks in this dataset" description="The backlink index for this domain only returned aggregate counts, not individual rows." />;
+    return <EmptyState icon={Search} graphic="backlinks" title="No individual backlinks in this dataset" description="The backlink index for this domain only returned aggregate counts, not individual rows." />;
   }
 
   return (

@@ -2,15 +2,20 @@
 
 Two decisions shape everything below:
 
-1. **Open-core, not SaaS-only — today, single-tenant self-hosted
-   (`SELF_HOSTED=true`, no billing, operator's own API keys) with Postgres
-   row-level tenant isolation already built in. A multi-tenant hosted SaaS
-   mode (`SELF_HOSTED=false`, Stripe billing, per-org credit metering) is
-   planned on the same codebase, but not implemented yet — `SELF_HOSTED`
-   isn't actually read anywhere in the app currently, and there's no
-   Stripe integration in the code. The RLS/org model exists because
-   multi-tenancy is the eventual goal, not because hosted billing works
-   today.**
+1. **Open-core, not SaaS-only.** Self-hosted (`SELF_HOSTED=true`, the
+   default) is single-tenant, no billing, operator's own API keys — this
+   stays fully free and functional forever. A multi-tenant hosted SaaS
+   mode (`SELF_HOSTED=false`) now also exists on the same codebase: Stripe
+   Checkout/Billing Portal/webhooks, in-code plan tiers, and per-org
+   monthly usage-limit enforcement (`apps/web/lib/{self-hosted,plans,
+   stripe,usage}.ts`). `isSelfHosted()` is the one seam between the two —
+   every billing-aware code path checks it, so self-hosted installs never
+   see a trace of Stripe. See [ROADMAP.md](./ROADMAP.md) for what's still
+   open (a connected-accounts usage cap for Publish/Social, and extending
+   the credential-encryption work below past Google tokens). The RLS/org
+   model this depends on was built with multi-tenancy as the goal from the
+   start, which is why hosted mode could be layered on without a schema
+   rewrite.
 2. **Self-hostable stack, not vendor-locked.** Vercel and Supabase are
    fine if you're the only operator, but they don't work for "anyone can
    one-click deploy this on Railway." Plain Postgres + Drizzle + Docker is
@@ -27,7 +32,7 @@ Two decisions shape everything below:
 | Auth | better-auth | Self-hostable (unlike Supabase Auth or Clerk), Drizzle adapter, org/session model we control |
 | Tenant isolation | Postgres row-level security, scoped by user via `organization_members` (not directly by org — see below), enforced at the DB layer | Requires the app's `DATABASE_URL` role to be `NOSUPERUSER NOBYPASSRLS` — a superuser silently skips RLS entirely, which we hit directly while testing this |
 | Background jobs | pg-boss, run in a separate `apps/worker` process | Postgres-native, no extra infra, matches our self-host-first goal |
-| Billing | Stripe, planned for hosted mode | Not implemented yet — no Stripe integration exists in the codebase today |
+| Billing | Stripe, hosted mode only | Checkout + Billing Portal + webhook sync, gated entirely behind `isSelfHosted()` |
 | SEO data | DataForSEO API | Single vendor for keywords/SERP/backlinks/on-page/local |
 | AI/LLM | Direct provider APIs (OpenAI, Anthropic, Google, Perplexity), plus BrightData + OpenRouter for AI-answer-engine visibility | Broadest real coverage without vendor lock-in to one LLM provider |
 | MCP server | `@modelcontextprotocol/sdk`, separate app in the monorepo | Lets a user's own AI tools query their project data directly |
@@ -114,6 +119,23 @@ role, since superusers bypass RLS silently.
 ## Caching & Redis
 
 This project deliberately doesn't run Redis. To maintain self-host simplicity and reduce infrastructure overhead, Postgres-based caching (or simple in-memory/file caching where applicable) is preferred over running a separate Redis instance. This ensures the app can run easily on any Node + Postgres setup.
+
+## Credential encryption at rest
+
+OAuth access/refresh tokens, WordPress Application Passwords, and SMTP
+passwords were stored plaintext originally — defensible for a
+single-operator self-host (the operator is the only person who can ever
+read their own database), not defensible once this app hosts *other
+people's* credentials in multi-tenant SaaS mode, where a DB leak becomes a
+mass account-takeover across every connected customer. `packages/db/src/
+crypto.ts` (AES-256-GCM) closes this: opt-in via `CREDENTIAL_ENCRYPTION_KEY`,
+backward-compatible (an unset key, or a pre-existing plaintext row, both
+pass through unchanged on read), so turning it on needs no backfill
+migration and never locks an existing self-hosted install out of its own
+data. The helper exists and is tested; wiring it into the actual
+read/write call sites for `google_connections`, `wordpress_connections`,
+`email_connections`, `blog_connections`, and `social_connections` is
+tracked in [ROADMAP.md](./ROADMAP.md) Phase 0 — not done yet.
 
 ## Open decisions
 

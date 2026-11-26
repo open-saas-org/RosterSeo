@@ -292,6 +292,18 @@ async function fetchAndParseOnce(url: string, options?: FetchAndParseOptions): P
 
     const jsonLd = captureContent ? extractJsonLd($) : null;
 
+    // Cheerio's .text() walks every descendant node, including <script>/
+    // <style>/<noscript> content - unlike a browser's rendered "visible
+    // text," it doesn't know those aren't real page copy. Real minified JS
+    // bundles were ending up concatenated into bodyText/wordCount (and, in
+    // the one real page genuinely long enough to show it, outnumbering the
+    // page's actual words), corrupting the one number this result is
+    // supposed to report honestly and diluting the AI prompt's content
+    // summary with garbage. Removed after JSON-LD capture above (which
+    // deliberately needs those same <script> tags) and before every text
+    // extraction below (title/h2/body), none of which need them either.
+    $("script, style, noscript").remove();
+
     const title = $("title").first().text().trim() || null;
     const metaDescription = $('meta[name="description"]').attr("content")?.trim() || null;
     const h1Count = $("h1").length;

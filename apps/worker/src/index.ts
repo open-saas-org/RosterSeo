@@ -2,7 +2,19 @@ import "./instrument";
 import "./spend-logging";
 
 import * as Sentry from "@sentry/node";
-import { pingJob, siteAuditJob, siteAuditDeepCheckJob, localGridScanJob, localGridScanFanoutJob, rankCheckJob, outreachSendJob, blogPublishJob, socialPublishJob } from "@rosterseo/jobs";
+import {
+  pingJob,
+  siteAuditJob,
+  siteAuditDeepCheckJob,
+  localGridScanJob,
+  localGridScanFanoutJob,
+  rankCheckJob,
+  outreachSendJob,
+  blogPublishJob,
+  socialPublishJob,
+  socialMetricsFetchJob,
+  socialMetricsFanoutJob,
+} from "@rosterseo/jobs";
 import { runSiteAuditBackground } from "./features/audit-runner";
 import { runSiteAuditDeepCheck } from "./features/site-audit-deep-check-runner";
 import { runProjectGridScan, runWeeklyFanout } from "./features/grid-scan-runner";
@@ -10,6 +22,7 @@ import { runRankCheck } from "./features/rank-check-runner";
 import { runOutreachSend } from "./features/outreach-runner";
 import { runBlogPublish } from "./features/blog-publish-runner";
 import { runSocialPublish } from "./features/social-publish-runner";
+import { runFetchSocialMetrics, runSocialMetricsFanout } from "./features/social-metrics-runner";
 
 // Add one `await <job>.work(handler)` per job type as features land
 // (site_crawl, page_analyzer_run, ai_visibility_run, ...). Each job's
@@ -115,8 +128,34 @@ await socialPublishJob.work(async (payload) => {
   }
 });
 
+await socialMetricsFetchJob.work(async (payload) => {
+  try {
+    console.log(`[social-metrics] Fetching metrics for target ${payload.socialPostTargetId}`);
+    await runFetchSocialMetrics(payload);
+    console.log(`[social-metrics] Done with target ${payload.socialPostTargetId}`);
+  } catch (error) {
+    Sentry.captureException(error);
+    throw error;
+  }
+});
+
+await socialMetricsFanoutJob.work(async () => {
+  try {
+    console.log("[social-metrics-fanout] Starting daily fanout");
+    await runSocialMetricsFanout();
+    console.log("[social-metrics-fanout] Completed daily fanout");
+  } catch (error) {
+    Sentry.captureException(error);
+    throw error;
+  }
+});
+
 // Monday 3am UTC. boss.schedule upserts by name, so registering this on
 // every boot is safe - it doesn't create duplicate schedules.
 await localGridScanFanoutJob.scheduleRecurring("0 3 * * 1", {}, { tz: "UTC" });
+// Daily 4am UTC - an hour after the weekly local-grid fanout, same
+// stagger-the-cron-starts reasoning, nothing load-bearing about the
+// specific hour.
+await socialMetricsFanoutJob.scheduleRecurring("0 4 * * *", {}, { tz: "UTC" });
 
 console.log("Worker started, listening for jobs.");

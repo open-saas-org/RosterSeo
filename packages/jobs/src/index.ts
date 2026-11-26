@@ -9,3 +9,5 @@ export { rankCheckJob } from "./rank-check-job";
 export { outreachSendJob } from "./outreach-send-job";
 export { blogPublishJob } from "./blog-publish-job";
 export { socialPublishJob } from "./social-publish-job";
+export { socialMetricsFetchJob } from "./social-metrics-fetch-job";
+export { socialMetricsFanoutJob } from "./social-metrics-fanout-job";

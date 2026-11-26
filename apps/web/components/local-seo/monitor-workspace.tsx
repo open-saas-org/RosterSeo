@@ -53,7 +53,13 @@ export function MonitorWorkspace({
   initialConfig: MonitorConfig | null;
   initialScans: ScanSummary[];
 }) {
-  const [savedKeyword, setSavedKeyword] = useState(initialConfig?.trackedKeyword ?? null);
+  const [savedConfig, setSavedConfig] = useState<MonitorConfig>({
+    trackedKeyword: initialConfig?.trackedKeyword ?? null,
+    gridSize: initialConfig?.gridSize ?? 5,
+    radiusKm: initialConfig?.radiusKm ?? 5,
+    autoTrackEnabled: initialConfig?.autoTrackEnabled ?? true,
+  });
+  const savedKeyword = savedConfig.trackedKeyword;
   const [keyword, setKeyword] = useState(initialConfig?.trackedKeyword ?? "");
   const [gridSize, setGridSize] = useState<(typeof GRID_SIZES)[number]>((initialConfig?.gridSize as (typeof GRID_SIZES)[number]) ?? 5);
   const [radiusKm, setRadiusKm] = useState(String(initialConfig?.radiusKm ?? 5));
@@ -74,6 +80,7 @@ export function MonitorWorkspace({
     return (
       <EmptyState
         icon={MapPinned}
+        graphic="local-seo"
         title="Save a business profile first"
         description="Monitor tracks rank for the business saved on the Profile page."
         action={
@@ -98,7 +105,12 @@ export function MonitorWorkspace({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Save failed");
-      setSavedKeyword(data.profile.trackedKeyword);
+      setSavedConfig({
+        trackedKeyword: data.profile.trackedKeyword,
+        gridSize: data.profile.gridSize ?? gridSize,
+        radiusKm: data.profile.radiusKm ?? Number(radiusKm),
+        autoTrackEnabled: data.profile.autoTrackEnabled ?? autoTrackEnabled,
+      });
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : "Couldn't save config. Try again.");
     } finally {
@@ -168,7 +180,11 @@ export function MonitorWorkspace({
     }
   }
 
-  const configDirty = keyword.trim() !== (savedKeyword ?? "");
+  const configDirty =
+    keyword.trim() !== (savedKeyword ?? "") ||
+    gridSize !== savedConfig.gridSize ||
+    Number(radiusKm) !== savedConfig.radiusKm ||
+    autoTrackEnabled !== savedConfig.autoTrackEnabled;
 
   return (
     <div className="flex flex-col gap-4">
@@ -279,7 +295,11 @@ export function MonitorWorkspace({
               </Button>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <GridMap center={{ lat: active.scan.centerLat, lng: active.scan.centerLng }} points={active.points} />
+              <GridMap
+                key={active.scan.id}
+                center={{ lat: active.scan.centerLat, lng: active.scan.centerLng }}
+                points={active.points}
+              />
               {tip ? <div className="rounded-lg border bg-muted/40 p-4 text-sm whitespace-pre-line">{tip}</div> : null}
             </CardContent>
           </Card>
@@ -295,7 +315,7 @@ export function MonitorWorkspace({
         </CardHeader>
         <CardContent>
           {scans.length === 0 ? (
-            <EmptyState icon={MapPinned} title="No scans yet" description="Save a keyword above, then run your first scan." />
+            <EmptyState icon={MapPinned} graphic="local-seo" title="No scans yet" description="Save a keyword above, then run your first scan." />
           ) : (
             <ul className="flex flex-col divide-y divide-border rounded-md border">
               {scans.map((scan) => (

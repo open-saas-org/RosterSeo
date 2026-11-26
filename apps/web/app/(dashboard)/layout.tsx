@@ -1,5 +1,7 @@
 import { cookies, headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { isNotNull, isNull } from "drizzle-orm";
 import { projects, withUserContext } from "@rosterseo/db";
 import { auth } from "@/lib/auth";
@@ -8,6 +10,9 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getSpendSummary } from "@/lib/spend-data";
+import { isSelfHosted } from "@/lib/self-hosted";
+import { getUserOrganization } from "@/lib/org";
+import { isPaidPlanActive } from "@/lib/plans";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -45,6 +50,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // as projectRows/archivedRows above, so the nav bar's number is never
   // more than one page load stale.
   const { totalAllTimeUsd } = await getSpendSummary();
+  const selfHosted = isSelfHosted();
+  const org = selfHosted ? null : await getUserOrganization(session.user.id);
+  const showUpgrade = !selfHosted && (!org || !isPaidPlanActive(org));
 
   return (
     <SidebarProvider>
@@ -55,7 +63,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
         activeProjectId={activeProject.id}
       />
       <SidebarInset>
-        <SiteHeader totalSpendUsd={totalAllTimeUsd} />
+        <SiteHeader totalSpendUsd={totalAllTimeUsd} showBilling={!selfHosted} showUpgrade={showUpgrade} />
+        {showUpgrade ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-amber-500/10 px-6 py-2 text-sm text-foreground">
+            <p className="flex items-center gap-2">
+              <Sparkles className="size-4 shrink-0 text-amber-500" />
+              <span>
+                Loving <strong>RosterSEO</strong>? Upgrade your plan to unlock higher limits and keep growing your site.
+              </span>
+            </p>
+            <Link
+              href="/pricing"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Upgrade plan &rarr;
+            </Link>
+          </div>
+        ) : null}
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>

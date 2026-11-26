@@ -8,13 +8,20 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// A hard safety ceiling, not a user-facing feature - a real crawl always
-// runs to completion (BFS frontier exhausted or the wall-clock deadline in
-// apps/worker's crawler.ts, whichever's first), never stopped early by a
-// page count. This just protects against a genuinely pathological site
-// (e.g. infinite faceted/calendar URL generation) from growing the link
-// graph without bound - no real site's actual page count comes close.
-const MAX_PAGES_SAFETY_CEILING = 100_000;
+// The practical range users can actually pick in Custom Config - matches
+// apps/web/lib/site-audit/start-site-audit.ts's own documented default
+// (200). The server additionally hard-clamps to an absolute 100,000-page
+// safety ceiling regardless of what's sent here (protects against a
+// genuinely pathological site generating infinite faceted/calendar URLs),
+// but that ceiling is deliberately never offered as a selectable value or
+// sent as a default - previously it was both (a real bug: every one-click
+// "Launch audit" used to crawl up to 100,000 real pages of a real
+// third-party site, for up to 6 hours, caught by actually running one
+// against linear.app and watching it climb past 1,000 pages with no sign
+// of stopping).
+const MIN_MAX_PAGES = 10;
+const MAX_MAX_PAGES = 5_000;
+const DEFAULT_MAX_PAGES = 200;
 
 // Launch-a-new-crawl control: the button + Custom Config form, shared by
 // the empty state (a project's very first audit) and the audit detail
@@ -34,6 +41,7 @@ export function SiteAuditLaunchControl({
   const [error, setError] = useState<string | null>(null);
   const [customDomain, setCustomDomain] = useState("");
   const [customSitemap, setCustomSitemap] = useState("");
+  const [customMaxPages, setCustomMaxPages] = useState(String(DEFAULT_MAX_PAGES));
   const [showConfig, setShowConfig] = useState(false);
 
   async function handleRunAudit(e?: React.FormEvent) {
@@ -49,7 +57,7 @@ export function SiteAuditLaunchControl({
         body: JSON.stringify({
           domain: customDomain || project.domain,
           customSitemapUrl: customSitemap || undefined,
-          maxPages: MAX_PAGES_SAFETY_CEILING,
+          maxPages: showConfig ? Number(customMaxPages) || DEFAULT_MAX_PAGES : DEFAULT_MAX_PAGES,
         }),
       });
 
@@ -107,6 +115,17 @@ export function SiteAuditLaunchControl({
                   placeholder={`https://${project.domain}/sitemap.xml`}
                   value={customSitemap}
                   onChange={(e) => setCustomSitemap(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2 w-full sm:w-1/4">
+                <Label htmlFor="maxPages">Max pages to crawl</Label>
+                <Input
+                  id="maxPages"
+                  type="number"
+                  min={MIN_MAX_PAGES}
+                  max={MAX_MAX_PAGES}
+                  value={customMaxPages}
+                  onChange={(e) => setCustomMaxPages(e.target.value)}
                 />
               </div>
             </form>

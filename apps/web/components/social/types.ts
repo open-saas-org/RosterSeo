@@ -9,6 +9,7 @@ export type SocialPlatformDefView = {
   charLimit?: number;
   credentialFields: { key: string; label: string; type: "text" | "password" | "url" }[];
   accountIdentifierLabel: string;
+  accountIdentifierSource?: string;
   accessNote?: string;
 };
 
@@ -42,6 +43,8 @@ export type SocialPostView = {
   createdByUserId: string;
   createdAt: string;
   updatedAt: string;
+  // See BlogPostView.platforms' identical comment.
+  platforms: string[];
 };
 
 export type SocialPostTargetView = {

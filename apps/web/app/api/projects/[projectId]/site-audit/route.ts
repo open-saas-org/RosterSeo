@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { startSiteAudit } from "@/lib/site-audit/start-site-audit";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 import { withUserContext } from "@rosterseo/db";
 import { eq, desc } from "drizzle-orm";
@@ -11,6 +12,11 @@ export const POST = withAuth(async (req, { params }, session) => {
 
   if (!project) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const usage = await checkAndIncrementUsage(project.organizationId, "site_audits", session.user.id);
+  if (!usage.allowed) {
+    return NextResponse.json({ error: "usage_limit_exceeded", limit: usage.limit, used: usage.used }, { status: 402 });
   }
 
   let body: { domain?: string; customSitemapUrl?: string; maxPages?: number } = {};

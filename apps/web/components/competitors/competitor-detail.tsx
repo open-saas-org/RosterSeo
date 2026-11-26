@@ -148,6 +148,7 @@ export function CompetitorDetail({
       {competitor.status === "idle" ? (
         <EmptyState
           icon={RadarIcon}
+          graphic="competitors"
           title="Not scanned yet"
           description="Traffic, keywords, and backlink data load on demand - press Scan whenever you want fresh numbers for this competitor."
           action={

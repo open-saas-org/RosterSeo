@@ -366,7 +366,7 @@ export function SiteAuditDetail({
               {showNewAudit ? "Cancel" : "New audit"}
             </Button>
             {auditRun.status === "complete" ? (
-              <Button variant="soft-blue" size="sm" className="gap-2" render={<Link href={`/site-audit/${auditId}/deep-check`} />}>
+              <Button variant="soft-blue" size="sm" className="gap-2" render={<Link href={`/site-audit/${auditId}/deep-check`} />} nativeButton={false}>
                 <Link2 className="size-4" /> Broken links & more
               </Button>
             ) : null}

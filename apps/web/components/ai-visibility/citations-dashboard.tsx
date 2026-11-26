@@ -388,6 +388,7 @@ export function CitationsDashboard({
     return (
       <EmptyState
         icon={Link2}
+        graphic="citations"
         title="No citations yet"
         description="Run a visibility check to start collecting real cited sources - richest with Perplexity, BrightData, or OpenRouter's :online mode configured, since those are the providers whose responses actually carry source URLs."
       />

@@ -3,13 +3,23 @@ import { siteAudits, withUserContext } from "@rosterseo/db";
 import { siteAuditJob } from "@rosterseo/jobs";
 
 const MIN_MAX_PAGES = 10;
-// A hard safety ceiling, not a real feature limit - see
-// site-audit-launch-control.tsx's own copy of this same reasoning. A real
-// crawl runs until its BFS frontier is exhausted or the wall-clock
-// deadline (apps/worker's crawler.ts) hits, never stopped early by page
-// count for any real site.
+// A hard safety ceiling (clamp only, never the default) - protects against
+// a genuinely pathological site (e.g. infinite faceted/calendar URL
+// generation) from growing the link graph without bound. A real crawl
+// still runs until its BFS frontier is exhausted or the wall-clock
+// deadline (6 hours - apps/worker's crawler.ts) hits, whichever's first;
+// this ceiling just bounds the worst case, it is not a sane default to
+// launch on every "Launch audit" click.
 const MAX_MAX_PAGES = 100_000;
-const DEFAULT_MAX_PAGES = MAX_MAX_PAGES;
+// This WAS set to MAX_MAX_PAGES (100,000) - a real bug, not a deliberate
+// choice: it meant every quick "Launch audit" click (no custom config)
+// crawled up to 100,000 real pages of a real third-party site, for up to
+// 6 hours, by default. Caught by actually running a real audit against
+// linear.app in a browser and watching pages_discovered climb past 1,000
+// with no sign of stopping. 200 matches this feature's own documented
+// default (see seo-saas-prd-v1.md's Site Audit section: "a real
+// user-facing input (10-5,000, default 200)").
+const DEFAULT_MAX_PAGES = 200;
 
 // Real shared logic behind POST /api/projects/:projectId/site-audit -
 // extracted so Cappy's start_site_audit tool (apps/web/lib/cappy/tools/write.ts)

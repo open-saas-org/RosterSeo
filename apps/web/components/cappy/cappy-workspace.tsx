@@ -62,6 +62,7 @@ export function CappyWorkspace({ projectId, domain }: { projectId: string; domai
   const [isSending, setIsSending] = useState(false);
   const [isLoadingThread, setIsLoadingThread] = useState(false);
   const [liveStatus, setLiveStatus] = useState<CappyLiveStatus | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [settings, setSettings] = useState<CappySettings | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -97,32 +98,41 @@ export function CappyWorkspace({ projectId, domain }: { projectId: string; domai
   async function ensureConversation(): Promise<string> {
     if (conversationId) return conversationId;
     const res = await fetch(`/api/projects/${projectId}/cappy/conversations`, { method: "POST" });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.conversation?.id) {
+      throw new Error(data?.error ?? "Couldn't start a conversation.");
+    }
     router.replace(`/cappy?c=${data.conversation.id}`, { scroll: false });
     return data.conversation.id as string;
   }
 
   async function handleSend(content: string) {
-    const id = await ensureConversation();
-    const optimisticUserMessage: CappyMessageView = {
-      id: `optimistic-${Date.now()}`,
-      conversationId: id,
-      role: "user",
-      content,
-      toolCalls: null,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, optimisticUserMessage]);
+    setSendError(null);
     setIsSending(true);
     setLiveStatus({ state: "thinking" });
+    let optimisticUserMessage: CappyMessageView | null = null;
     try {
+      const id = await ensureConversation();
+      optimisticUserMessage = {
+        id: `optimistic-${Date.now()}`,
+        conversationId: id,
+        role: "user",
+        content,
+        toolCalls: null,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, optimisticUserMessage!]);
       await streamTurn(`/api/projects/${projectId}/cappy/conversations/${id}/messages`, { content }, (event) => {
         if (event.type === "status") setLiveStatus(event);
         else if (event.type === "message") setMessages((prev) => upsertMessage(prev, event.message));
         else if (event.type === "error") throw new Error(event.error);
       });
-    } catch {
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticUserMessage.id));
+    } catch (err) {
+      if (optimisticUserMessage) {
+        const failedId = optimisticUserMessage.id;
+        setMessages((prev) => prev.filter((m) => m.id !== failedId));
+      }
+      setSendError(err instanceof Error ? err.message : "Failed to send message. Please try again.");
     } finally {
       setIsSending(false);
       setLiveStatus(null);
@@ -197,7 +207,8 @@ export function CappyWorkspace({ projectId, domain }: { projectId: string; domai
             </div>
           </div>
           <div className="px-4 pb-6">
-            <div className="mx-auto w-full max-w-4xl">
+            <div className="mx-auto w-full max-w-4xl space-y-2">
+              {sendError ? <p className="text-sm text-destructive">{sendError}</p> : null}
               <CappyComposer disabled={isSending} onSend={handleSend} />
             </div>
           </div>
@@ -210,7 +221,8 @@ export function CappyWorkspace({ projectId, domain }: { projectId: string; domai
             <CappyMessageList messages={messages} status={liveStatus} onRespondToToolCall={handleRespondToToolCall} />
           )}
           <div className="px-4 pb-6 pt-2">
-            <div className="mx-auto w-full max-w-4xl">
+            <div className="mx-auto w-full max-w-4xl space-y-2">
+              {sendError ? <p className="text-sm text-destructive">{sendError}</p> : null}
               <CappyComposer disabled={isSending} onSend={handleSend} />
             </div>
           </div>

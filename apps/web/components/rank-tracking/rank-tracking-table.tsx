@@ -373,6 +373,7 @@ export function RankTrackingTable({
       {tracked.length === 0 ? (
         <EmptyState
           icon={ListChecks}
+          graphic="rank-tracking"
           title="No tracked keywords yet"
           description="Add keywords, then run Fetch Rankings to check their position."
         />

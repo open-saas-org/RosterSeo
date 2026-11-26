@@ -20,6 +20,10 @@ const PALETTE = [
 // competitors), all from the same real aiVisibilityResults rows. A legend
 // is always shown (palette-relief requirement for the light-mode slots that
 // sit under 3:1 contrast) so identity never depends on hue alone.
+function safeCssKey(key: string): string {
+  return key.replace(/[^a-zA-Z0-9_-]/g, "-");
+}
+
 export function PromptTrendChart({
   data,
   entities,
@@ -28,7 +32,7 @@ export function PromptTrendChart({
   entities: Array<{ key: string; label: string }>;
 }) {
   const chartConfig = Object.fromEntries(
-    entities.map((e, i) => [e.key, { label: e.label, color: PALETTE[i % PALETTE.length] }]),
+    entities.map((e, i) => [safeCssKey(e.key), { label: e.label, color: PALETTE[i % PALETTE.length] }]),
   ) satisfies ChartConfig;
 
   return (
@@ -50,8 +54,9 @@ export function PromptTrendChart({
           <Line
             key={e.key}
             dataKey={e.key}
+            name={e.label}
             type="monotone"
-            stroke={`var(--color-${e.key})`}
+            stroke={`var(--color-${safeCssKey(e.key)})`}
             strokeWidth={2}
             dot={{ r: 2.5 }}
             connectNulls

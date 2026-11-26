@@ -400,7 +400,7 @@ export function AiVisibilityPromptsWorkspace({
         </div>
       ) : prompts.length === 0 ? (
         <div className="p-4">
-          <EmptyState icon={ListTree} title="No prompts tracked yet" description="Add one above to get started." />
+          <EmptyState icon={ListTree} graphic="ai-visibility" title="No prompts tracked yet" description="Add one above to get started." />
         </div>
       ) : (
         <>

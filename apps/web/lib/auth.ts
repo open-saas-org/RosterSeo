@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db, schema, organizations, organizationMembers, withUserContext } from "@rosterseo/db";
 import { getPostHogServerClient } from "@/lib/posthog-server";
+import { isSelfHosted } from "@/lib/self-hosted";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -59,6 +60,13 @@ export const auth = betterAuth({
               id: orgId,
               name: `${user.name || user.email}'s Workspace`,
               slug,
+              // Hosted mode: every new signup gets a real 14-day trial of
+              // Pro-level limits (apps/web/lib/plans.ts), not the default
+              // "free" planId/"active" status columns default to - those
+              // defaults are what a self-hosted org keeps forever, since
+              // none of this is ever read there (self-hosted stays
+              // fully-featured with no plan concept at all).
+              ...(isSelfHosted() ? {} : { planId: "trial", subscriptionStatus: "trialing", trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) }),
             });
             await tx.insert(organizationMembers).values({
               organizationId: orgId,

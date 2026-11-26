@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { blogConnections, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { connectBlog } from "@/lib/publish/connect-blog";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 type RouteParams = { projectId: string };
 
@@ -41,6 +42,11 @@ export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
   const credentials = typeof body?.credentials === "object" && body.credentials !== null ? body.credentials : {};
   if (!platform || !label || !siteIdentifier) {
     return NextResponse.json({ error: "platform, label, and siteIdentifier are required" }, { status: 400 });
+  }
+
+  const usage = await checkAndIncrementUsage(project.organizationId, "connected_accounts", session.user.id);
+  if (!usage.allowed) {
+    return NextResponse.json({ error: "usage_limit_exceeded", limit: usage.limit, used: usage.used }, { status: 402 });
   }
 
   try {

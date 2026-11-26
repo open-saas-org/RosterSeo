@@ -40,7 +40,7 @@ export function CompetitorDetailPage({
   async function loadSnapshot() {
     setCompetitor((prev) => ({ ...prev, status: "loading", error: undefined }));
     try {
-      const snapshot = await fetchCompetitorSnapshot(projectId, initialCompetitor.domain, targetLocation);
+      const snapshot = await fetchCompetitorSnapshot(projectId, competitor.domain, targetLocation);
       setCompetitor((prev) => ({ ...prev, status: "ready", snapshot, error: undefined }));
     } catch (err) {
       setCompetitor((prev) => ({ ...prev, status: "error", error: err instanceof Error ? err.message : "Failed to load data." }));

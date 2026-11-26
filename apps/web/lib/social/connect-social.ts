@@ -1,4 +1,4 @@
-import { socialConnections, withUserContext } from "@rosterseo/db";
+import { encryptRecord, socialConnections, withUserContext } from "@rosterseo/db";
 import { getSocialAdapter, getSocialPlatformDef } from "@rosterseo/social";
 
 // Real shared logic behind POST /api/projects/:projectId/social/connections -
@@ -32,7 +32,7 @@ export async function connectSocial(
         platform: opts.platform,
         label: opts.label,
         authType: platformDef.authType,
-        credentials: opts.credentials,
+        credentials: encryptRecord(opts.credentials),
         accountIdentifier: opts.accountIdentifier,
         status: "connected",
       })

@@ -4,12 +4,33 @@ import { pageAnalyzerReports, googleConnections, withUserContext } from "@roster
 import { isGoogleOAuthConfigured } from "@rosterseo/google";
 import { isDataForSeoConfigured, resolveLocationCode } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
+import { checkAndIncrementUsage } from "@/lib/usage";
 import { toConnectionStatus } from "@/lib/google-connection-status";
 import { getValidAccessToken } from "@/lib/google-token";
 import { resolveDomainSnapshot } from "@/lib/domain-snapshot";
 import { buildPageAnalyzerResult } from "@/components/page-analyzer/analysis";
 
 type RouteParams = { projectId: string };
+
+// A hard outer deadline on the whole fire-and-forget analysis pipeline.
+// Every individual network call inside buildPageAnalyzerResult is already
+// timeout-bounded (DataForSEO ~20-30s, the crawler's own fetches ~32s
+// worst case with retries, PageSpeed, the LLM call), so this should never
+// actually fire in practice - it exists as a backstop for the one failure
+// mode none of those cover: something unforeseen (a bug, a genuinely
+// pathological response, anything not yet accounted for) hanging the
+// whole chain. Without this, a report that never settles stays "running"
+// in the DB forever - a permanent zombie row with no path back to
+// "failed" short of a server restart, which the UI's own "this looks
+// stuck" copy already has to warn users about as a known possibility.
+const ANALYSIS_DEADLINE_MS = 4 * 60 * 1000;
+
+function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Page analyzer run exceeded ${ms}ms`)), ms)),
+  ]);
+}
 
 function parseBody(body: unknown): { url: string; targetKeyword: string; targetLocation?: string } | { error: string } {
   if (typeof body !== "object" || body === null) {
@@ -125,6 +146,11 @@ export const POST = withAuth<RouteParams>(async (req: NextRequest, ctx, session)
   }
   const { url, targetKeyword, targetLocation } = parsed;
 
+  const usage = await checkAndIncrementUsage(project.organizationId, "page_analyzer_reports", session.user.id);
+  if (!usage.allowed) {
+    return NextResponse.json({ error: "usage_limit_exceeded", limit: usage.limit, used: usage.used }, { status: 402 });
+  }
+
   const [pending] = await withUserContext(session.user.id, (tx) =>
     tx
       .insert(pageAnalyzerReports)
@@ -152,7 +178,10 @@ export const POST = withAuth<RouteParams>(async (req: NextRequest, ctx, session)
     ? async (domain: string) => resolveDomainSnapshot(userId, projectId, domain, await resolveLocationCode(targetLocation))
     : undefined;
 
-  buildPageAnalyzerResult({ url, targetKeyword, targetLocation, gsc, ga4, merchant, resolveDomainSnapshot: domainSnapshotResolver })
+  withDeadline(
+    buildPageAnalyzerResult({ url, targetKeyword, targetLocation, gsc, ga4, merchant, resolveDomainSnapshot: domainSnapshotResolver }),
+    ANALYSIS_DEADLINE_MS,
+  )
     .then((result) =>
       withUserContext(session.user.id, (tx) =>
         tx.update(pageAnalyzerReports).set({ status: "complete", result }).where(eq(pageAnalyzerReports.id, pending!.id)),

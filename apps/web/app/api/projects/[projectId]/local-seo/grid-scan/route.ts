@@ -3,6 +3,7 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 import { localBusinessProfiles, localGridScanPoints, localGridScans, withUserContext } from "@rosterseo/db";
 import { DataForSeoNotConfiguredError, generateGridPoints, runGridScanPoints } from "@rosterseo/dataforseo";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
+import { checkAndIncrementUsage } from "@/lib/usage";
 
 // POST /api/projects/:projectId/local-seo/grid-scan
 // Real geo-grid rank check: a keyword checked against DataForSEO's local
@@ -35,6 +36,11 @@ export const POST = withAuth<RouteParams>(async (_req, ctx, session) => {
   }
   if (!profile.trackedKeyword) {
     return NextResponse.json({ error: "Set a tracked keyword in Monitor's config before running a scan." }, { status: 400 });
+  }
+
+  const usage = await checkAndIncrementUsage(project.organizationId, "local_seo_scans", session.user.id);
+  if (!usage.allowed) {
+    return NextResponse.json({ error: "usage_limit_exceeded", limit: usage.limit, used: usage.used }, { status: 402 });
   }
 
   const points = generateGridPoints({

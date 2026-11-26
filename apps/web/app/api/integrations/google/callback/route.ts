@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { emailConnections, googleConnections, withUserContext } from "@rosterseo/db";
+import { emailConnections, encryptSecret, googleConnections, withUserContext } from "@rosterseo/db";
 import { decodeState, exchangeCodeForTokens, getGmailAddress, isGoogleOAuthConfigured } from "@rosterseo/google";
 import { auth } from "@/lib/auth";
 import { requireProjectAccess } from "@/lib/api-utils";
@@ -76,7 +76,12 @@ export async function GET(req: NextRequest) {
         if (existing) {
           await tx
             .update(emailConnections)
-            .set({ gmailAccessToken: tokens.accessToken, gmailRefreshToken: tokens.refreshToken, gmailExpiresAt: tokens.expiresAt, gmailNeedsReconnect: false })
+            .set({
+              gmailAccessToken: encryptSecret(tokens.accessToken),
+              gmailRefreshToken: encryptSecret(tokens.refreshToken),
+              gmailExpiresAt: tokens.expiresAt,
+              gmailNeedsReconnect: false,
+            })
             .where(eq(emailConnections.id, existing.id));
         } else {
           await tx.insert(emailConnections).values({
@@ -84,8 +89,8 @@ export async function GET(req: NextRequest) {
             type: "gmail_oauth",
             label: address,
             fromEmail: address,
-            gmailAccessToken: tokens.accessToken,
-            gmailRefreshToken: tokens.refreshToken,
+            gmailAccessToken: encryptSecret(tokens.accessToken),
+            gmailRefreshToken: encryptSecret(tokens.refreshToken),
             gmailExpiresAt: tokens.expiresAt,
           });
         }
@@ -110,8 +115,8 @@ export async function GET(req: NextRequest) {
           await tx
             .update(googleConnections)
             .set({
-              accessToken: tokens.accessToken,
-              refreshToken: tokens.refreshToken,
+              accessToken: encryptSecret(tokens.accessToken),
+              refreshToken: encryptSecret(tokens.refreshToken),
               expiresAt: tokens.expiresAt,
               needsReconnect: false,
               connectedAt: new Date(),
@@ -121,8 +126,8 @@ export async function GET(req: NextRequest) {
           await tx.insert(googleConnections).values({
             organizationId: project.organizationId,
             service,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
+            accessToken: encryptSecret(tokens.accessToken),
+            refreshToken: encryptSecret(tokens.refreshToken),
             expiresAt: tokens.expiresAt,
           });
         }

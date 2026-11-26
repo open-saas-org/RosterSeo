@@ -45,6 +45,7 @@ export function OptimizeWorkspace({
     return (
       <EmptyState
         icon={Sparkles}
+        graphic="local-seo"
         title="Save a business profile first"
         description="Optimize builds a strategy from the business saved on the Profile page."
         action={
@@ -113,6 +114,7 @@ export function OptimizeWorkspace({
       {recommendations.length === 0 && !isGenerating ? (
         <EmptyState
           icon={Sparkles}
+          graphic="local-seo"
           title="No strategy yet"
           description="Generate one from your real listing data, rank tracking, and nearby competitors."
         />

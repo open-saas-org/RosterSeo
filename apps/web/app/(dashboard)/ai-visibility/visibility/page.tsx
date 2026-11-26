@@ -119,7 +119,7 @@ export default async function AiVisibilityPage() {
               configured={configured}
               providerStatus={providerStatus}
               activeTargets={activeTargets}
-              hasPrompts={dashboardPrompts.length > 0}
+              hasPrompts={dashboardPrompts.some((p) => p.enabled)}
             />
           </div>
         }

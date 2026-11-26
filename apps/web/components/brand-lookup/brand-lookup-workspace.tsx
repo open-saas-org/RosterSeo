@@ -134,6 +134,7 @@ export function BrandLookupWorkspace({
       ) : (
         <EmptyState
           icon={Sparkles}
+          graphic="brand-lookup"
           title="No lookup yet"
           description="Enter a brand or domain above and run a check to see per-provider results."
         />

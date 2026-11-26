@@ -52,8 +52,41 @@ RUN pnpm --filter @rosterseo/docs build
 # ships none of the source/tooling needed to run `pnpm db:migrate` directly.
 RUN pnpm --filter @rosterseo/db build
 
+# Separate runtime stage for apps/worker (pg-boss job consumer). Every
+# @rosterseo/* workspace package's "main" points straight at its own
+# src/index.ts (no package ships a dist/ build - see packages/db/package.json
+# vs. packages/jobs/package.json etc.), so a plain `tsc` compile of
+# apps/worker alone (its own package.json's "build"/"start" scripts) would
+# emit JS that still imports those packages' raw .ts files, which plain
+# `node` cannot load - confirmed this is why docker-compose.yml previously
+# ran the worker via the full heavy `build` stage in `tsx watch` dev mode
+# instead of a real production entrypoint. tsx is the only thing in this
+# repo that already handles this (it transpiles every .ts module it
+# encounters at import time, including transitively, not just the entry
+# file - the same mechanism apps/worker's own "dev" script already relies
+# on), so this stage runs that same mechanism, just once (no --watch) and
+# as the non-root `node` user instead of root. Placed BEFORE `runner`
+# below so `runner` (apps/web, the image `docker build -t rosterseo-web .`
+# with no --target is documented to produce) stays the last stage in this
+# file - Docker builds the last stage by default when --target is omitted.
+FROM base AS worker-runner
+ENV NODE_ENV=production
+WORKDIR /repo
+COPY --from=deps --chown=node:node /repo/node_modules ./node_modules
+COPY --from=deps --chown=node:node /repo/apps/worker/node_modules ./apps/worker/node_modules
+COPY --from=build --chown=node:node /repo/packages ./packages
+COPY --from=build --chown=node:node /repo/apps/worker ./apps/worker
+USER node
+ENTRYPOINT ["node_modules/.bin/tsx", "apps/worker/src/index.ts"]
+
 FROM base AS runner
 ENV NODE_ENV=production
+# Runs as the non-root `node` user baked into every node:*-slim image
+# (uid/gid 1000), not root - a container that only ever needs to read its
+# own bundled files and talk to Postgres/HTTP over the network has no
+# reason to run as root, and running as root is the default most Docker
+# images get wrong. Ownership of every COPY'd file below is handed to this
+# user via `--chown`.
 # Next's standalone server.js binds to `process.env.HOSTNAME || "0.0.0.0"` -
 # harmless-looking, except it means an unset HOSTNAME (the default on every
 # container runtime that doesn't happen to export one) falls through to
@@ -68,17 +101,17 @@ ENV HOSTNAME=0.0.0.0
 WORKDIR /repo
 # outputFileTracingRoot is set to the monorepo root, so standalone output
 # mirrors the full apps/web/... path rather than flattening to the root.
-COPY --from=build /repo/apps/web/.next/standalone ./
-COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
-COPY --from=build /repo/apps/web/public ./apps/web/public
+COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
+COPY --from=build --chown=node:node /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=node:node /repo/apps/web/public ./apps/web/public
 # Docs' own standalone output, layered into the same image root - its
 # server.js ends up at ./apps/docs/server.js alongside web's at
 # ./apps/web/server.js, each started as its own process (see
 # docker-entrypoint.sh). .next/static needs the same manual copy Next's
 # standalone output always needs (it's never included automatically) -
 # same reason apps/web needs the identical line above.
-COPY --from=build /repo/apps/docs/.next/standalone ./
-COPY --from=build /repo/apps/docs/.next/static ./apps/docs/.next/static
+COPY --from=build --chown=node:node /repo/apps/docs/.next/standalone ./
+COPY --from=build --chown=node:node /repo/apps/docs/.next/static ./apps/docs/.next/static
 # The bundled migration script + its raw .sql migration files (read at
 # runtime via a path relative to the compiled file - see
 # packages/db/src/migrate.ts) - this is the whole reason releaseCommand in
@@ -86,11 +119,20 @@ COPY --from=build /repo/apps/docs/.next/static ./apps/docs/.next/static
 # same lean image instead of needing a separate migration container, and
 # the whole reason the entrypoint below can migrate-then-serve for anyone
 # deploying this image outside Railway.
-COPY --from=build /repo/packages/db/dist ./packages/db/dist
-COPY --from=build /repo/packages/db/drizzle ./packages/db/drizzle
-COPY docker/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY --from=build --chown=node:node /repo/packages/db/dist ./packages/db/dist
+COPY --from=build --chown=node:node /repo/packages/db/drizzle ./packages/db/drizzle
+COPY --chown=node:node docker/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 EXPOSE 3000
+# Liveness signal for a plain `docker run`/Compose/Fly/Render deploy (and
+# the generic Docker tooling that reads HEALTHCHECK, e.g. `docker ps`) -
+# Railway instead reads railway.toml's own healthcheckPath against this
+# same /api/health route over HTTP, not this instruction. Uses Node's
+# built-in fetch rather than curl/wget, neither of which exists in the
+# node:22-slim base - avoids installing anything just for this check.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+USER node
 # Default: migrate, then serve (see docker/docker-entrypoint.sh) - this is
 # what makes `docker run -e DATABASE_URL=... rosterseo-web` (or a
 # docker-compose/Fly.io/Render/plain-VPS deploy with no separate

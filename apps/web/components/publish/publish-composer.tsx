@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Calendar } from "@/components/ui/calendar";
-import { EmptyState } from "@/components/empty-state";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { cn } from "@/lib/utils";
 import type { BlogConnectionView, BlogPlatformDefView, BlogPlatformTemplateView } from "./types";
@@ -148,36 +147,48 @@ export function PublishComposer({
       });
       const publishData = await publishRes.json();
       if (!publishRes.ok) throw new Error(publishData.error ?? "Couldn't publish that post.");
-      router.push(`/publish/posts/${createData.post.id}`);
+      // Nothing left for the user to do on this one post - land on the
+      // Posts workspace (briefly highlighted) rather than a standalone
+      // per-post page with no next action, per the Publishing Platform
+      // PRD's "feels very empty" complaint. The editPerPlatform branch
+      // above still goes to the dedicated review route, since that one
+      // DOES have a required next action (adapting each target).
+      router.push(`/publish/posts?highlight=${createData.post.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't publish that post.");
       setIsSubmitting(false);
     }
   }
 
-  if (connections.length === 0) {
-    return (
-      <EmptyState
-        icon={Newspaper}
-        title="No blog platforms connected yet"
-        description="Connect at least one blogging platform before you can compose a post."
-        action={
-          <Button render={<Link href="/publish/connections" />} size="sm">
-            Connect a platform
-          </Button>
-        }
-      />
-    );
-  }
+  const notConnected = connections.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
+      {notConnected ? (
+        <Card className="border-dashed border-publish/40 bg-publish/5">
+          <CardContent className="flex flex-col items-center gap-3 py-5 text-center sm:flex-row sm:justify-between sm:text-left">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-publish/10 text-publish">
+                <Newspaper className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">This is what the editor looks like</p>
+                <p className="text-xs text-muted-foreground">Try it out below — connect a platform when you&apos;re ready to actually publish or schedule.</p>
+              </div>
+            </div>
+            <Button render={<Link href="/publish/connections" />} nativeButton={false} size="sm" className="w-full shrink-0 sm:w-auto">
+              Connect a platform
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardContent className="flex flex-col gap-3 pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Label className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Publish to</Label>
             <div className="flex items-center gap-2">
-              <Select value={templateId} onValueChange={applyTemplate}>
+              <Select value={templateId} onValueChange={applyTemplate} disabled={notConnected}>
                 <SelectTrigger className="w-56">
                   <SelectValue placeholder="No preselected platforms" />
                 </SelectTrigger>
@@ -199,36 +210,40 @@ export function PublishComposer({
               </Button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2.5">
-            {connections.map((c) => {
-              const def = platformById.get(c.platform);
-              const selected = selectedIds.includes(c.id);
-              return (
-                <Tooltip key={c.id}>
-                  <TooltipTrigger
-                    render={
-                      <button
-                        type="button"
-                        onClick={() => toggleConnection(c.id)}
-                        aria-pressed={selected}
-                        className={cn(
-                          "relative flex size-10 items-center justify-center rounded-full border transition-colors",
-                          selected ? "border-publish bg-publish/10 ring-2 ring-publish/40" : "border-border hover:bg-muted/50",
-                        )}
-                      />
-                    }
-                  >
-                    {def ? <Image src={def.logo} alt="" width={18} height={18} /> : <Newspaper className="size-4 text-muted-foreground" />}
-                    {selected ? (
-                      <span className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-full bg-publish text-white">
-                        <Check className="size-2.5" />
-                      </span>
-                    ) : null}
-                  </TooltipTrigger>
-                  <TooltipContent>{c.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {notConnected ? (
+              <p className="text-xs text-muted-foreground">Your connected platforms will show up here as selectable avatars.</p>
+            ) : (
+              connections.map((c) => {
+                const def = platformById.get(c.platform);
+                const selected = selectedIds.includes(c.id);
+                return (
+                  <Tooltip key={c.id}>
+                    <TooltipTrigger
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => toggleConnection(c.id)}
+                          aria-pressed={selected}
+                          className={cn(
+                            "relative flex size-10 items-center justify-center rounded-full border transition-colors",
+                            selected ? "border-publish bg-publish/10 ring-2 ring-publish/40" : "border-border hover:bg-muted/50",
+                          )}
+                        />
+                      }
+                    >
+                      {def ? <Image src={def.logo} alt="" width={18} height={18} /> : <Newspaper className="size-4 text-muted-foreground" />}
+                      {selected ? (
+                        <span className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-full bg-publish text-white">
+                          <Check className="size-2.5" />
+                        </span>
+                      ) : null}
+                    </TooltipTrigger>
+                    <TooltipContent>{c.label}</TooltipContent>
+                  </Tooltip>
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>
@@ -236,7 +251,12 @@ export function PublishComposer({
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <Card>
           <CardHeader>
-            <CardTitle>New post</CardTitle>
+            <CardTitle className="flex items-center gap-1.5">
+              <span className="flex size-6 items-center justify-center rounded-md bg-publish/10 text-publish">
+                <Newspaper className="size-3.5" />
+              </span>
+              New post
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
@@ -287,21 +307,45 @@ export function PublishComposer({
             ) : null}
 
             {editPerPlatform ? (
-              <Button type="button" disabled={isSubmitting} onClick={() => handleSubmit(false)} className="w-full gap-1.5 bg-publish text-publish-foreground hover:bg-publish/80">
-                {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
-                Continue to per-platform editing
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      disabled={isSubmitting || notConnected}
+                      onClick={() => handleSubmit(false)}
+                      className="w-full gap-1.5 bg-publish text-publish-foreground hover:bg-publish/80"
+                    />
+                  }
+                >
+                  {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+                  Continue to per-platform editing
+                </TooltipTrigger>
+                {notConnected ? <TooltipContent>Connect a platform to continue</TooltipContent> : null}
+              </Tooltip>
             ) : (
               <>
-                <Button type="button" disabled={isSubmitting} onClick={() => handleSubmit(false)} className="w-full gap-1.5 bg-publish text-publish-foreground hover:bg-publish/80">
-                  {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-                  Publish now
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        disabled={isSubmitting || notConnected}
+                        onClick={() => handleSubmit(false)}
+                        className="w-full gap-1.5 bg-publish text-publish-foreground hover:bg-publish/80"
+                      />
+                    }
+                  >
+                    {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+                    Publish now
+                  </TooltipTrigger>
+                  {notConnected ? <TooltipContent>Connect a platform to publish</TooltipContent> : null}
+                </Tooltip>
                 <div className="flex flex-col gap-2 border-t pt-3">
                   <p className="text-xs font-medium text-muted-foreground">Or schedule for later</p>
                   <Calendar mode="single" selected={scheduledDate} onSelect={setScheduleDate} disabled={{ before: new Date(new Date().toDateString()) }} className="w-full rounded-lg border p-2" />
                   <Input type="time" value={scheduledTime} onChange={(e) => setScheduleTime(e.target.value)} className="h-8" />
-                  <Button type="button" variant="outline" disabled={isSubmitting || !scheduledFor} onClick={() => handleSubmit(true)} className="w-full">
+                  <Button type="button" variant="outline" disabled={isSubmitting || notConnected || !scheduledFor} onClick={() => handleSubmit(true)} className="w-full">
                     Schedule
                   </Button>
                 </div>

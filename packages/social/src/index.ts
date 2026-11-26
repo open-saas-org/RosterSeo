@@ -1,4 +1,4 @@
-export type { SocialAdapter, SocialAuthType, SocialPlatformDef, SocialPostInput } from "./types";
+export type { SocialAdapter, SocialAuthType, SocialPlatformDef, SocialPostInput, SocialPostMetrics } from "./types";
 export { SOCIAL_PLATFORMS, getSocialAdapter, getSocialPlatformDef } from "./registry";
 export type { SocialOAuthPlatform, ConnectableAccount } from "./oauth";
 export {

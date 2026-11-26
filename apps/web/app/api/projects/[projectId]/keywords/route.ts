@@ -3,6 +3,9 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { keywordRankings, trackedKeywords, withUserContext } from "@rosterseo/db";
 import { withAuth, requireProjectAccess } from "@/lib/api-utils";
 import { addTrackedKeyword } from "@/lib/keywords/add-tracked-keyword";
+import { getUserOrganization } from "@/lib/org";
+import { resolveEffectivePlan } from "@/lib/plans";
+import { isSelfHosted } from "@/lib/self-hosted";
 
 // GET  /api/projects/:projectId/keywords - list tracked keywords for the
 // project, each annotated with its most recent rank-check snapshot (if any).
@@ -68,7 +71,7 @@ export const GET = withAuth<RouteParams>(async (_req, ctx, session) => {
   return NextResponse.json({ keywords });
 });
 
-const MAX_TRACKED_KEYWORDS = 1000;
+const DEFAULT_MAX_TRACKED_KEYWORDS = 1000;
 
 export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
   const { projectId } = await ctx.params;
@@ -76,6 +79,14 @@ export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
   const project = await requireProjectAccess(projectId, session.user.id);
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  let maxKeywords = DEFAULT_MAX_TRACKED_KEYWORDS;
+  if (!isSelfHosted()) {
+    const org = await getUserOrganization(session.user.id);
+    if (org) {
+      maxKeywords = resolveEffectivePlan(org).limits.maxTrackedKeywords;
+    }
   }
 
   const body = await req.json().catch(() => null);
@@ -94,7 +105,7 @@ export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
       return NextResponse.json({ error: "keywords must include at least one non-empty keyword" }, { status: 400 });
     }
 
-    const { added, skipped } = await withUserContext(session.user.id, async (tx) => {
+    const { added, skipped, limitReached } = await withUserContext(session.user.id, async (tx) => {
       const existingCount = await tx
         .select({ id: trackedKeywords.id })
         .from(trackedKeywords)
@@ -106,15 +117,26 @@ export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
         .where(and(eq(trackedKeywords.projectId, projectId), inArray(trackedKeywords.keyword, incoming)));
       const existingKeywords = new Set(existingRows.map((r) => r.keyword));
 
-      const room = Math.max(0, MAX_TRACKED_KEYWORDS - existingCount.length);
+      const room = Math.max(0, maxKeywords - existingCount.length);
       const toInsert = incoming.filter((k) => !existingKeywords.has(k)).slice(0, room);
 
       if (toInsert.length > 0) {
         await tx.insert(trackedKeywords).values(toInsert.map((keyword) => ({ projectId, keyword })));
       }
 
-      return { added: toInsert.length, skipped: incoming.length - toInsert.length };
+      return {
+        added: toInsert.length,
+        skipped: incoming.length - toInsert.length,
+        limitReached: room === 0 && incoming.some((k) => !existingKeywords.has(k)),
+      };
     });
+
+    if (limitReached) {
+      return NextResponse.json(
+        { error: `Tracked keyword limit reached (${maxKeywords}). Upgrade your plan to track more keywords.` },
+        { status: 402 },
+      );
+    }
 
     return NextResponse.json({ added, skipped }, { status: 201 });
   }
@@ -124,6 +146,16 @@ export const POST = withAuth<RouteParams>(async (req, ctx, session) => {
   const keyword = typeof body?.keyword === "string" ? body.keyword : "";
   if (!keyword.trim()) {
     return NextResponse.json({ error: "keyword is required" }, { status: 400 });
+  }
+
+  const existingCount = await withUserContext(session.user.id, (tx) =>
+    tx.select({ id: trackedKeywords.id }).from(trackedKeywords).where(eq(trackedKeywords.projectId, projectId)),
+  );
+  if (existingCount.length >= maxKeywords) {
+    return NextResponse.json(
+      { error: `Tracked keyword limit reached (${maxKeywords}). Upgrade your plan to track more keywords.` },
+      { status: 402 },
+    );
   }
 
   const created = await addTrackedKeyword(session.user.id, projectId, keyword);

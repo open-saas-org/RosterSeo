@@ -54,6 +54,33 @@ function isPrivateIPv6(ip: string): boolean {
 
 export class SsrfBlockedError extends Error {}
 
+// dns.lookup has no signal/timeout option of its own (unlike fetch's
+// AbortSignal.timeout, used for every real fetch this package makes) - an
+// unresponsive/misconfigured DNS resolver for a real-world domain can hang
+// this well past any timeout the caller thinks it has, since this check
+// runs BEFORE the fetch (and its own timeout) even starts. Found while
+// investigating why a Page Analyzer run occasionally looked stuck far
+// longer than its "under a minute" expectation - every other network call
+// in that pipeline (DataForSEO, PageSpeed, the LLM call, the fetch itself)
+// is properly timeout-bounded; this lookup was the one real exception.
+const DNS_LOOKUP_TIMEOUT_MS = 5_000;
+
+function lookupWithTimeout(hostname: string): Promise<{ address: string; family: number }[]> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`DNS lookup for ${hostname} timed out`)), DNS_LOOKUP_TIMEOUT_MS);
+    dns.promises
+      .lookup(hostname, { all: true })
+      .then((addresses) => {
+        clearTimeout(timer);
+        resolve(addresses);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 export async function assertPublicHost(urlString: string): Promise<void> {
   let parsed: URL;
   try {
@@ -66,7 +93,16 @@ export async function assertPublicHost(urlString: string): Promise<void> {
     throw new SsrfBlockedError(`Refusing to fetch a non-http(s) URL: ${urlString}`);
   }
 
-  const hostname = parsed.hostname;
+  // URL.hostname keeps the brackets for an IPv6 literal (e.g. "[::1]"),
+  // per the WHATWG URL spec - net.isIP() doesn't recognize that form at
+  // all (returns 0, "not an IP"), so every bracketed IPv6 literal used to
+  // fall through to the dns.lookup() branch below, which then failed to
+  // resolve a literal address string and threw "could not resolve" - a
+  // SsrfBlockedError either way, but for the wrong reason: it blocked
+  // every IPv6 literal, public or private, not just private ones.
+  const hostname = parsed.hostname.startsWith("[") && parsed.hostname.endsWith("]")
+    ? parsed.hostname.slice(1, -1)
+    : parsed.hostname;
   const ipVersion = net.isIP(hostname);
 
   if (ipVersion === 4) {
@@ -86,7 +122,7 @@ export async function assertPublicHost(urlString: string): Promise<void> {
   // check every real DNS answer, not just the hostname string.
   let addresses: { address: string; family: number }[];
   try {
-    addresses = await dns.promises.lookup(hostname, { all: true });
+    addresses = await lookupWithTimeout(hostname);
   } catch (err) {
     throw new SsrfBlockedError(`Could not resolve ${hostname}: ${err instanceof Error ? err.message : String(err)}`);
   }

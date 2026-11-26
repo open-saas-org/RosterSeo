@@ -46,6 +46,7 @@ export default async function SocialPostDetailPage({ params }: { params: Promise
           scheduledFor: post.scheduledFor?.toISOString() ?? null,
           createdAt: post.createdAt.toISOString(),
           updatedAt: post.updatedAt.toISOString(),
+          platforms: Array.from(new Set(targets.map((t) => t.platform))),
         }}
         initialTargets={targets.map((t) => ({ ...t, status: t.status as SocialPostTargetView["status"], publishedAt: t.publishedAt?.toISOString() ?? null }))}
       />

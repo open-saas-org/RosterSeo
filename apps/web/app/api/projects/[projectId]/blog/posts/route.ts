@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { blogPosts, withUserContext } from "@rosterseo/db";
 import { requireProjectAccess, withAuth } from "@/lib/api-utils";
 import { createBlogPost } from "@/lib/publish/create-post";
@@ -8,14 +8,21 @@ type RouteParams = { projectId: string };
 
 // GET  - list every post for the project, most recent first (the
 //        /publish/posts list page - per-target status comes from the
-//        [postId] detail route, not duplicated here).
+//        [postId] detail route, not duplicated here). Optional ?status=
+//        filters server-side (platform filtering stays client-side in the
+//        Posts workspace, since platform lives on targets/connections, not
+//        the post row, and the list already fetches per-post platforms for
+//        display) - cheap to extend with more params later.
 // POST - create a draft post + one target per selected connection.
-export const GET = withAuth<RouteParams>(async (_req, ctx, session) => {
+export const GET = withAuth<RouteParams>(async (req, ctx, session) => {
   const { projectId } = await ctx.params;
   const project = await requireProjectAccess(projectId, session.user.id);
   if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const posts = await withUserContext(session.user.id, (tx) => tx.select().from(blogPosts).where(eq(blogPosts.projectId, projectId)).orderBy(desc(blogPosts.createdAt)));
+  const status = req.nextUrl.searchParams.get("status");
+  const where = status ? and(eq(blogPosts.projectId, projectId), eq(blogPosts.status, status)) : eq(blogPosts.projectId, projectId);
+
+  const posts = await withUserContext(session.user.id, (tx) => tx.select().from(blogPosts).where(where).orderBy(desc(blogPosts.createdAt)));
 
   return NextResponse.json({ posts });
 });

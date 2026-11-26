@@ -200,7 +200,7 @@ function PromptCard({
         )}
 
         <div className="flex items-center gap-2 border-t pt-3">
-          <Button variant="outline" size="sm" className="gap-1.5" render={<Link href={`/ai-visibility/visibility/${prompt.id}`} />}>
+          <Button variant="outline" size="sm" className="gap-1.5" render={<Link href={`/ai-visibility/visibility/${prompt.id}`} />} nativeButton={false}>
             <ExternalLink className="size-3.5" />
             View Details
           </Button>
@@ -352,7 +352,7 @@ export function VisibilityDashboard({
       </Card>
 
       {filteredRows.length === 0 ? (
-        <EmptyState icon={Search} title="No matching prompts" description="Try a different search or clear the tag filter." />
+        <EmptyState icon={Search} graphic="ai-visibility" title="No matching prompts" description="Try a different search or clear the tag filter." />
       ) : (
         <div className="flex flex-col gap-4">
           {filteredRows.map(({ prompt }) => (

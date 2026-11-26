@@ -160,9 +160,16 @@ export function GaInsightsWorkspace({
     }
   }
 
-  const metrics: GaInsightsMetrics | null = useMemo(() => (trend.length > 0 ? summarizeGaOrganicTrend(trend) : null), [trend]);
-  const chartData = useMemo(() => trend.map((row) => ({ date: formatChartDate(row.date), sessions: row.sessions })), [trend]);
-  const latestDataDate = trend.length > 0 ? trend[trend.length - 1]!.date : null;
+  const sortedTrend = useMemo(() => [...trend].sort((a, b) => a.date.localeCompare(b.date)), [trend]);
+  const metrics: GaInsightsMetrics | null = useMemo(
+    () => (sortedTrend.length > 0 ? summarizeGaOrganicTrend(sortedTrend) : null),
+    [sortedTrend],
+  );
+  const chartData = useMemo(
+    () => sortedTrend.map((row) => ({ date: formatChartDate(row.date), sessions: row.sessions })),
+    [sortedTrend],
+  );
+  const latestDataDate = sortedTrend.length > 0 ? sortedTrend[sortedTrend.length - 1]!.date : null;
   const daysBehind = useMemo(() => {
     if (!latestDataDate) return null;
     const diffMs = Date.now() - new Date(`${latestDataDate}T00:00:00Z`).getTime();

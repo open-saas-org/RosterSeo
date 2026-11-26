@@ -162,6 +162,7 @@ export function CompetitorWorkspace({
       {competitors.length === 0 ? (
         <EmptyState
           icon={Swords}
+          graphic="competitors"
           title="No competitors tracked yet"
           description="Add a competitor domain above to see how they stack up on traffic, keywords, and backlinks."
         />

@@ -1,8 +1,10 @@
+import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { CopyCommandButton } from "@/components/ai-mcp/copy-command-button";
 import { McpKeyManager } from "@/components/ai-mcp/mcp-key-manager";
+import { isSelfHosted } from "@/lib/self-hosted";
 
 const RUN_COMMAND = "pnpm --filter @rosterseo/mcp-server dev";
 
@@ -112,6 +114,9 @@ const EXAMPLE_PROMPTS = [
 ];
 
 export default function AiMcpPage() {
+  if (!isSelfHosted()) {
+    redirect("/");
+  }
   return (
     <div className="flex flex-col gap-4">
       <PageHeader

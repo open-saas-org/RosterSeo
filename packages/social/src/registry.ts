@@ -29,7 +29,8 @@ export const SOCIAL_PLATFORMS: SocialPlatformDef[] = [
       { key: "handle", label: "Handle (e.g. you.bsky.social)", type: "text" },
       { key: "appPassword", label: "App Password", type: "password" },
     ],
-    accountIdentifierLabel: "Handle (same as above)",
+    accountIdentifierLabel: "Handle",
+    accountIdentifierSource: "handle",
   },
   {
     id: "mastodon",

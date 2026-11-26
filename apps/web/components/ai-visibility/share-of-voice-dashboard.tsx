@@ -155,6 +155,7 @@ export function ShareOfVoiceDashboard({
     return (
       <EmptyState
         icon={Megaphone}
+        graphic="ai-visibility"
         title="No visibility runs yet"
         description="Run a visibility check from the Visibility page to see how your brand compares to your tracked competitors. Add competitors from the Competitors shortcut in the top bar first for a real comparison."
       />
@@ -246,8 +247,8 @@ export function ShareOfVoiceDashboard({
                               width: `${row.share}%`,
                               backgroundColor: row.entity.isBrand
                                 ? "var(--chart-1)"
-                                : i < 6
-                                  ? `var(--chart-${(i % 6) + 1})`
+                                : i < 5
+                                  ? `var(--chart-${(i % 5) + 2})`
                                   : "var(--muted-foreground)",
                             }}
                           />

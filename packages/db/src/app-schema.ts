@@ -8,8 +8,44 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  // --- Hosted SaaS billing (apps/web/lib/plans.ts, apps/web/lib/cashfree.ts) ---
+  // All null/default in SELF_HOSTED mode, where none of this is read -
+  // see apps/web/lib/self-hosted.ts. planId defaults to "free" rather than
+  // null so every org (including every existing self-hosted org after this
+  // migration) always has a real plan to resolve limits against; hosted
+  // mode's signup flow immediately overwrites it with "trial".
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  planId: text("plan_id").notNull().default("free"), // free | trial | starter | pro | agency
+  subscriptionStatus: text("subscription_status").notNull().default("active"), // active | trialing | past_due | canceled | incomplete
+  trialEndsAt: timestamp("trial_ends_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Monthly per-org usage counters backing hosted-mode plan limits
+// (apps/web/lib/usage.ts) - deliberately a simple incrementing counter per
+// (org, metric, month), not a per-event ledger like the deleted
+// credit_ledger (see migration 0012's own comment) - this only needs to
+// answer "has this org gone over its monthly cap for X", never "what
+// exactly did they spend it on", so there's no need to keep one row per
+// action. No-op entirely (never read or written) in SELF_HOSTED mode.
+export const usageCounters = pgTable(
+  "usage_counters",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    // page_analyzer_reports | site_audits | ai_visibility_prompts | rank_checks | connected_accounts
+    metric: text("metric").notNull(),
+    // Always the first-of-month, UTC, midnight - the unique key's third
+    // column, so "this month's" row is a plain equality lookup rather than
+    // a range query.
+    periodStart: timestamp("period_start").notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (table) => [unique().on(table.organizationId, table.metric, table.periodStart)],
+);
 
 export const organizationMembers = pgTable("organization_members", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -639,9 +675,10 @@ export const localSeoRecommendations = pgTable("local_seo_recommendations", {
 
 // One real WordPress site connected per project, via a WP core 5.6+
 // Application Password (Users > Profile in the customer's own WP admin) -
-// no plugin, no OAuth. `applicationPassword` is stored as plain text, same
-// convention google_connections.access_token/refresh_token already use, so
-// this doesn't introduce a new encryption layer inconsistently.
+// no plugin, no OAuth. `applicationPassword` goes through
+// packages/db/src/crypto.ts's encryptSecret/decryptSecret at every real
+// write/read call site (the connect route and packages/wordpress's
+// client), same as google_connections.access_token/refresh_token.
 export const wordpressConnections = pgTable("wordpress_connections", {
   projectId: uuid("project_id")
     .primaryKey()
@@ -660,10 +697,11 @@ export const wordpressConnections = pgTable("wordpress_connections", {
 // right for GSC/GA/GBP/Merchant's "verify a property once" model), but
 // outreach identity is naturally per-project (an agency wants project A's
 // outreach coming from a different address than project B's).
-// smtpPasswordEncrypted is stored as plain text, same convention
-// google_connections.access_token/wordpress_connections.application_password
-// already use (see that table's own comment) - not introducing a new
-// encryption layer inconsistently for just this one credential.
+// smtpPasswordEncrypted (and the gmail* OAuth token columns below) go
+// through crypto.ts's encryptSecret/decryptSecret, same as
+// google_connections/wordpress_connections - see apps/web/app/api/projects/
+// [projectId]/email-connections/route.ts (write) and
+// apps/worker/src/features/outreach-runner.ts (read, at point of use).
 export const emailConnections = pgTable("email_connections", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id")
@@ -969,9 +1007,11 @@ export const providerSpendLog = pgTable("provider_spend_log", {
 // platforms (app password, API key, OAuth token, GraphQL PAT...) wide
 // columns per type would be unwieldy - same reasoning as
 // local_business_profiles.attributes storing "Google's own nested shapes,
-// not worth fully modeling". Stored as plain text, same convention every
-// other credential in this app already uses (google_connections,
-// wordpress_connections, email_connections all document this same choice).
+// not worth fully modeling". Every value in this record goes through
+// crypto.ts's encryptRecord/decryptRecord (the jsonb-shaped sibling of
+// encryptSecret/decryptSecret - preserves keys, encrypts values) at the
+// connect route (write) and each platform adapter's connection-fetch
+// helper (read) - see packages/publishing/src/connections.ts.
 export const blogConnections = pgTable("blog_connections", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id")
@@ -1040,6 +1080,14 @@ export const blogPostTargets = pgTable("blog_post_targets", {
   remoteUrl: text("remote_url"),
   failureReason: text("failure_reason"),
   publishedAt: timestamp("published_at"),
+  // The pg-boss job id returned by blogPublishJob.enqueue() for this
+  // target's currently-queued send, if any - lets the Posts workspace's
+  // reschedule action move the job's real startAfter in place
+  // (boss.update(name, null, { id, startAfter })) instead of either
+  // leaving a stale job to fire at the old time, or blindly re-enqueuing a
+  // second one alongside it. Null once a target has been picked up
+  // (publishing/published/failed) - nothing left to reschedule by then.
+  pgBossJobId: text("pg_boss_job_id"),
 });
 
 export const blogPostsRelations = relations(blogPosts, ({ many }) => ({
@@ -1109,6 +1157,8 @@ export const socialPostTargets = pgTable("social_post_targets", {
   remoteUrl: text("remote_url"),
   failureReason: text("failure_reason"),
   publishedAt: timestamp("published_at"),
+  // See blogPostTargets.pgBossJobId - same reschedule mechanism, social side.
+  pgBossJobId: text("pg_boss_job_id"),
 });
 
 export const socialPostsRelations = relations(socialPosts, ({ many }) => ({
@@ -1118,6 +1168,38 @@ export const socialPostsRelations = relations(socialPosts, ({ many }) => ({
 export const socialPostTargetsRelations = relations(socialPostTargets, ({ one }) => ({
   post: one(socialPosts, { fields: [socialPostTargets.socialPostId], references: [socialPosts.id] }),
   connection: one(socialConnections, { fields: [socialPostTargets.socialConnectionId], references: [socialConnections.id] }),
+}));
+
+// One row per real fetch of a published target's platform-native
+// engagement numbers (PUBLISHING_PLATFORM_PRD.md §3) - a snapshot log, not
+// an upsert-in-place single row, so a trend chart can show change over
+// time rather than just "latest." projectId is denormalized here too,
+// same reasoning as blogPostTargets/socialPostTargets (a direct RLS
+// policy instead of joining through target -> post -> project). Every
+// metric column is nullable and deliberately left null (never 0) when a
+// platform's API didn't actually return that field for that post type -
+// see each packages/social adapter's fetchMetrics() for exactly which
+// fields each of Facebook/Instagram/LinkedIn can honestly provide.
+export const socialPostMetrics = pgTable("social_post_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  socialPostTargetId: uuid("social_post_target_id")
+    .notNull()
+    .references(() => socialPostTargets.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(),
+  fetchedAt: timestamp("fetched_at").notNull().defaultNow(),
+  reach: integer("reach"),
+  impressions: integer("impressions"),
+  likes: integer("likes"),
+  comments: integer("comments"),
+  shares: integer("shares"),
+  clicks: integer("clicks"),
+});
+
+export const socialPostMetricsRelations = relations(socialPostMetrics, ({ one }) => ({
+  target: one(socialPostTargets, { fields: [socialPostMetrics.socialPostTargetId], references: [socialPostTargets.id] }),
 }));
 
 // A saved platform combination ("Marketing team" -> LinkedIn + X + Bluesky,

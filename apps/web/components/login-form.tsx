@@ -23,16 +23,25 @@ export function LoginForm() {
     setError(null);
     setIsSubmitting(true);
 
-    const { error: signInError } = await authClient.signIn.email({ email, password });
+    try {
+      const { error: signInError } = await authClient.signIn.email({ email, password });
 
-    if (signInError) {
-      setError(signInError.message ?? "Could not log you in.");
+      if (signInError) {
+        setError(signInError.message ?? "Could not log you in.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get("redirect");
+      const safeTarget = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+
+      router.push(safeTarget);
+      router.refresh();
+    } catch {
+      setError("Network error while logging in. Please try again.");
       setIsSubmitting(false);
-      return;
     }
-
-    router.push("/");
-    router.refresh();
   }
 
   return (

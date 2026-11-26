@@ -12,4 +12,6 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
 
 export { withUserContext } from "./with-user-context";
+export { withSystemContext } from "./with-system-context";
 export { insertSpendLog, type SpendLogInput } from "./spend-logger";
+export { encryptSecret, decryptSecret, encryptRecord, decryptRecord, isEncrypted } from "./crypto";

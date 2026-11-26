@@ -111,6 +111,7 @@ export function BacklinksWorkspace({
       {!result ? (
         <EmptyState
           icon={Link2}
+          graphic="backlinks"
           title="No domain looked up yet"
           description="Search a domain above to see its backlink profile from the built-in backlink index."
         />

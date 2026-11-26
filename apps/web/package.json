@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/utilities": "^3.2.2",
     "@rosterseo/ai-visibility": "workspace:*",
     "@rosterseo/bing": "workspace:*",
     "@rosterseo/crawler": "workspace:*",

@@ -45,6 +45,13 @@ export type BlogPostView = {
   createdByUserId: string;
   createdAt: string;
   updatedAt: string;
+  // Distinct target platforms for this post (e.g. ["wordpress", "ghost"]) -
+  // populated by the Posts list page's own query (a join over
+  // blog_post_targets -> blog_connections), not by the plain GET
+  // /blog/posts route, which stays target-free on purpose. Used for the
+  // Posts workspace's per-row platform badges and client-side platform
+  // filter.
+  platforms: string[];
 };
 
 export type BlogPostTargetView = {

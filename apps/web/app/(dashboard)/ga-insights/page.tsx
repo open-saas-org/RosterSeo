@@ -85,6 +85,7 @@ export default async function GaInsightsPage() {
           ) : null}
           <EmptyState
             icon={LineChart}
+            graphic="insights"
             title={
               fetchFailed || ga4.status === "needs_reconnect"
                 ? "Google Analytics needs reconnecting"
