@@ -235,9 +235,6 @@ importers:
       shadcn:
         specifier: ^4.16.2
         version: 4.16.2(supports-color@8.1.1)(typescript@5.9.3)
-      stripe:
-        specifier: ^23.2.0
-        version: 23.2.0(@types/node@22.20.1)
       swr:
         specifier: ^2.2.5
         version: 2.5.0(react@19.2.8)
@@ -6886,15 +6883,6 @@ packages:
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
-
-  stripe@23.2.0:
-    resolution: {integrity: sha512-0W0J4yA9qFO2rnF61v8Y62OiO2SmAR+Cv04VJaFUMpCxiq8lG5bxEYbeSMSpMDR9ofFZGd+Z/iUIgSFbOolmUw==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      '@types/node': '>=20'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
 
   style-to-js@1.1.21:
     resolution: {integrity: sha512-RjQetxJrrUJLQPHbLku6U/ocGtzyjbJMP9lCNK7Ag0CNh690nSH8woqWH9u16nMjYBAok+i7JO1NP2pOy8IsPQ==}
@@ -14167,10 +14155,6 @@ snapshots:
       min-indent: 1.0.1
 
   strip-json-comments@3.1.1: {}
-
-  stripe@23.2.0(@types/node@22.20.1):
-    optionalDependencies:
-      '@types/node': 22.20.1
 
   style-to-js@1.1.21:
     dependencies:

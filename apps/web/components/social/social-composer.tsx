@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Calendar } from "@/components/ui/calendar";
-import { EmptyState } from "@/components/empty-state";
 import { SocialCharCounter } from "./social-char-counter";
 import { cn } from "@/lib/utils";
 import type { SocialConnectionView, SocialPlatformDefView, SocialPlatformTemplateView } from "./types";
@@ -188,30 +187,35 @@ export function SocialComposer({
     }
   }
 
-  if (connections.length === 0) {
-    return (
-      <EmptyState
-        icon={Share2}
-        graphic="social"
-        title="No social platforms connected yet"
-        description="Connect at least one social platform before you can compose a post."
-        action={
-          <Button render={<Link href="/social/connections" />} nativeButton={false} size="sm">
-            Connect a platform
-          </Button>
-        }
-      />
-    );
-  }
+  const notConnected = connections.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
+      {notConnected ? (
+        <Card className="border-dashed border-sky/40 bg-sky/5">
+          <CardContent className="flex flex-col items-center gap-3 py-5 text-center sm:flex-row sm:justify-between sm:text-left">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky/10 text-sky">
+                <Share2 className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">This is what the composer looks like</p>
+                <p className="text-xs text-muted-foreground">Try it out below — connect a platform when you&apos;re ready to actually post or schedule.</p>
+              </div>
+            </div>
+            <Button render={<Link href="/social/connections" />} nativeButton={false} size="sm" className="w-full shrink-0 sm:w-auto">
+              Connect a platform
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardContent className="flex flex-col gap-3 pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Label className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Select platforms</Label>
             <div className="flex items-center gap-2">
-              <Select value={templateId} onValueChange={applyTemplate}>
+              <Select value={templateId} onValueChange={applyTemplate} disabled={notConnected}>
                 <SelectTrigger className="w-56">
                   <SelectValue placeholder="No preselected platforms" />
                 </SelectTrigger>
@@ -233,36 +237,40 @@ export function SocialComposer({
               </Button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2.5">
-            {connections.map((c) => {
-              const def = platformById.get(c.platform);
-              const selected = selectedIds.includes(c.id);
-              return (
-                <Tooltip key={c.id}>
-                  <TooltipTrigger
-                    render={
-                      <button
-                        type="button"
-                        onClick={() => toggleConnection(c.id)}
-                        aria-pressed={selected}
-                        className={cn(
-                          "relative flex size-10 items-center justify-center rounded-full border transition-colors",
-                          selected ? "border-sky bg-sky/10 ring-2 ring-sky/40" : "border-border hover:bg-muted/50",
-                        )}
-                      />
-                    }
-                  >
-                    {def ? <Image src={def.logo} alt="" width={18} height={18} /> : <Share2 className="size-4 text-muted-foreground" />}
-                    {selected ? (
-                      <span className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-full bg-sky text-white">
-                        <Check className="size-2.5" />
-                      </span>
-                    ) : null}
-                  </TooltipTrigger>
-                  <TooltipContent>{c.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {notConnected ? (
+              <p className="text-xs text-muted-foreground">Your connected platforms will show up here as selectable avatars.</p>
+            ) : (
+              connections.map((c) => {
+                const def = platformById.get(c.platform);
+                const selected = selectedIds.includes(c.id);
+                return (
+                  <Tooltip key={c.id}>
+                    <TooltipTrigger
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => toggleConnection(c.id)}
+                          aria-pressed={selected}
+                          className={cn(
+                            "relative flex size-10 items-center justify-center rounded-full border transition-colors",
+                            selected ? "border-sky bg-sky/10 ring-2 ring-sky/40" : "border-border hover:bg-muted/50",
+                          )}
+                        />
+                      }
+                    >
+                      {def ? <Image src={def.logo} alt="" width={18} height={18} /> : <Share2 className="size-4 text-muted-foreground" />}
+                      {selected ? (
+                        <span className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-full bg-sky text-white">
+                          <Check className="size-2.5" />
+                        </span>
+                      ) : null}
+                    </TooltipTrigger>
+                    <TooltipContent>{c.label}</TooltipContent>
+                  </Tooltip>
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>
@@ -271,7 +279,9 @@ export function SocialComposer({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-1.5">
-              <Share2 className="size-4 text-sky" />
+              <span className="flex size-6 items-center justify-center rounded-md bg-sky/10 text-sky">
+                <Share2 className="size-3.5" />
+              </span>
               New post
             </CardTitle>
           </CardHeader>
@@ -333,21 +343,35 @@ export function SocialComposer({
             ) : null}
 
             {editPerPlatform ? (
-              <Button type="button" disabled={isSubmitting} onClick={() => handleSubmit(false)} className="w-full gap-1.5">
-                {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
-                Continue to per-platform editing
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button type="button" disabled={isSubmitting || notConnected} onClick={() => handleSubmit(false)} className="w-full gap-1.5" />
+                  }
+                >
+                  {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+                  Continue to per-platform editing
+                </TooltipTrigger>
+                {notConnected ? <TooltipContent>Connect a platform to continue</TooltipContent> : null}
+              </Tooltip>
             ) : (
               <>
-                <Button type="button" disabled={isSubmitting} onClick={() => handleSubmit(false)} className="w-full gap-1.5">
-                  {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-                  Post now
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button type="button" disabled={isSubmitting || notConnected} onClick={() => handleSubmit(false)} className="w-full gap-1.5" />
+                    }
+                  >
+                    {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+                    Post now
+                  </TooltipTrigger>
+                  {notConnected ? <TooltipContent>Connect a platform to post</TooltipContent> : null}
+                </Tooltip>
                 <div className="flex flex-col gap-2 border-t pt-3">
                   <p className="text-xs font-medium text-muted-foreground">Or schedule for later</p>
                   <Calendar mode="single" selected={scheduledDate} onSelect={setScheduleDate} disabled={{ before: new Date(new Date().toDateString()) }} className="w-full rounded-lg border p-2" />
                   <Input type="time" value={scheduledTime} onChange={(e) => setScheduleTime(e.target.value)} className="h-8" />
-                  <Button type="button" variant="outline" disabled={isSubmitting || !scheduledFor} onClick={() => handleSubmit(true)} className="w-full">
+                  <Button type="button" variant="outline" disabled={isSubmitting || notConnected || !scheduledFor} onClick={() => handleSubmit(true)} className="w-full">
                     Schedule
                   </Button>
                 </div>
